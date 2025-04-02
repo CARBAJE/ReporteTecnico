@@ -1,3 +1,4 @@
+\usetikzlibrary{positioning,arrows,shapes}
 \section[Método Multipolar Rápido]{Método Multipolar Rápido (Fast Multipole Method -\ FMM)}\label{subsec:fmm}
 
 El Método Multipolar Rápido (FMM), es una técnica computacional fundamental desarrollada para acelerar significativamente la evaluación de interacciones de largo alcance en sistemas de $N$ partículas o elementos~\cite{GreengardRokhlin1987, Martinsson2012}. Reconocido como uno de los algoritmos más influyentes del siglo XX~\cite{Cipra2000}, el FMM reduce drásticamente la complejidad computacional inherente a los problemas de $N$-cuerpos. Mientras que un cálculo directo de todas las interacciones par a par requiere $O(N^2)$ operaciones, el FMM logra esta tarea típicamente en $O(N)$ o $O(N \log N)$ operaciones, dependiendo de la distribución de las partículas y la variante del método empleada~\cite{BeatsonGreengard1997, GreengardRokhlin1987}. De manera más precisa, en $d$ dimensiones, la complejidad puede estimarse como $O(N \log^{(d-1)}(1/\epsilon))$ a medida que la precisión deseada $\epsilon$ tiende a cero~\cite{Martinsson2012}. Conceptualmente, el FMM puede interpretarse como un método para acelerar la multiplicación de un vector por una matriz densa específica que surge de la discretización de operadores integrales o sumas de interacciones par a par~\cite{ChenSF, Martinsson2012}.
@@ -25,22 +26,46 @@ Finalmente, en las celdas hoja, el potencial total en cada punto se calcula suma
 Desde una perspectiva matricial, el FMM explota la propiedad de que los bloques fuera de la diagonal de la matriz de interacción (que representan interacciones entre grupos de puntos separados espacialmente) tienen bajo rango numérico y pueden aproximarse eficientemente mediante factorizaciones de bajo rango, como las implícitas en las expansiones multipolares y locales~\cite{ChenSF, Martinsson2012}.
 
 % --- Placeholder para Figura 1 (Jerarquía y Listas) ---
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     % Descomenta la siguiente línea e inserta la ruta a tu imagen
-    % \includegraphics[width=0.8\textwidth]{ruta/a/figura_jerarquia_fmm.png}
-    \fbox{\parbox{0.8\textwidth}{\centering Placeholder: Figura Esquema de la Jerarquía de Celdas y Listas de Interacción}}
-    \caption{Esquema de la estructura jerárquica de celdas (e.g., octree) y la distinción entre interacciones de campo cercano (directas) y campo lejano (aproximadas mediante expansiones), incluyendo la lista de interacción. Adaptado de~\cite{GreengardRokhlin1987, Ying2012}.}%
+    \includegraphics[width=0.65\textwidth]{img/marcoTeorico/fmm_esquema.png}
+    %\fbox{\parbox{0.8\textwidth}{\centering Placeholder: Figura Esquema de la Jerarquía de Celdas y Listas de Interacción}}
+    \caption{Esquema de la estructura jerárquica de celdas (e.g., quadtree) y la distinción entre interacciones de campo cercano (directas) y campo lejano (aproximadas mediante expansiones), incluyendo la lista de interacción. Adaptado de~\cite{GreengardRokhlin1987, Ying2012}.}%
     \label{fig:fmm_hierarchy}
 \end{figure}
 
 % --- Placeholder para Figura 2 (Operadores) ---
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
-    % Descomenta la siguiente línea e inserta la ruta a tu imagen
-    % \includegraphics[width=0.7\textwidth]{ruta/a/figura_operadores_fmm.png}
-     \fbox{\parbox{0.7\textwidth}{\centering Placeholder: Diagrama de Flujo de Operadores de Traslación}}
-    \caption{Ilustración del flujo de información en el FMM:\ fuentes originales (q) $\rightarrow$ expansión saliente ($\hat{q}$) $\rightarrow$ expansión entrante ($\hat{v}$) $\rightarrow$ potenciales (v), mostrando los operadores T\textsuperscript{ofs}, T\textsuperscript{ifo}, y T\textsuperscript{tfi}. Adaptado de~\cite{Martinsson2012}.}%
+    \resizebox{0.85\textwidth}{!}{ % Cambia el factor de escala aquí
+    \begin{tikzpicture}[node distance=3cm and 4cm]
+        % Define nodes for the vectors
+        \node[draw, text width=4.5cm, align=left, font=\small] (q) at (-4, 2) {The full vector of sources in $\sigma$.\\ Vector of length $N_\sigma$ (a long vector).};
+        \node[draw, text width=4.5cm, align=left, font=\small] (v) at (6, 2) {The full vector of potentials in $\tau$.\\ Vector of length $N_\tau$ (a long vector).};
+        \node[draw, text width=4.5cm, align=left, font=\small] (qhat) at (-4, -2) {The outgoing expansion for $\sigma$.\\ A compact representation of the sources.\\ Vector of length $k$ (a short vector).};
+        \node[draw, text width=4.5cm, align=left, font=\small] (vhat) at (6, -2) {The incoming expansion for $\tau$.\\ A compact representation of the potential.\\ Vector of length $k$ (a short vector).};
+
+        % Define intermediate nodes
+        \node (qmid) at (0, 2) {$\mathbf{q}^\sigma$};
+        \node (vmid) at (2, 2) {$\mathbf{v}^\tau$};
+        \node (qhatmid) at (0, -2) {$\hat{\mathbf{q}}^\sigma$};
+        \node (vhatmid) at (2, -2) {$\hat{\mathbf{v}}^\tau$};
+
+        % Draw arrows
+        \draw[-latex] (qmid) -- (vmid) node[midway, above] {$\mathbf{A}(I_\tau, I_\sigma)$};
+        \draw[-latex] (qmid) -- (qhatmid) node[midway, left] {$\mathbf{T}_\sigma^{\text{ofs}}$};
+        \draw[-latex] (qhatmid) -- (vhatmid) node[midway, above] {$\mathbf{T}_{\tau,\sigma}^{\text{ifo}}$};
+        \draw[-latex] (vhatmid) -- (vmid) node[midway, right] {$\mathbf{T}_\tau^{\text{tfi}}$};
+
+        % Draw lines from boxes to intermediate nodes
+        \draw (q) -- (qmid);
+        \draw (v) -- (vmid);
+        \draw (qhat) -- (qhatmid);
+        \draw (vhat) -- (vhatmid);
+    \end{tikzpicture}
+    }
+    \caption{Ilustración del flujo de información en el FMM:\ fuentes originales ($\mathbf{q}^\sigma$) $\rightarrow$ expansión saliente ($\hat{\mathbf{q}}^\sigma$) $\rightarrow$ expansión entrante ($\hat{\mathbf{v}}^\tau$) $\rightarrow$ potenciales ($\mathbf{v}^\tau$), mostrando los operadores T\textsuperscript{ofs}, T\textsuperscript{ifo}, y T\textsuperscript{tfi}. Adaptado de~\cite{Martinsson2012}.}%
     \label{fig:fmm_translations}
 \end{figure}
 
