@@ -1,0 +1,82 @@
+\documentclass[hidelinks]{ipn}
+\usepackage{ipnstyle}
+\usepackage{lipsum}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{bookmark}
+\usepackage{hyperref}
+\usepackage{minted}
+% \usepackage{cite}
+
+\usepackage{tikz, lipsum, lmodern}
+\usepackage[most]{tcolorbox}
+\usepackage{etoolbox}  % Añade esta línea
+\usepackage{microtype}  % Mejora la justificación y tipografía
+\usepackage{ragged2e}  % Añade esta línea en el preámbulo
+\usepackage{parskip}
+\usepackage{changepage} % en el preámbulo
+\setlength{\parindent}{0pt}
+% Añade esta línea antes de \begin{document}
+\let\cleardoublepage\clearpage
+\setlength{\emergencystretch}{3em}
+\tolerance=9999
+\AtBeginDocument{\justifying}
+
+\makeatletter
+\makeatother
+
+\author{José Emiliano Carrillo Barreiro\\
+        José Ángel Robles Otero}
+\title{Modelo para representar comportamientos gravitacionales con dos cuerpos}
+\schoolname{Escuela Superior de Cómputo}
+\degree{Maestría en Ciencias de la Computación}
+\advisor{Dr.\ Cesar Hernández Vasquez}
+\coadvisor{Dr.\ Mauricio Olguín Carbajal}
+\academicyear{\today}
+
+\hypersetup{
+    colorlinks=false,
+    pdfauthor={Your Name},
+    pdftitle={Modelo para representar comportamientos gravitacionales con dos cuerpos},
+    pdfsubject={Thesis},
+    pdfkeywords={keyword1, keyword2, keyword3}
+    pdfproducer={Latex with hyperref},
+    pdfcreator={pdflatex}
+}
+
+\addbibresource{./references.bib}
+\pagestyle{headings}
+
+% ========= DEFINICIONES DE COLORES
+
+\begin{document}
+\justifying%
+\frontmatter
+    \maketitle
+    \input{frontmatter/titlepage}
+    \input{frontmatter/advertisement}
+    \input{frontmatter/00-Advertencia}
+    \input{frontmatter/01-resumen}
+    \input{frontmatter/02-Agradecimientos}
+    \tableofcontents
+    \listoffigures
+    \listoftables
+    \listofalgorithms%
+
+\mainmatter%
+    %\include{chapters/chapter01}
+    %\include{chapters/chapter02}
+    \include{chapters/01-Introduccion}
+    \include{chapters/02-EstadoDelArte}
+    \include{chapters/03-MarcoTeorico}
+
+    \appendix
+        %\include{Appendices/appendixA}
+        %\include{Appendices/appendixB}
+
+\backmatter%
+    \bookmarksetup{startatroot}
+    \printbibliography[heading=bibintoc]
+\end{document}

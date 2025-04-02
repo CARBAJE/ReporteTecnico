@@ -1,0 +1,31 @@
+\section[Producto 02: Representación de Objetos]{Producto 02: Representación de Objetos mediante \textit{Quadtrees} y \textit{Octrees} de División No Minimal}\label{sec:object_representation}
+
+Dentro del contexto que nos concierne, la simulación de sistemas gravitacionales, la representación eficiente de estructuras geométricas resulta esencial para modelar y visualizar cuerpos celestes y sus interacciones. La precisión en dicha representación influye directamente en la capacidad de los modelos para simular fenómenos físicos complejos, como trayectorias y colisiones en sistemas de dos cuerpos. En este contexto, el artículo ``Object Representation by Means of Nonminimal Division \textit{Quadtrees} and \textit{Octrees}"~\cite{Ayala1985} propone una técnica avanzada para la representación de objetos geométricos en dos y tres dimensiones mediante estructuras jerárquicas de datos, con potencial relevancia para el proyecto descrito en este reporte técnico.
+
+\subsection{Descripción y Arquitectura Técnica}
+
+El artículo desarrolla un método innovador para representar objetos poligonales (en 2D) y polihédricos (en 3D) utilizando \textit{quadtrees} y \textit{octrees} de división no minimal. Estas estructuras jerárquicas subdividen recursivamente el espacio en cuadrantes (\textit{quadtree}) u octantes (\textit{octree}), optimizando la representación de geometrías complejas. A diferencia de los métodos tradicionales, este enfoque introduce nodos especializados: 
+\begin{itemize}
+    \item \textsc{WHITE}: áreas fuera del objeto. 
+    \item \textsc{BLACK}: áreas dentro del objeto.
+    \item \textsc{GRAY}: áreas que requieren subdivisión adicional. 
+    \item \textsc{EDGE}: nodos con segmentos de borde.
+    \item \textsc{VERTEX}: nodos con vértices. 
+\end{itemize}
+Esta clasificación permite una representación detallada de los contornos y vértices, facilitando operaciones como la intersección, unión y diferencia, así como la conversión precisa entre representaciones arbóreas y de bordes.
+
+\subsection{Características y Aplicaciones Prácticas}
+
+La técnica destaca por su capacidad para minimizar el uso de memoria mediante una subdivisión no minimal, que evita divisiones innecesarias en regiones uniformes. Los algoritmos propuestos exhiben una complejidad lineal, lo que los hace escalables para objetos en 2D y 3D. Estas propiedades son valiosas en aplicaciones como el modelado geométrico por computadora, sistemas CAD y simulaciones gráficas. En el proyecto de simulación gravitacional de dos cuerpos, este método podría integrarse con técnicas como el Método Multipolar Rápido (FMM) y el algoritmo de Barnes-Hut, optimizando la representación geométrica de los cuerpos celestes y complementando el cálculo de fuerzas gravitacionales.
+
+\subsection{Ventajas y Desventajas}
+
+Entre las ventajas del método se encuentran la reducción significativa del espacio de memoria, la eficiencia en operaciones booleanas y la precisión en la representación de bordes y vértices gracias a los nodos EDGE y VERTEX. Sin embargo, presenta desafíos, como una mayor complejidad de implementación debido a la necesidad de algoritmos especializados y una posible pérdida de precisión en objetos con detalles extremadamente pequeños, derivada de la naturaleza discreta de la subdivisión.
+
+\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
+
+Aunque el artículo no aborda directamente la simulación de \(n\)-cuerpos, su enfoque en la representación geométrica eficiente tiene implicaciones para el proyecto. La modelización precisa de la geometría de dos cuerpos celestes podría mejorar la simulación de interacciones cercanas o colisiones, aspectos clave en el objetivo de ajustar dinámicamente parámetros como masa, velocidad y posición. La eficiencia en memoria y la rapidez en operaciones geométricas podrían integrarse con los algoritmos FMM y Barnes-Hut, potenciando el rendimiento del modelo propuesto.
+
+\subsection{Experiencia Personal y Opinión}
+
+Tras revisar el artículo y explorar conceptualmente sus planteamientos, consideramos que la introducción de nodos especializados representa un avance significativo sobre los \textit{quadtrees} y \textit{octrees} tradicionales, ofreciendo una solución elegante y eficiente para problemas de representación geométrica. Aunque no se implementé directamente el método, la lógica descrita sugiere una alta viabilidad para su uso en simulaciones que demandan precisión geométrica. La complejidad de implementación podría ser un obstáculo, pero su integración con técnicas de simulación gravitacional parece prometedora, especialmente para optimizar el modelado de cuerpos celestes.

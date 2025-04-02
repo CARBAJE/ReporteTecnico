@@ -1,0 +1,59 @@
+\section{Problema de dos cuerpos}\label{sec:two-body_problem}
+
+El \textbf{problema de dos cuerpos} constituye uno de los fundamentos de la mecánica clásica, la astrofísica y la física computacional. Se trata del estudio del movimiento de dos masas puntuales que interactúan mediante una fuerza central, usualmente la gravitación newtoniana, lo cual permite obtener soluciones exactas que describen las trayectorias orbitales. Diversos autores han abordado este tema desde distintas perspectivas, resaltando su importancia tanto en el análisis teórico como en aplicaciones prácticas, como la predicción de órbitas planetarias y el estudio de sistemas binarios. %~\cite{}.
+
+\subsection{Definición y Enfoques Conceptuales}
+
+El problema de dos cuerpos se define formalmente como el estudio dinámico de dos objetos (por ejemplo, planetas, satélites o estrellas) que interactúan a través de una fuerza central, típicamente descrita por la ley de gravitación universal:
+\begin{equation}
+    F = \frac{G m_1 m_2}{r^2}
+\end{equation}
+donde \(G\) es la constante gravitacional y \(r\) representa la distancia entre las dos masas. Según la literatura, esta interacción se traduce en movimientos cuyas trayectorias son secciones cónicas (elipses, parábolas o hipérbolas), lo que implica que el sistema puede ser resuelto de forma analítica mediante la reducción a un problema de un solo cuerpo utilizando el concepto de centro de masa y la masa reducida. En este marco, la masa reducida se expresa como: %~\cite{wikipedia,harvard}. En este marco, la masa reducida se expresa como:
+\begin{equation}
+    \mu = \frac{m_1 m_2}{m_1 + m_2}
+\end{equation}
+lo que permite transformar el movimiento relativo de ambos cuerpos en el movimiento de un único cuerpo bajo la acción de una fuerza central.
+
+\subsection{Principios Fundamentales y Mecanismo de Funcionamiento}
+
+El procedimiento para abordar el problema de dos cuerpos se fundamenta en la transformación al sistema de referencia del centro de masa. En ausencia de fuerzas externas, el centro de masa se mueve a velocidad constante, lo que facilita separar el movimiento global del sistema del movimiento relativo entre las masas. La ecuación diferencial que rige la dinámica radial se puede expresar de manera general como:
+\begin{equation}
+\frac{d^2 \mathbf{r}}{dt^2} = -\frac{G (m_1 + m_2)}{r^3} \mathbf{r} + \frac{l^2}{r^3} \mathbf{r}
+\end{equation}
+donde \(l\) representa el momento angular por unidad de masa. La resolución de esta ecuación se basa en la aplicación de las leyes de conservación de la energía y del momento angular, lo cual conduce a las formulaciones de las leyes de Kepler: la primera ley establece que las órbitas son elipses, la segunda que áreas iguales son barridas en tiempos iguales, y la tercera relaciona el período orbital con el semieje mayor. %~\cite{ucsb,harvard}.
+
+\subsection{Contexto Histórico y Evolución del Problema}
+
+El origen teórico del problema de dos cuerpos se remonta a los trabajos de Isaac Newton, quien en 1687, a través de su obra \textit{Philosophiæ Naturalis Principia Mathematica}~\cite{newton1687}, sentó las bases de la gravitación universal y demostró que las trayectorias planetarias son elípticas. Posteriormente, durante el siglo XVIII, Joseph Louis Lagrange y otros matemáticos expandieron estos conceptos, estableciendo métodos analíticos que permitieron una comprensión más profunda del movimiento relativo en sistemas binarios y facilitando la transición hacia el estudio de problemas con más de dos cuerpos mediante técnicas de perturbación. %\cite{ucsb}.
+
+\subsection{Variantes y Enfoques Metodológicos}
+
+En la literatura se han desarrollado diversos enfoques para abordar el problema de dos cuerpos:
+\begin{itemize}
+    \item \textbf{Elementos Orbitales:} Este método utiliza parámetros como el semieje mayor, la excentricidad, la inclinación y otros elementos que definen la órbita. Es especialmente valorado en astrofísica por su interpretación directa de la geometría orbital, aunque su aplicación puede volverse compleja en presencia de perturbaciones.
+    \item \textbf{Enfoque Vectorial:} Emplea la representación de la posición y la velocidad mediante vectores, lo cual resulta intuitivo para el análisis dinámico y permite incorporar de manera natural las variaciones en la dirección y magnitud de los movimientos.
+    \item \textbf{Formulación Hamiltoniana:} Utilizando las ecuaciones de Hamilton, este enfoque es adecuado para estudios perturbativos y para la integración numérica de sistemas dinámicos, aunque requiere una base matemática avanzada. %\cite{wikipedia,harvard}.
+\end{itemize}
+
+\subsection{Aplicaciones Típicas}
+
+El problema de dos cuerpos se aplica de forma extendida en áreas tales como:
+\begin{itemize}
+    \item \textbf{Predicción de órbitas planetarias y trayectorias de satélites:} Permite modelar de manera precisa la dinámica orbital de sistemas planetarios y misiones espaciales.
+    \item \textbf{Análisis de sistemas binarios:} Es crucial en la astrofísica para estudiar la interacción entre estrellas en sistemas dobles.
+    \item \textbf{Cálculo de trayectorias de cometas y asteroides:} Facilita la determinación de órbitas y la evaluación de posibles perturbaciones en el sistema solar.
+\end{itemize}
+Estas aplicaciones han sido fundamentales en el desarrollo de simulaciones numéricas y en la validación de modelos teóricos en astrofísica. %\cite{ucsb}.
+
+\subsection{Ventajas y Limitaciones}
+
+Entre las principales ventajas del problema de dos cuerpos se destacan:
+\begin{itemize}
+    \item \textbf{Solución analítica exacta:} Permite una predicción precisa del movimiento de dos cuerpos sin recurrir a aproximaciones numéricas.
+    \item \textbf{Base para métodos de perturbación:} Sirve como punto de partida para el análisis de sistemas más complejos en los que se introducen perturbaciones adicionales.
+\end{itemize}
+No obstante, sus limitaciones también son evidentes:
+\begin{itemize}
+    \item \textbf{Restricción a dos cuerpos:} La formulación clásica ignora la influencia de cuerpos adicionales, lo que puede resultar inadecuado en escenarios reales de sistemas múltiples.
+    \item \textbf{Suposición de cuerpos puntuales y fuerzas centrales:} La aproximación se basa en modelos ideales que no consideran efectos de extensión finita o fuerzas no centrales, lo que puede introducir discrepancias al modelar situaciones con alta complejidad dinámica. %\cite{wikipedia,harvard}.
+\end{itemize}

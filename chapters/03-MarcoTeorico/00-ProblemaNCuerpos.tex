@@ -1,0 +1,90 @@
+\section{Problema de los \texorpdfstring{$n$}{n} cuerpos}\label{sec:n-body_problem}
+
+El problema de $n$ cuerpos estudia cómo $n$ objetos, como planetas o estrellas, se mueven bajo la atracción gravitacional mutua, siguiendo las leyes de Newton. Para dos cuerpos, como la Tierra y el Sol, se puede calcular exactamente sus órbitas, que suelen ser elípticas. Sin embargo, cuando hay tres o más cuerpos, como en el sistema Tierra-Luna-Sol, predecir el movimiento se complica mucho, y a menudo se necesita usar computadoras para simulaciones.
+
+Como se puede intuir, el problema de $n$ cuerpos es un tema fundamental en mecánica celeste, astrofísica y física computacional, con implicaciones significativas en la simulación de sistemas dinámicos. A continuación, se presenta un análisis exhaustivo basado en fuentes académicas.
+
+\subsection{Puntos clave}
+\begin{itemize}
+    \item El problema de $n$ cuerpos es un desafío central en física para predecir el movimiento de múltiples objetos que interactúan gravitacionalmente, como planetas o estrellas.
+    \item La investigación indica que para dos cuerpos, hay una solución exacta, pero para tres o más, no hay solución general analítica y puede ser caótico.
+    \item Se utiliza en simulaciones de sistemas planetarios, cúmulos estelares y galaxias, con métodos numéricos como el algoritmo de Barnes-Hut para grandes números de cuerpos.
+\end{itemize}
+
+\subsection{Principios y funcionamiento}
+Cada cuerpo atrae a los demás con una fuerza que depende de sus masas y la distancia, según la fórmula:
+\begin{equation}
+    \vec{a}_i = \sum_{j \neq i} \frac{G m_j (\vec{r}_j - \vec{r}_i)}{|\vec{r}_j - \vec{r}_i|^3}
+\end{equation}
+Esto crea un sistema de ecuaciones que, para muchos cuerpos, es difícil de resolver a mano y requiere métodos numéricos, como dividir el espacio en celdas para calcular fuerzas más rápido.
+
+\subsection{Aplicaciones inesperadas}
+Además de la astronomía, el problema de $n$ cuerpos se usa en simulaciones de dinámica molecular, como el movimiento de proteínas, lo que podría sorprender a quienes solo lo asocian con el espacio.
+
+\subsection{Definición y Enfoques}
+El problema de $n$ cuerpos se define como el desafío de predecir los movimientos individuales de un grupo de $n$ partículas materiales que interactúan entre sí mediante la ley de gravitación universal de Newton, dada por:
+\begin{equation}
+    F = \frac{G m_1 m_2}{r^2}
+\end{equation}
+donde $G$ es la constante gravitacional y $r$ es la distancia entre los cuerpos.
+
+\subsection{Contexto Histórico}
+El origen del problema se remonta a Isaac Newton (1687), quien formuló la ley de gravitación universal. Henri Poincaré (1889) descubrió el caos determinista al estudiar el problema de tres cuerpos. Karl Fritiof Sundman (siglo XX) proporcionó una solución teórica para $n=3$ usando series convergentes.
+
+\subsection{Principios Fundamentales}
+La aceleración de cada cuerpo $i$ está dada por:
+\begin{equation}
+    \vec{a}_i = \sum_{j \neq i} \frac{G m_j (\vec{r}_j - \vec{r}_i)}{|\vec{r}_j - \vec{r}_i|^3}
+\end{equation}
+Resultando en un sistema de $6n$ ecuaciones diferenciales.
+
+\subsection{Variantes y Enfoques Principales}
+
+\begin{table}[H]
+    \centering
+    \caption[Enfoques en $n$ cuerpos]{\small Tabla de enfoques principales a la hora de resolver problemas de $n$ cuerpos}%
+    \label{tab:EnfoquesNCuerpos}
+    \begin{adjustbox}{max width=\linewidth}
+        \begin{tabular}{@{}p{0.3\textwidth}p{0.5\textwidth}cc@{}}
+            \toprule
+            \textbf{Enfoque} & \textbf{Descripción} & \textbf{Complejidad} & \textbf{Referencia} \\
+            \midrule
+            Solución Analítica (n=2) & 
+            Método que resuelve el problema de Kepler para dos cuerpos.
+            
+            Proporciona soluciones exactas para sistemas de dos objetos. & 
+            $O(1)$ & [1] \\
+            \midrule
+            Integración Numérica & 
+            Utiliza métodos como Runge-Kutta para simular movimientos.
+            
+            Permite aproximaciones numéricas para sistemas complejos. & 
+            $O(n^2)$ & [5] \\
+            \midrule
+            Algoritmo de Barnes-Hut & 
+            Método de agrupamiento jerárquico para reducir complejidad computacional.
+            
+            Mejora la eficiencia en simulaciones de múltiples cuerpos. & 
+            $O(n \log n)$ & [6] \\
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+\subsection{Aplicaciones Típicas}
+\begin{itemize}
+    \item Dinámica de sistemas planetarios
+    \item Evolución de cúmulos estelares ($n \sim 10^6$)
+    \item Formación de galaxias ($n \sim 10^9$)
+\end{itemize}
+
+%\subsection{Elementos Visuales Sugeridos}
+%\begin{tabular}{|l|l|l|}
+%    \hline
+%    \textbf{Figura} & \textbf{Descripción} & \textbf{Referencia} \\
+%    \hline
+%    Figura 1 & Solución de Euler para 3 cuerpos & [2] \\
+%    \hline
+%    Figura 3 & Órbitas periódicas en forma de 8 & [4] \\
+%    \hline
+%\end{tabular}

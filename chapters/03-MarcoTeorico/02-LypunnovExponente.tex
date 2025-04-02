@@ -1,0 +1,84 @@
+\section{Exponente de Lyapunov}\label{sec:lyapunnov_exponent}
+
+El exponente de Lyapunov cuantifica la tasa promedio de separación (divergencia) o acercamiento (convergencia) exponencial de trayectorias infinitamente cercanas en el espacio de fases de un sistema dinámico. Es una medida fundamental de la sensibilidad a las condiciones iniciales. Durante esta sección del reporte abarcaremos lo necesario para el marco de este trabajo terminal.
+
+\subsection{Definiciones de los Exponentes de Lyapunov}
+
+El concepto de exponente de Lyapunov surge de la necesidad de cuantificar la estabilidad y la sensibilidad a las condiciones iniciales en sistemas dinámicos. Existen principalmente dos definiciones formales que, aunque relacionadas, no son idénticas y tienen interpretaciones geométricas distintas:
+
+\begin{enumerate}
+    \item \textbf{Exponentes Característicos de Lyapunov (LCEs):} Introducidos originalmente por A.M. Lyapunov~\cite{Lyapunov1992}, se definen como los límites superiores de las tasas de crecimiento exponencial de las \textit{normas} de las soluciones $x_i(t, x_0)$ del sistema linealizado $\dot{x} = J(t, x_0)x$ a lo largo de una trayectoria $z(t, x_0)$ del sistema no lineal original $\dot{z} = F(z)$. Formalmente:~\cite{Kuznetsov2005, Kuznetsov2016}:
+    
+    \begin{equation}
+        LCE_i(x_0) = \limsup_{t \to +\infty} \frac{1}{t} \ln |x_i(t, x_0)|
+    \end{equation}
+    
+    Estos miden cómo crecen o decrecen las longitudes de los vectores solución individuales. Geométricamente, se relacionan con la evolución de las aristas de un hipercubo infinitesimal bajo el mapeo linealizado~\cite{Kuznetsov2016}.
+
+    \item \textbf{Exponentes de Lyapunov (LEs):} Definidos más tarde en el contexto de la teoría ergódica~\cite{Oseledec1968}, se basan en las tasas de crecimiento exponencial de los \textit{valores singulares} $\sigma_i(t, x_0)$ de la matriz fundamental $X(t, x_0)$ del sistema linealizado. Formalmente~\cite{Kuznetsov2016}:
+    
+    \begin{equation}
+        LE_i(x_0) = \limsup_{t \to +\infty} \frac{1}{t} \ln \sigma_i(X(t, x_0))
+    \end{equation}
+    
+    Estos miden cómo crecen o decrecen las longitudes de los semiejes principales de un elipsoide infinitesimal transformado por el sistema linealizado. Los LEs son cruciales para la teoría de la dimensión (p.ej., dimensión de Lyapunov) y son los que usualmente se calculan en estudios de caos~\cite{Kuznetsov2016}.
+\end{enumerate}
+
+\textbf{Nota Importante:} Aunque el LCE máximo siempre coincide con el LE máximo ($LCE_1 = LE_1$), los demás exponentes $LCE_i$ y $LE_i$ (para $i > 1$) generalmente no coinciden. Además, la suma de los LEs está relacionada con la traza de la Jacobiana (tasa de cambio de volumen en el espacio de fases), mientras que la suma de los LCEs para una base general no tiene esta interpretación directa~\cite{Kuznetsov2016}. La confusión entre LCEs y LEs puede llevar a errores si no se especifica claramente cuál se está usando~\cite{Cvitanovic2012}.
+
+\subsection{Principios Fundamentales y Funcionamiento}
+
+El cálculo y la interpretación de los exponentes de Lyapunov se basan en:
+\begin{itemize}
+    \item \textbf{Linealización:} Se estudia la dinámica local alrededor de una trayectoria $z(t, x_0)$ mediante la ecuación variacional $\dot{x} = J(t, x_0)x$, donde $J(t, x_0) = \frac{\partial F}{\partial z}|_{z=z(t, x_0)}$ es la matriz Jacobiana evaluada a lo largo de la trayectoria~\cite{Kuznetsov2016}.
+    \item \textbf{Matriz Fundamental:} La evolución de las perturbaciones está gobernada por la matriz fundamental $X(t, x_0)$, solución de $\dot{X} = J(t, x_0)X$ con $X(0, x_0) = I_n$.
+    \item \textbf{Teorema Ergódico Multiplicativo (Oseledec):} Garantiza la existencia de los límites (no solo $\limsup$) para los LEs para casi todo punto $x_0$ respecto a una medida ergódica invariante~\cite{Oseledec1968, Pesin1977}. Sin embargo, verificar la ergodicidad es difícil en la práctica~\cite{Kuznetsov2016}.
+    \item \textbf{Cálculo Numérico:} Se usan algoritmos basados en la descomposición QR o SVD de la matriz fundamental, a menudo involucrando la reortogonalización periódica de un conjunto de vectores ortonormales evolucionados bajo el sistema linealizado (método de Benettin)~\cite{Benettin1980}; Wolf et al.~\cite{Wolf1985, Quarles2011}.
+    \item \textbf{Espectro de Lyapunov:} Para un sistema n-dimensional, hay n exponentes $\lambda_1 \ge \lambda_2 \ge \ldots \ge \lambda_n$. $\lambda_1$ (el exponente máximo) determina la predictibilidad. Si $\lambda_1 > 0$, el sistema es caótico. La suma $\sum \lambda_i$ indica si el sistema es disipativo ($<0$) o conservativo ($=0$).
+\end{itemize}
+
+\subsection{Contexto Histórico}
+\begin{itemize}
+    \item \textbf{A.M. Lyapunov (1892):} Introdujo los ``exponentes característicos'' (LCEs) para estudiar la estabilidad de soluciones de ecuaciones diferenciales \textit{lineales con coeficientes variables en el tiempo}~\cite{Lyapunov1992}. Definió sistemas ``regulares'' para los cuales el signo del LCE máximo determina la estabilidad de la solución cero~\cite{Leonov2007}.
+    \item \textbf{O. Perron (1930):} Construyó un contraejemplo (un sistema lineal 2D) mostrando que para sistemas ``irregulares'', tener todos los LCEs negativos no implica estabilidad (inestabilidad de Lyapunov de la solución cero). Además, mostró que en la vecindad de la solución cero pueden existir soluciones con LCEs positivos. Este fenómeno se conoce como \textit{efecto Perron}~\cite{Leonov2007, Kuznetsov2005}.
+    \item \textbf{V.I. Oseledec (1968):} Probó el Teorema Ergódico Multiplicativo, estableciendo rigurosamente la existencia de los exponentes (LEs) y sus propiedades fundamentales en el marco de la teoría ergódica~\cite{Oseledec1968}.
+    \item \textbf{Desarrollos Posteriores:} Conexión con el caos, cálculo de la dimensión fractal Kaplan-Yorke~\cite{KaplanYorke1979}, métodos numéricos robustos Benettin et al.~\cite{Benettin1980}, Wolf et al.~\cite{Wolf1985}.
+\end{itemize}
+
+\subsection{Variantes y Conceptos Relacionados}
+\begin{itemize}
+    \item \textbf{LCEs vs. LEs:} Discutido arriba. Los LEs (basados en valores singulares) son los relevantes para la dimensión de Lyapunov y la tasa de cambio de volumen.
+    \item \textbf{Exponentes de Tiempo Finito (FTLEs):} Valores calculados sobre intervalos finitos $T$, $LE_i(T, x_0)$. Convergen a los LEs asintóticos cuando $T \to \infty$ (si el límite existe). Son útiles numéricamente pero pueden fluctuar y mostrar ``saltos''~\cite{Kuznetsov2016, Kuznetsov_2016}.
+    \item \textbf{Exponentes Condicionales:} Usados en sistemas acoplados (drive-response) para medir la estabilidad de la sincronización. Miden la divergencia/convergencia en las direcciones transversales al manifold de sincronización~\cite{Pecora1997}.
+    \item \textbf{Exponentes k-dimensionales:} Miden la tasa de expansión/contracción de volúmenes k-dimensionales en el espacio tangente, dados por la suma de los k mayores LEs ($\sum_{i=1}^k \lambda_i$)~\cite{Shimada1979}.
+    \item \textbf{Regularidad vs. Irregularidad:} Un sistema linealizado $\dot{x} = J(t)x$ es \textit{regular} si la suma de sus LCEs (calculados a partir de una base normal) es igual al exponente de la traza ($\int Tr(J) dt$). Si no, es \textit{irregular}. Solo para sistemas regulares, $\lambda_1 < 0$ implica estabilidad asintótica~\cite{Leonov2007},~\cite{Kuznetsov2016}. El efecto Perron es una característica de los sistemas irregulares.
+    \item \textbf{Invariancia:} Los LEs son invariantes bajo diffeomorfismos del espacio de fases, lo que los hace adecuados para caracterizar atractores. Los LCEs no comparten esta propiedad general, pero son invariantes bajo transformaciones de Lyapunov específicas~\cite{Kuznetsov2016}.
+\end{itemize}
+
+\subsection{Aplicaciones (basadas en los artículos)}
+\begin{itemize}
+    \item \textbf{Detección y Caracterización del Caos:} El signo del LE máximo ($\lambda_1$) se usa como indicador primario de caos~\cite{Quarles2011}.
+    \item \textbf{Estabilidad Orbital:} En el CR3BP (\textit{Problema Restringido Circular de Tres Cuerpos}), se usa $\lambda_1$ para determinar los límites de estabilidad de órbitas planetarias~\cite{Quarles2011}.
+    \item \textbf{Dimensión de Atractores:} La dimensión de Lyapunov $D_{KY}$, calculada a partir del espectro de LEs usando la fórmula de Kaplan-Yorke, proporciona una cota superior para la dimensión de Hausdorff del atractor~\cite{Kuznetsov2016, Kuznetsov_2016}. El método de Leonov ofrece una vía analítica para estimar $D_{KY}$ usando funciones de Lyapunov~\cite{Kuznetsov_2016}.
+    \item \textbf{Sincronización:} Los exponentes condicionales determinan si el estado sincronizado es estable en sistemas acoplados~\cite{Pecora1997}.
+    \item \textbf{Estabilidad por Primera Aproximación:} El análisis de estabilidad de puntos fijos o trayectorias periódicas se basa en los LCEs/LEs del sistema linealizado. Sin embargo, el efecto Perron limita su aplicabilidad general a sistemas irregulares~\cite{Leonov2007, Kuznetsov2005}.
+\end{itemize}
+
+\subsection{Ventajas y Limitaciones}
+\begin{itemize}
+    \item \textbf{Ventajas:}
+    \begin{itemize}
+        \item Proporciona una medida cuantitativa y objetiva del caos.
+        \item Relaciona la dinámica local (expansión/contracción) con el comportamiento global.
+        \item Fundamental para calcular la dimensión de atractores.
+        \item Invariante bajo cambios suaves de coordenadas (para LEs).
+    \end{itemize}
+    \item \textbf{Limitaciones:}
+    \begin{itemize}
+        \item \textbf{Efecto Perron:} La principal limitación teórica. El signo del LCE/LE máximo \textit{no} siempre determina la estabilidad/inestabilidad en sistemas no lineales generales, solo en los regulares~\cite{Leonov2007, Kuznetsov2016}.
+        \item \textbf{Cálculo Numérico:} La convergencia puede ser lenta; los FTLEs pueden fluctuar; problemas de precisión si los exponents están cerca o son cero; la elección del tiempo de integración y reortogonalización es crucial~\cite{Kuznetsov2016, Kuznetsov_2016}.
+        \item \textbf{Requerimientos Teóricos:} La existencia rigurosa de LEs (como límites) depende de la teoría ergódica (Teorema de Oseledec), cuyas hipótesis (existencia de medida ergódica) son difíciles de verificar en la práctica~\cite{Kuznetsov2016}.
+        \item \textbf{Estimación a partir de Series Temporales:} Muy sensible al ruido, longitud de la serie, dimensión de embedding y otros parámetros; puede dar resultados espurios~\cite{Kuznetsov2016}, citando a Sander \& York.
+        \item \textbf{Confusión Terminológica:} La existencia de LCEs y LEs (y a veces la falta de distinción clara en la literatura) puede generar confusión~\cite{Kuznetsov2016}.
+    \end{itemize}
+\end{itemize}
