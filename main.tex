@@ -17,6 +17,9 @@
 \usepackage{ragged2e}  % Añade esta línea en el preámbulo
 \usepackage{parskip}
 \usepackage{changepage} % en el preámbulo
+\usepackage{bm}      % For bold math symbols (\bm command)
+\usepackage{array}   % For better table column specifications
+\usepackage{booktabs} % For professional looking tables (\toprule, \midrule, \bottomrule)
 \setlength{\parindent}{0pt}
 % Añade esta línea antes de \begin{document}
 \let\cleardoublepage\clearpage
@@ -49,7 +52,7 @@
 \addbibresource{./references.bib}
 \pagestyle{headings}
 
-% ========= DEFINICIONES DE COLORES
+\newcommand{\vect}[1]{\mathbf{#1}}
 
 \begin{document}
 \justifying%

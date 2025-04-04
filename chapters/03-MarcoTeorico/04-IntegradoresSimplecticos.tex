@@ -1,0 +1,91 @@
+\section[Integradores Simplécticos]{Integradores Simplécticos Gravitacionales}%
+\label{sec:IntegradoresSimplecticos}
+
+Los integradores simplécticos gravitacionales representan una clase especializada de métodos numéricos diseñados para la simulación de sistemas dinámicos descritos por la mecánica hamiltoniana, con una aplicación primordial en el problema gravitacional de N-cuerpos~\cite{wisdom1991, stuchi2002}. Estos métodos son cruciales en la mecánica celeste y la astrofísica computacional para modelar con alta fidelidad la evolución a largo plazo de sistemas como planetas orbitando estrellas, satélites, asteroides, cúmulos estelares y galaxias~\cite{wisdom1991, chin2005, hernandez2020}. Su característica distintiva y fundamental es la preservación de la estructura geométrica del espacio de fases, conocida como la forma simpléctica, lo que conlleva excelentes propiedades de conservación a largo plazo para cantidades como la energía y el momento angular, aunque esta conservación de energía no sea exacta, sino acotada~\cite{stuchi2002, farr2007, yoshida1993}.
+
+\subsection{Definición y Principios Fundamentales}
+Un sistema dinámico descrito por un Hamiltoniano \( H(\vect{q}, \vect{p}, t) \) evoluciona en el tiempo según las ecuaciones de Hamilton. Un integrador numérico aproxima este flujo continuo mediante un mapa discreto \(\Phi_h: (\vect{q}_n, \vect{p}_n) \mapsto (\vect{q}_{n+1}, \vect{p}_{n+1})\) que avanza el sistema en un paso de tiempo \(h\). El integrador \(\Phi_h\) se denomina simpléctico si preserva la 2-forma simpléctica \(\omega = \sum_i d\vect{p}_i \wedge d\vect{q}_i\)~\cite{stuchi2002, farr2007}. Matemáticamente, esto significa que la matriz Jacobiana del mapa, \( J = \partial(\vect{q}_{n+1}, \vect{p}_{n+1}) / \partial(\vect{q}_n, \vect{p}_n) \), debe satisfacer la condición \( J^T \Omega J = \Omega \), donde \(\Omega\) es la matriz estándar simpléctica~\cite{farr2007, yoshida1993}. Esta propiedad garantiza que el mapa es una transformación canónica y preserva el volumen en el espacio de fases (Teorema de Liouville)~\cite{wisdom1991, stuchi2002}.
+
+Para el problema gravitacional de N-cuerpos, el Hamiltoniano es separable, \( H = T(\vect{p}) + V(\vect{q}) \), donde \( T \) es la energía cinética (dependiente solo de los momentos) y \( V \) es la energía potencial (dependiente solo de las posiciones)~\cite{chin2005, Hernandez2015}. Esta separabilidad permite la construcción de integradores simplécticos mediante métodos de división (\textit{splitting methods})~\cite{stuchi2002, chin2005}. Estos métodos descomponen el Hamiltoniano en partes integrables analíticamente (o de forma muy precisa) y componen sus flujos para aproximar el flujo completo. El ejemplo más básico es el integrador de Leapfrog (o Verlet), que es de segundo orden y simpléctico~\cite{stuchi2002, farr2007, Hernandez2015}.
+
+\subsection{Contexto Histórico y Desarrollo}
+La necesidad de simulaciones estables a largo plazo en mecánica celeste impulsó el desarrollo de integradores simplécticos. Aunque la idea de conservar propiedades geométricas no es nueva, su aplicación sistemática a la integración numérica cobró fuerza a partir de los años 80. Trabajos como los de Ruth (1983)~\cite{yoshida1990} y posteriormente Forest \& Ruth (1990)~\cite{yoshida1990}, Candy \& Rozmus (1991)~\cite{yoshida1993}, y Yoshida (1990)~\cite{farr2007, yoshida1993} establecieron métodos para construir integradores simplécticos de orden superior mediante composición simétrica de métodos de orden inferior. Un hito fundamental fue el método de mapeo simpléctico de Wisdom y Holman (1991)~\cite{wisdom1991}, diseñado específicamente para la dinámica planetaria, que explotaba la dominancia del término Kepleriano. Paralelamente, los integradores variacionales, basados en la discretización del principio de acción de Hamilton, emergieron como otro enfoque robusto para derivar algoritmos simplécticos y conservadores de momento~\cite{farr2007, Hernandez2015}.
+
+\subsection{Variantes y Enfoques Principales}
+La literatura describe una diversidad de integradores simplécticos aplicados al problema de N-cuerpos:
+
+\begin{table}[htbp] % Use h (here), t (top), b (bottom), p (page of floats) placement options
+    \centering % Center the table block on the page
+    \caption{Principales variantes de integradores simplécticos para problemas de N-cuerpos.}%
+    \label{tab:integrator_variants} % Label for cross-referencing
+    \begin{adjustbox}{max width=\textwidth} % Scales down the content ONLY if it exceeds \textwidth
+        \begin{tabular}{ >{\bfseries}l | p{0.8\textwidth} | c }
+            \toprule
+            Variante & Descripción & Referencias Clave \\
+            \midrule
+            Método de Leapfrog/Verlet & Integrador simpléctico de segundo orden, base para muchos otros métodos. Eficiente para \(H = T(p) + V(q)\). &~\cite{stuchi2002, farr2007, Hernandez2015} \\
+            \midrule
+            Método de Wisdom-Holman (WH) & Separa \(H\) en \(H_{\text{Kepler}} + H_{\text{Interaction}}\). Muy eficiente para órbitas casi Keplerianas (e.g., sistemas planetarios). Preserva implícitamente la integral de Jacobi modificada. &~\cite{wisdom1991, yoshida1990, rebound_doc} \\
+            \midrule
+            Integradores de Orden Superior & Construidos mediante composición (e.g., Yoshida). Aumentan la precisión pero requieren más evaluaciones de fuerza y pueden tener pasos de tiempo negativos. &~\cite{farr2007, yoshida1993, yoshida1990} \\
+            \midrule
+            Integradores Variacionales (GGL) & Derivados de la discretización del Lagrangiano (e.g., Galerkin Gauss-Lobatto). Conservan exactamente el momento (lineal y angular si hay simetría) y son simplécticos. &~\cite{farr2007, Hernandez2015} \\
+            \midrule
+            Integradores Simplécticos Híbridos & Combinan un integrador simpléctico (como WHFast) para la evolución general con otro método (simpléctico o no, como IAS15 o BS) para manejar eventos específicos como encuentros cercanos. Ejemplos: MERCURIUS, TRACE, EnckeHH.\ &~\cite{hernandez2020, rebound_doc, hernandez2019b, rein2019} \\
+            \midrule
+            Integradores Simplécticos Adelante (FSI) & Clase de integradores (e.g., 4A, 4B, 4C) que solo usan pasos de tiempo positivos, a costa de requerir el gradiente de la fuerza. Eficientes para problemas con fuerzas dependientes del tiempo. &~\cite{chin2005} \\
+            \midrule
+            Métodos Basados en Encke & Resuelven las ecuaciones para las \textit{perturbaciones} respecto a una órbita Kepleriana de referencia. Muy precisos si las perturbaciones son pequeñas. Ejemplo: EnckeHH.\ &~\cite{hernandez2020} \\
+            \midrule
+            Métodos Gauge-Compatibles (GCSM) & Para problemas con simetrías de gauge (como PIC en electromagnetismo), preservan explícitamente el mapa de momento asociado (e.g., ley de Gauss discreta). &~\cite{glasser2022} \\
+            \midrule
+            Integradores para Coordenadas Corrotantes & Adaptan métodos simplécticos a sistemas no canónicos que surgen en marcos de referencia en rotación, preservando una estructura K-simpléctica. &~\cite{tu2019} \\
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox} % End adjustbox environment
+\end{table}
+
+\subsection{Propiedades Clave}
+Las propiedades más importantes de estos integradores son:
+\begin{enumerate}
+    \item \textbf{Simplécticidad:} Conservación de la 2-forma simpléctica, lo que implica la preservación del volumen en el espacio de fases~\cite{stuchi2002, farr2007}.
+    \item \textbf{Conservación de Energía:} Aunque no conservan exactamente la energía \(H\), el error energético para un integrador simpléctico de orden \(r\) aplicado a un sistema hamiltoniano autónomo permanece acotado a largo plazo, oscilando alrededor del valor inicial, en contraste con el error secular (lineal o peor) de métodos no simplécticos~\cite{stuchi2002, yoshida1993, hernandez2020}. Existe un Hamiltoniano ``sombra'' \( \tilde{H} \), cercano a \(H\), que es conservado casi exactamente por el integrador~\cite{yoshida1993, hernandez2019b}.
+    \item \textbf{Conservación de Momento:} Los integradores variacionales conservan exactamente los mapas de momento asociados a las simetrías del Lagrangiano discreto (e.g., momento lineal y angular si el sistema es invariante bajo traslaciones y rotaciones)~\cite{farr2007, Hernandez2015}. Otros métodos simplécticos también suelen tener excelente conservación del momento, aunque puede haber errores de orden superior, especialmente con pasos de tiempo adaptativos~\cite{Hernandez2015}.
+    \item \textbf{Estabilidad a Largo Plazo:} La preservación de la estructura simpléctica evita la deriva secular en los elementos orbitales y garantiza una excelente estabilidad numérica para integraciones muy largas~\cite{wisdom1991, stuchi2002, yoshida1993}.
+\end{enumerate}
+
+\subsection{Aplicaciones Típicas}
+Los integradores simplécticos son la herramienta estándar en:
+\begin{itemize}
+    \item \textbf{Dinámica del Sistema Solar:} Estudio de la evolución orbital de planetas, asteroides y cometas a escalas de tiempo de millones o miles de millones de años~\cite{wisdom1991, yoshida1990}.
+    \item \textbf{Dinámica de Exoplanetas:} Análisis de la estabilidad de sistemas planetarios extrasolares~\cite{rebound_doc}.
+    \item \textbf{Dinámica Estelar:} Simulación de cúmulos globulares y centros galácticos, aunque aquí los encuentros cercanos son un desafío~\cite{hernandez2020, Hernandez2015}.
+    \item \textbf{Simulaciones Cosmológicas:} El método Leapfrog es ampliamente usado en simulaciones de N-cuerpos para materia oscura debido a su simplicidad, eficiencia y naturaleza simpléctica~\cite{stuchi2002}.
+    \item \textbf{Física de Plasmas (PIC):} Métodos geométricos y simplécticos, incluyendo los gauge-compatibles, se usan para preservar estructuras fundamentales~\cite{glasser2022}.
+\end{itemize}
+
+\subsection{Ventajas}
+\begin{itemize}
+    \item Excelente estabilidad y precisión a largo plazo~\cite{wisdom1991, yoshida1993}.
+    \item Error de energía acotado, sin deriva secular~\cite{stuchi2002, farr2007}.
+    \item Buena conservación (a menudo exacta en métodos variacionales) de otros integrales de movimiento como el momento lineal y angular~\cite{farr2007, Hernandez2015}.
+    \item Eficiencia computacional para Hamiltoniano separables~\cite{wisdom1991}.
+\end{itemize}
+
+\subsection{Desventajas y Limitaciones}
+\begin{itemize}
+    \item \textbf{Pasos de Tiempo:} Los métodos simplécticos puros construidos por composición o métodos explícitos estándar requieren pasos de tiempo fijos para mantener la simplécticidad~\cite{stuchi2002, farr2007}. Esto es ineficiente para sistemas multi-escala o con encuentros cercanos donde se necesitarían pasos muy pequeños~\cite{hernandez2020, Hernandez2015}.
+    \item \textbf{Adaptatividad:} Introducir pasos de tiempo adaptativos (que varían con el tiempo o por partícula) generalmente rompe la estructura simpléctica exacta~\cite{farr2007, Hernandez2015}. Sin embargo, se ha demostrado que usar pasos de tiempo adaptativos discretizados en potencias de dos (\textit{block power-of-two}) en integradores variacionales preserva la simplécticidad ``casi siempre'' (excepto en un conjunto de medida cero)~\cite{Hernandez2015}, ofreciendo un compromiso viable. Hernandez (2019)~\cite{hernandez2019b} enfatiza que romper la simplécticidad, incluso en pocos puntos, puede ser problemático si no se mantiene la continuidad Lipschitz.
+    \item \textbf{Encuentros Cercanos:} La singularidad del potencial gravitacional \(1/r\) causa problemas. Los integradores simplécticos puros pueden fallar o requerir pasos de tiempo prohibitivamente pequeños. Técnicas como la regularización o el cambio a integradores no simplécticos (híbridos) son necesarias~\cite{hernandez2020, rebound_doc}.
+    \item \textbf{Fuerzas No Conservativas:} Los integradores simplécticos están diseñados para sistemas hamiltonianos. Incorporar fuerzas disipativas (como arrastre o radiación) requiere extensiones que pueden comprometer las propiedades de conservación~\cite{hernandez2019b}.
+    \item \textbf{Complejidad:} Los métodos de orden superior o los que requieren gradientes de fuerza (FSIs) pueden ser más costosos por paso~\cite{chin2005, farr2007}. Los métodos implícitos requieren resolver ecuaciones no lineales~\cite{yoshida1990}.
+\end{itemize}
+
+\subsection{Desarrollos Recientes y Direcciones Futuras}
+La investigación activa se centra en superar las limitations:
+\begin{itemize}
+    \item \textbf{Integradores Híbridos:} Combinan la eficiencia y estabilidad simpléctica para la mayor parte de la evolución con la robustez de métodos adaptativos (como IAS15 o BS) durante fases críticas (encuentros cercanos)~\cite{hernandez2020, rebound_doc, rein2019}.
+    \item \textbf{Métodos Adaptativos Simplécticos:} Desarrollo de esquemas que permitan variar el paso de tiempo mientras se preserva (exacta o aproximadamente) la simplécticidad, como los basados en potencia de dos~\cite{Hernandez2015} o correctores simplécticos~\cite{yoshida1990}.
+    \item \textbf{Integradores Geométricos Más Allá de Simplécticos:} Exploración de métodos que preserven otras estructuras geométricas relevantes para sistemas específicos (e.g., simetrías de gauge~\cite{glasser2022}, integradores para coordenadas corrotantes~\cite{tu2019}).
+    \item \textbf{Optimización de Errores:} Técnicas para minimizar errores de redondeo en integraciones de alta precisión, como la suma compensada y el manejo cuidadoso de constantes~\cite{rebound_doc}.
+\end{itemize}
