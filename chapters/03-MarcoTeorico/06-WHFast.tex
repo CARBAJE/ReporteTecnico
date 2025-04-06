@@ -1,0 +1,91 @@
+\section{Integrador Simpléctico WHFast} % Or \subsection if needed
+
+El integrador WHFast (Wisdom-Holman Fast) es un método numérico perteneciente a la clase de integradores simplécticos, diseñado específicamente para la simulación gravitacional a largo plazo de sistemas de N-cuerpos, particularmente en el contexto de la dinámica planetaria~\cite{ReinTamayo2015}. Los integradores simplécticos, en general, son algoritmos numéricos para resolver ecuaciones de Hamilton que tienen la propiedad fundamental de preservar la estructura simpléctica del espacio de fases del sistema~\cite{Hairer2006}. Esta preservación implica que, aunque la energía total calculada numéricamente puede oscilar alrededor del valor verdadero, no exhibe una deriva secular sistemática a largo plazo, una característica crucial para la estabilidad y precisión en simulaciones extendidas~\cite{ReinTamayo2015, Hairer2006}.
+
+\subsection{Principios Fundamentales y Funcionamiento}
+
+WHFast se basa en el algoritmo de Wisdom-Holman~\cite{wisdom1991}, que explota la estructura de muchos problemas astrofísicos donde existe un cuerpo central masivo (e.g., una estrella) y cuerpos de masa mucho menor (e.g., planetas) cuyas interacciones mutuas son perturbaciones sobre sus órbitas Keplerianas casi independientes alrededor del cuerpo central. El método de Wisdom-Holman logra esto mediante una técnica de \textit{splitting} (partición o descomposición) del Hamiltoniano del sistema \(H\). El Hamiltoniano se divide típicamente en dos o más partes que son integrables analíticamente o más fáciles de aproximar numéricamente. Para el problema planetario, la partición usual es:
+\begin{equation}
+H = H_{\text{Kepler}} + H_{\text{Interaction}}
+\end{equation}
+donde \(H_{\text{Kepler}}\) describe la suma de los problemas de dos cuerpos independientes (planeta-estrella), cuya solución son las órbitas Keplerianas, y \(H_{\text{Interaction}}\) contiene las interacciones gravitatorias entre los planetas~\cite{ReinTamayo2015, wisdom1991}.
+
+El integrador avanza el sistema alternando pasos de integración correspondientes a cada parte del Hamiltoniano. Un esquema común es el de Leapfrog, también conocido como \textit{Drift-Kick-Drift} (DKD):
+\begin{enumerate}
+    \item \textbf{Drift (Deriva):} Se avanzan las posiciones de los cuerpos bajo \(H_{\text{Kepler}}\) durante medio paso de tiempo ($\Delta t/2$). Esto equivale a mover los cuerpos a lo largo de sus órbitas Keplerianas no perturbadas.
+    \item \textbf{Kick (Impulso):} Se actualizan los momentos (velocidades) de los cuerpos debido a \(H_{\text{Interaction}}\) durante un paso de tiempo completo ($\Delta t$). Esto aplica las aceleraciones debidas a las interacciones mutuas entre los planetas.
+    \item \textbf{Drift (Deriva):} Se avanzan nuevamente las posiciones bajo \(H_{\text{Kepler}}\) durante el segundo medio paso de tiempo ($\Delta t/2$).
+\end{enumerate}
+
+WHFast implementa mejoras significativas sobre el esquema básico de Wisdom-Holman. Rein y Tamayo~\cite{ReinTamayo2015} destacan dos áreas principales de optimización:
+\begin{enumerate}
+    \item \textbf{Solucionador de Kepler Mejorado:} La evolución bajo \(H_{\text{Kepler}}\) requiere resolver la ecuación de Kepler, que es trascendental. WHFast utiliza implementaciones optimizadas del método de Newton y otros (como Laguerre-Conway para altas excentricidades) con criterios de convergencia robustos y eficientes en aritmética de punto flotante, además de una cuidadosa gestión de las funciones especiales involucradas (funciones c y G de Stumpff)~\cite{ReinTamayo2015, Rein2012}.
+    \item \textbf{Transformaciones de Coordenadas Estables:} A menudo es computacionalmente ventajoso trabajar en coordenadas de Jacobi en lugar de heliocéntricas o baricéntricas, especialmente para la parte Kepleriana. Las coordenadas de Jacobi referencian la posición de un cuerpo respecto al centro de masas de todos los cuerpos interiores a él. WHFast implementa transformaciones numéricamente estables y sin sesgos entre las coordenadas inerciales (necesarias para calcular \(H_{\text{Interaction}}\)) y las coordenadas de Jacobi, minimizando la propagación de errores de redondeo~\cite{ReinTamayo2015, Rein2012}.
+\end{enumerate}
+
+Gracias a estas mejoras, WHFast logra eliminar la deriva secular lineal en el error de energía que afectaba a implementaciones anteriores y, para pasos de tiempo suficientemente pequeños, alcanza la Ley de Brouwer, donde el error energético está dominado por un camino aleatorio debido a errores de redondeo, escalando como \(\sqrt{t}\) en lugar de \(t\)~\cite{ReinTamayo2015, Rein2012}.
+
+\subsection{Contexto Histórico y Origen}
+
+El método fundamental fue propuesto por Wisdom y Holman en 1991~\cite{wisdom1991} (e independientemente por Kinoshita et al.~\cite{Kinoshita1990}), basándose en ideas previas de Wisdom sobre mapeos simplécticos~\cite{Wisdom1980}. WHFast, como implementación específica y optimizada, fue presentado por Hanno Rein y Daniel Tamayo en 2015~\cite{ReinTamayo2015}, con el objetivo de proporcionar una herramienta rápida, precisa y numéricamente robusta, disponible como parte del paquete de simulación REBOUND~\cite{Rein2012}.
+
+\subsection{Variantes y Opciones de Configuración}
+
+La implementación de WHFast, particularmente dentro del marco de REBOUND, ofrece varias configuraciones para ajustar su comportamiento y precisión~\cite{Rein2012, ReboundIntegratorsDoc}:
+\begin{enumerate}
+    \item \textbf{Correctores Simplécticos:} Para reducir aún más el error energético (específicamente, las oscilaciones a corto plazo), se pueden aplicar correctores simplécticos de alto orden (3, 5, 7, 11, e incluso 17)~\cite{ReinTamayo2015, Wisdom1996}. Estos correctores modifican las transformaciones al inicio y al final de la integración (o antes de las salidas de datos), con un costo computacional adicional mínimo si las salidas son poco frecuentes. La efectividad de los correctores de orden superior depende de la relación de masas en el sistema~\cite{ReinTamayo2015}. También existe la opción de correctores de segundo orden (\texttt{corrector2})~\cite{ReboundIntegratorsDoc}.
+    \item \textbf{Sistemas de Coordenadas:} Aunque las coordenadas de Jacobi son a menudo las más eficientes para la parte Kepleriana, WHFast puede configurarse para usar internamente otros sistemas como el democrático heliocéntrico, WHDS o baricéntrico, lo que puede ser ventajoso en ciertos escenarios~\cite{ReboundIntegratorsDoc, Javaheri2023}. Sin embargo, los correctores simplécticos suelen ser compatibles solo con Jacobi o baricéntricas~\cite{ReboundIntegratorsDoc, Javaheri2023}.
+    \item \textbf{Núcleo (Kernel):} Además del núcleo estándar de Wisdom-Holman, existen variantes como \texttt{modifiedkick} (patada modificada para gravedad Newtoniana exacta en Jacobi), \texttt{composition} (método de composición de Wisdom) y \texttt{lazy} (método del implementador perezoso), que pueden ofrecer ventajas en casos específicos pero a menudo requieren coordenadas de Jacobi~\cite{ReboundIntegratorsDoc}.
+    \item \textbf{Modo Seguro (\texttt{safe\_mode}):} Por defecto (\texttt{safe\_mode=1}), WHFast realiza comprobaciones y sincronizaciones (transformaciones de coordenadas y aplicación de pasos de deriva fraccionados para asegurar que las posiciones y velocidades reportadas sean físicamente significativas en el tiempo solicitado) en cada paso, lo que garantiza robustez pero reduce el rendimiento. Desactivarlo (\texttt{safe\_mode=0}) ofrece un aumento sustancial de velocidad, pero requiere que el usuario gestione manualmente la sincronización y la recalculación de coordenadas si modifica partículas entre pasos~\cite{ReboundIntegratorsDoc, ReboundWHFastAdvanced}.
+    \item \textbf{Ecuaciones Variacionales:} WHFast puede integrar simultáneamente las ecuaciones variacionales, lo que permite calcular indicadores de caos como el Número Característico de Lyapunov (LCN) y el MEGNO (Mean Exponential Growth factor of Nearby Orbits) con un costo adicional muy bajo~\cite{ReinTamayo2015, Rein2012}.
+\end{enumerate}
+
+% --- Sugerencia de Tabla ---
+% [Aquí sería apropiado insertar una tabla resumiendo las principales opciones
+% de configuración (`corrector`, `kernel`, `coordinates`, `safe_mode`),
+% adaptada de la documentación de REBOUND~\cite{ReboundIntegratorsDoc},
+% para clarificar estas opciones.]
+% Ejemplo de Tabla:
+\begin{table}[h]
+\centering
+\caption{Opciones de Configuración Principales de WHFast en REBOUND~\cite{ReboundIntegratorsDoc}}%
+\label{tab:whfast_options}
+    \begin{tabular}{lp{10cm}}
+    \hline
+    \textbf{Opción} & \textbf{Descripción} \\
+    \hline
+    \texttt{corrector} & Orden del corrector simpléctico C1 (0: apagado, valores impares 3-17). \\
+    \texttt{corrector2} & Activa/desactiva corrector C2 (0: apagado, 1: activado). \\
+    \texttt{kernel} & Selección del núcleo de integración (default, modifiedkick, composition, lazy). \\
+    \texttt{coordinates} & Sistema de coordenadas interno (jacobi, democraticheliocentric, whds, barycentric). \\
+    \texttt{safe\_mode} & Activa/desactiva sincronización y comprobaciones automáticas (1: activado, 0: desactivado). \\
+    \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Aplicaciones Típicas}
+
+WHFast es ampliamente utilizado en la simulación a largo plazo de la dinámica de sistemas planetarios, tanto dentro del Sistema Solar como en sistemas exoplanetarios, donde se requiere alta precisión en la conservación de energía y momento angular durante miles o millones de órbitas~\cite{ReinTamayo2015, Rein2012}. También es una herramienta estándar para estudios de estabilidad orbital, resonancias y caracterización del caos en dichos sistemas mediante el cálculo de indicadores como LCN y MEGNO~\cite{ReinTamayo2015}.
+
+\subsection{Ventajas y Desventajas/Limitaciones}
+
+\textbf{Ventajas:}
+\begin{itemize}
+    \item \textbf{Velocidad:} Es significativamente más rápido (1.5 a 5 veces) que otras implementaciones de Wisdom-Holman debido a sus optimizaciones~\cite{ReinTamayo2015}.
+    \item \textbf{Precisión y Conservación:} Conserva la energía y otras integrales del movimiento a largo plazo mucho mejor que los integradores no simplécticos y que implementaciones anteriores de Wisdom-Holman~\cite{ReinTamayo2015, Rein2012}. La opción de correctores simplécticos mejora aún más la precisión~\cite{ReinTamayo2015}.
+    \item \textbf{Estabilidad Numérica:} Es robusto frente a errores de redondeo, logrando un comportamiento de error no sesgado (ley de Brouwer)~\cite{ReinTamayo2015}.
+    \item \textbf{Flexibilidad:} Permite el uso de diferentes coordenadas, correctores, y la integración de ecuaciones variacionales~\cite{ReinTamayo2015, ReboundIntegratorsDoc}. Puede operar en cualquier marco inercial~\cite{ReinTamayo2015}.
+\end{itemize}
+
+\textbf{Desventajas/Limitaciones:}
+\begin{itemize}
+    \item \textbf{Supuesto de Dominancia Kepleriana:} Al igual que el método de Wisdom-Holman original, su eficiencia y precisión se basan en que el movimiento esté dominado por órbitas Keplerianas. No es adecuado para sistemas con encuentros cercanos frecuentes, colisiones, o donde no hay un cuerpo central claramente dominante~\cite{Rein2012, ReboundWHFastTut}.
+    \item \textbf{Fuerzas No Conservativas o Dependientes de la Velocidad:} Como integrador simpléctico diseñado para sistemas Hamiltonianos conservativos, no maneja de forma nativa e inherentemente simpléctica fuerzas no conservativas (como el arrastre atmosférico) o fuerzas dependientes de la velocidad (como las fuerzas de marea o la relatividad general, aunque estas pueden añadirse como perturbaciones externas gestionadas por otros módulos como REBOUNDx)~\cite{Hairer2006, ReboundWHFastAdvanced}. La adición de tales fuerzas rompe la estructura simpléctica.
+    \item \textbf{Complejidad de Configuración Avanzada:} Para obtener el máximo rendimiento (\texttt{safe\_mode=0}), el usuario debe comprender los detalles del funcionamiento interno del integrador, como la sincronización y la necesidad de recalcular coordenadas~\cite{ReboundIntegratorsDoc, ReboundWHFastAdvanced}.
+\end{itemize}
+
+% --- Sugerencia de Figura ---
+% [Aquí sería apropiado insertar la Figura 4 de Rein & Tamayo (2015)~\cite{ReinTamayo2015},
+% que muestra la excelente conservación de energía a largo plazo de WHFast
+% (con y sin correctores) en comparación con otros integradores como
+% MERCURY y SWIFTER-WHM en una simulación del Sistema Solar exterior.]

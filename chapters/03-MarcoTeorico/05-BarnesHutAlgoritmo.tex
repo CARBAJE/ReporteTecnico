@@ -1,0 +1,64 @@
+\subsection{Simulación Barnes-Hut}%
+\label{sec:barnes_hut}
+
+La simulación Barnes-Hut es un algoritmo de aproximación ampliamente utilizado en el campo de la física computacional, especialmente en astrofísica, para simular la evolución dinámica de sistemas de N-cuerpos (\textit{N-body systems}) bajo la influencia de fuerzas de largo alcance, como la gravedad o las interacciones electrostáticas~\cite{Barnes1986, dubinski1996}. Fue propuesto originalmente por Josh Barnes y Piet Hut en 1986~\cite{Barnes1986} como una solución eficiente al problema computacionalmente intensivo del cálculo directo de todas las interacciones por pares en un sistema grande, cuya complejidad escala como $O(N^2)$. El algoritmo Barnes-Hut reduce esta complejidad a $O(N \log N)$, permitiendo la simulación de sistemas con un número significativamente mayor de partículas~\cite{Barnes1986, salmon1991}.
+
+\subsubsection{Principios y Funcionamiento}
+
+El principio fundamental del algoritmo Barnes-Hut radica en la aproximación de la fuerza ejercida por un grupo distante de partículas tratándolo como una única pseudo-partícula (o un conjunto de momentos multipolares de bajo orden) ubicada en el centro de masa (CoM) del grupo~\cite{Barnes1986, barnes1990}. Esta aproximación es válida porque el campo gravitatorio (o electrostático) de un grupo de partículas a gran distancia se asemeja al de una sola partícula puntual con la masa total del grupo ubicada en su centro de masa~\cite{pfalzner1996}.
+
+Para implementar esta idea, el algoritmo emplea una estructura de datos jerárquica basada en la subdivisión recursiva del espacio:
+
+\begin{enumerate}
+    \item \textbf{Construcción del Árbol (\textit{Tree Construction}):} El espacio que contiene las N partículas se subdivide recursivamente en celdas. En 3D, se utiliza un \textit{octree} (árbol óctuple), donde el cubo que engloba todo el sistema se divide en ocho subcubos (octantes) iguales. Este proceso se repite para cada subcubo que contenga más de una partícula, hasta que cada celda hoja (nodo terminal del árbol) contenga como máximo una partícula~\cite{Barnes1986, dubinski1996}. En 2D, se utiliza una estructura análoga llamada \textit{quadtree} (árbol cuádruple)~\cite{aguirre2020, munier2020}. Cada nodo interno del árbol almacena información agregada sobre las partículas contenidas en su celda correspondiente, como la masa total y la posición del centro de masa~\cite{Barnes1986, salmon1991}.
+
+    \item \textbf{Cálculo de Fuerzas (\textit{Force Calculation}):} Para calcular la fuerza neta sobre una partícula específica $i$, se recorre el árbol desde la raíz. Para cada nodo (celda) $c$ encontrado durante el recorrido, se aplica el \textit{criterio de apertura de Barnes-Hut} (\textit{Barnes-Hut opening criterion}). Este criterio compara el tamaño de la celda $s$ (usualmente su anchura o diagonal) con la distancia $d$ entre la partícula $i$ y el centro de masa de la celda $c$. Si la relación $s/d$ es menor que un parámetro de precisión umbral $\theta$ (theta), es decir:
+    \[ s / d < \theta \]
+    la celda $c$ se considera ``suficientemente lejana''. En este caso, la contribución a la fuerza sobre la partícula $i$ debida a todas las partículas dentro de la celda $c$ se aproxima utilizando la masa total y el centro de masa (o una expansión multipolar de bajo orden) almacenados en el nodo $c$~\cite{Barnes1986, salmon1991, barnes1990}. Si la condición no se cumple ($s/d \ge \theta$), la celda está demasiado cerca o es demasiado grande para ser aproximada con precisión, por lo que el algoritmo desciende recursivamente a los hijos de ese nodo (si es un nodo interno) y repite el proceso~\cite{Barnes1986, barnes1990}. Si el nodo es una hoja que contiene una partícula $j$ (distinta de $i$), la fuerza entre $i$ y $j$ se calcula directamente~\cite{pfalzner1996}. El valor de $\theta$ (típicamente entre 0.5 y 1.2) controla el equilibrio entre precisión y velocidad: valores más pequeños de $\theta$ resultan en cálculos más precisos pero más lentos (más interacciones directas y nodos visitados), mientras que valores más grandes aceleran el cálculo a costa de una menor precisión~\cite{barnes1990, aguirre2020}.
+\end{enumerate}
+
+\subsubsection{Contexto Histórico y Origen}
+
+El algoritmo fue presentado por Josh Barnes y Piet Hut en su artículo de 1986 en la revista \textit{Nature}, titulado ``A hierarchical $O(N \log N)$ force-calculation algorithm''~\cite{Barnes1986}. Su desarrollo fue motivado por la necesidad de superar las limitaciones computacionales de las simulaciones N-cuerpos directas en astrofísica, que impedían estudiar sistemas a gran escala como la formación y dinámica de galaxias o cúmulos estelares~\cite{Barnes1986, dubinski1996}. El algoritmo Barnes-Hut representó un avance significativo al hacer factibles simulaciones con cientos de miles o millones de partículas en la época.
+
+\subsubsection{Variantes y Enfoques Principales}
+
+Desde su concepción, el algoritmo Barnes-Hut ha sido objeto de diversas optimizaciones y variantes:
+
+\begin{itemize}
+    \item \textbf{Implementaciones Paralelas:} Dada la naturaleza jerárquica y divisible del problema, el algoritmo se adapta bien a la paralelización. Se han desarrollado diversas estrategias para distribuir la construcción del árbol y el cálculo de fuerzas entre múltiples procesadores o nodos de cómputo, utilizando técnicas como la descomposición de dominio (ej.\ \textit{Bisección Recursiva Ortogonal \- ORB}~\cite{salmon1991}) o la distribución de partículas basada en carga computacional~\cite{dubinski1996, becciani1997, becciani2000}.
+    \item \textbf{Aceleración por GPU:} Las unidades de procesamiento gráfico (GPUs), con su arquitectura masivamente paralela, han demostrado ser muy eficaces para acelerar las simulaciones Barnes-Hut~\cite{burtscher2011, hamada2009}. Existen implementaciones donde partes significativas o la totalidad del algoritmo se ejecutan en la GPU~\cite{burtscher2011}.
+    \item \textbf{Expansiones Multipolares:} Para mejorar la precisión de la aproximación de fuerzas de grupos distantes, en lugar de usar solo el monopolo (masa total y CoM), se pueden incluir términos de orden superior como el cuadrupolo~\cite{barnes1990, salmon1994}. Esto es especialmente relevante cuando se requiere una alta fidelidad en la simulación.
+    \item \textbf{Combinación con otros Métodos:} En algunas simulaciones cosmológicas a gran escala, el algoritmo Barnes-Hut puede combinarse con métodos de malla de partículas (\textit{Particle-Mesh}, PM) para manejar las fuerzas de largo alcance de manera eficiente, mientras que Barnes-Hut se encarga de las interacciones a corta y mediana escala~\cite{bagla2004}.
+    \item \textbf{Optimización de Árboles:} Se han explorado variantes en la construcción y recorrido del árbol, como los árboles \textit{k-d} o el uso de árboles duales (\textit{dual-tree}) que recorren simultáneamente dos árboles para optimizar el cálculo de interacciones celda-celda en lugar de partícula-celda~\cite{vandemaaten2008, vandermaaten2013}.
+\end{itemize}
+
+\subsubsection{Aplicaciones Típicas}
+
+El algoritmo Barnes-Hut y sus variantes se aplican en diversos campos científicos y técnicos:
+
+\begin{itemize}
+    \item \textbf{Astrofísica:} Es una herramienta estándar para simulaciones de formación y evolución de galaxias, interacciones galácticas, dinámica de cúmulos estelares y globulares, y formación de estructuras a gran escala en cosmología~\cite{dubinski1996, salmon1991, bagla2004}.
+    \item \textbf{Dinámica Molecular:} Se utiliza para calcular eficientemente las interacciones electrostáticas y de Van der Waals (que también son de largo alcance) en simulaciones de sistemas moleculares grandes como proteínas, ADN o fluidos iónicos~\cite{pfalzner1996, Gan2014}.
+    \item \textbf{Física de Plasmas:} Para simular la interacción entre partículas cargadas en plasmas~\cite{winkel2012}.
+    \item \textbf{Visualización de Datos y Aprendizaje Automático:} Se ha adaptado para acelerar algoritmos de reducción de dimensionalidad y visualización, como t-SNE (\textit{t-distributed Stochastic Neighbor Embedding}), donde se modelan ``fuerzas'' atractivas y repulsivas entre puntos de datos en un espacio de baja dimensión~\cite{vandemaaten2008, vandermaaten2013}.
+    \item \textbf{Graficación por Computadora y Diseño de Grafos:} Para algoritmos de diseño dirigido por fuerzas (\textit{force-directed layout}), donde los nodos de un grafo se repelen y las aristas actúan como resortes, buscando una disposición espacial estéticamente agradable o funcional~\cite{Nguyen2007}.
+\end{itemize}
+
+\subsubsection{Ventajas y Limitaciones}
+
+\paragraph{Ventajas}
+\begin{itemize}
+    \item \textbf{Eficiencia Computacional:} Su complejidad $O(N \log N)$ permite simular sistemas mucho más grandes que los métodos directos $O(N^2)$~\cite{Barnes1986}.
+    \item \textbf{Versatilidad:} Aplicable a diferentes tipos de fuerzas de largo alcance (gravitatoria, electrostática)~\cite{pfalzner1996, Gan2014}.
+    \item \textbf{Adaptabilidad:} La estructura de árbol se adapta naturalmente a distribuciones de partículas no uniformes (clusterizadas)~\cite{becciani1997, dubinski1996}.
+    \item \textbf{Paralelizable:} Se presta bien a la implementación en arquitecturas de cómputo paralelo (multi-núcleo, GPU, clusters)~\cite{dubinski1996, burtscher2011}.
+\end{itemize}
+
+\paragraph{Limitaciones}
+\begin{itemize}
+    \item \textbf{Aproximación:} Introduce errores en el cálculo de fuerzas, cuya magnitud depende del parámetro $\theta$ y de la distribución de partículas~\cite{barnes1990, aguirre2020}. No es adecuado para simulaciones que requieran una precisión extremadamente alta en las interacciones individuales (ej.\ dinámica de sistemas planetarios precisos a largo plazo).
+    \item \textbf{Complejidad de Implementación:} Aunque conceptualmente más simple que otros métodos rápidos como el Método Multipolo Rápido (FMM), su implementación correcta, especialmente las versiones paralelas u optimizadas, requiere un esfuerzo considerable~\cite{dubinski1996, salmon1991}.
+    \item \textbf{Coste de Construcción del Árbol:} La construcción (o reconstrucción) del árbol en cada paso de tiempo representa una sobrecarga computacional que no existe en los métodos directos~\cite{salmon1991}.
+    \item \textbf{Condiciones de Contorno:} La implementación de condiciones de contorno periódicas, comunes en cosmología o dinámica molecular, es más compleja que en métodos basados en mallas~\cite{bagla2004}.
+\end{itemize}
