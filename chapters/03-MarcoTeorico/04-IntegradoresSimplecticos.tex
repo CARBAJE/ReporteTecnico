@@ -4,7 +4,25 @@
 Los integradores simplécticos gravitacionales representan una clase especializada de métodos numéricos diseñados para la simulación de sistemas dinámicos descritos por la mecánica hamiltoniana, con una aplicación primordial en el problema gravitacional de N-cuerpos~\cite{wisdom1991, stuchi2002}. Estos métodos son cruciales en la mecánica celeste y la astrofísica computacional para modelar con alta fidelidad la evolución a largo plazo de sistemas como planetas orbitando estrellas, satélites, asteroides, cúmulos estelares y galaxias~\cite{wisdom1991, chin2005, hernandez2020}. Su característica distintiva y fundamental es la preservación de la estructura geométrica del espacio de fases, conocida como la forma simpléctica, lo que conlleva excelentes propiedades de conservación a largo plazo para cantidades como la energía y el momento angular, aunque esta conservación de energía no sea exacta, sino acotada~\cite{stuchi2002, farr2007, yoshida1993}.
 
 \subsection{Definición y Principios Fundamentales}
-Un sistema dinámico descrito por un Hamiltoniano \( H(\vect{q}, \vect{p}, t) \) evoluciona en el tiempo según las ecuaciones de Hamilton. Un integrador numérico aproxima este flujo continuo mediante un mapa discreto \(\Phi_h: (\vect{q}_n, \vect{p}_n) \mapsto (\vect{q}_{n+1}, \vect{p}_{n+1})\) que avanza el sistema en un paso de tiempo \(h\). El integrador \(\Phi_h\) se denomina simpléctico si preserva la 2-forma simpléctica \(\omega = \sum_i d\vect{p}_i \wedge d\vect{q}_i\)~\cite{stuchi2002, farr2007}. Matemáticamente, esto significa que la matriz Jacobiana del mapa, \( J = \partial(\vect{q}_{n+1}, \vect{p}_{n+1}) / \partial(\vect{q}_n, \vect{p}_n) \), debe satisfacer la condición \( J^T \Omega J = \Omega \), donde \(\Omega\) es la matriz estándar simpléctica~\cite{farr2007, yoshida1993}. Esta propiedad garantiza que el mapa es una transformación canónica y preserva el volumen en el espacio de fases (Teorema de Liouville)~\cite{wisdom1991, stuchi2002}.
+Un sistema dinámico descrito por un Hamiltoniano \( H(\vect{q}, \vect{p}, t) \) evoluciona en el tiempo según las ecuaciones de Hamilton. Un integrador numérico aproxima este flujo continuo mediante un mapa discreto:
+\begin{equation}
+    \Phi_h: (\vect{q}_n, \vect{p}_n) \mapsto (\vect{q}_{n+1}, \vect{p}_{n+1})
+\end{equation}
+que avanza el sistema en un paso de tiempo \(h\).
+
+El integrador \(\Phi_h\) se denomina simpléctico si preserva la 2-forma simpléctica:
+\begin{equation}
+    \omega = \sum_i d\vect{p}_i \wedge d\vect{q}_i \text{~\cite{stuchi2002, farr2007}.}
+\end{equation}
+Matemáticamente, esto significa que la matriz Jacobiana del mapa:
+\begin{equation}
+    J = \frac{\partial(\vect{q}_{n+1}, \vect{p}_{n+1})}{\partial(\vect{q}_n, \vect{p}_n)}
+\end{equation}
+debe satisfacer la condición:
+\begin{equation}
+    J^T \Omega J = \Omega
+\end{equation}
+donde \(\Omega\) es la matriz estándar simpléctica~\cite{farr2007, yoshida1993}. Esta propiedad garantiza que el mapa es una transformación canónica y preserva el volumen en el espacio de fases (Teorema de Liouville)~\cite{wisdom1991, stuchi2002}.
 
 Para el problema gravitacional de N-cuerpos, el Hamiltoniano es separable, \( H = T(\vect{p}) + V(\vect{q}) \), donde \( T \) es la energía cinética (dependiente solo de los momentos) y \( V \) es la energía potencial (dependiente solo de las posiciones)~\cite{chin2005, Hernandez2015}. Esta separabilidad permite la construcción de integradores simplécticos mediante métodos de división (\textit{splitting methods})~\cite{stuchi2002, chin2005}. Estos métodos descomponen el Hamiltoniano en partes integrables analíticamente (o de forma muy precisa) y componen sus flujos para aproximar el flujo completo. El ejemplo más básico es el integrador de Leapfrog (o Verlet), que es de segundo orden y simpléctico~\cite{stuchi2002, farr2007, Hernandez2015}.
 
