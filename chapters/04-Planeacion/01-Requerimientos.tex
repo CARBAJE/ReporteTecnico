@@ -1,129 +1,70 @@
 \section{Análisis de Requerimientos}
 
-La sección de requerimientos constituye el pilar fundamental para el desarrollo exitoso de cualquier sistema o software, ya que establece de manera clara y estructurada las expectativas sobre lo que el sistema debe hacer y cómo debe comportarse. En este sentido, los requerimientos se clasifican en dos grandes categorías: \textbf{funcionales} y \textbf{no funcionales}. Los requerimientos funcionales (RF) detallan las acciones específicas que el sistema debe ejecutar, como la modificación dinámica de parámetros o la simulación de interacciones gravitacionales. Por su parte, los requerimientos no funcionales (RNF) especifican las cualidades y limitaciones del sistema, incluyendo aspectos como el rendimiento, la escalabilidad, la usabilidad y la compatibilidad con hardware determinado.
+La sección de requerimientos constituye el pilar fundamental para el desarrollo exitoso de cualquier modelo o software, ya que establece de manera clara y estructurada las expectativas sobre lo que el modelo debe hacer y cómo debe comportarse. En este sentido, los requerimientos se clasifican en dos grandes categorías: \textbf{funcionales} y \textbf{no funcionales}. Los requerimientos funcionales (RF) detallan las acciones específicas que el modelo debe ejecutar, como la modificación dinámica de parámetros o la simulación de interacciones gravitacionales. Por su parte, los requerimientos no funcionales (RNF) especifican las cualidades y limitaciones del modelo, incluyendo aspectos como el rendimiento, la escalabilidad, la usabilidad y la compatibilidad con hardware determinado.
 
-En este reporte técnico, se presenta un análisis detallado del contenido textual para identificar tanto los requerimientos explícitos como los implícitos, garantizando que el sistema de simulación gravitacional cumpla con los objetivos establecidos. Entre estos objetivos se incluye la capacidad de ajustar dinámicamente la masa de los cuerpos celestes y asegurar el cumplimiento de las leyes de la física y la mecánica celeste. Además, se han tomado en cuenta factores esenciales como la eficiencia computacional, la estabilidad de las simulaciones y la accesibilidad para usuarios sin experiencia técnica avanzada.
+En este reporte técnico, se presenta un análisis detallado del contenido textual para identificar tanto los requerimientos explícitos como los implícitos, garantizando que el modelo de simulación gravitacional cumpla con los objetivos establecidos. Entre estos objetivos se incluye la capacidad de ajustar dinámicamente la masa de los cuerpos celestes y asegurar el cumplimiento de las leyes de la física y la mecánica celeste. Además, se han tomado en cuenta factores esenciales como la eficiencia computacional, la estabilidad de las simulaciones y la accesibilidad para usuarios sin experiencia técnica avanzada.
 
-La definición precisa y la documentación adecuada de estos requerimientos no solo orientarán el proceso de desarrollo, sino que también facilitarán la validación y verificación del sistema una vez implementado. Esto asegura que el producto final esté alineado con las necesidades y expectativas de los usuarios, ya sean investigadores, académicos o profesionales del sector.
+La definición precisa y la documentación adecuada de estos requerimientos no solo orientarán el proceso de desarrollo, sino que también facilitarán la validación y verificación del modelo una vez implementado. Esto asegura que el producto final esté alineado con las necesidades y expectativas de los usuarios, ya sean investigadores, académicos o profesionales del sector.
 
+\newpage
 \subsection{Requerimientos Funcionales (RF)}
 
-Los requerimientos funcionales describen las capacidades que el sistema debe tener:
+Los requerimientos funcionales describen las capacidades que el modelo debe tener:
 
-\begin{itemize}
-    \item \textbf{RF1: Modificación dinámica de la masa}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe permitir la modificación dinámica de la masa de los cuerpos celestes durante la simulación.
-        \item \textbf{Justificación:} Este es el núcleo del proyecto, permitiendo simular eventos astronómicos complejos mediante cambios en la masa.
-    \end{itemize}
-    \item \textbf{RF2: Simulación de interacciones gravitacionales}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe simular las interacciones gravitacionales entre dos cuerpos celestes.
-        \item \textbf{Justificación:} Es una funcionalidad esencial para cumplir con el propósito del modelo.
-    \end{itemize}
-    \item \textbf{RF3: Integración de métodos computacionales avanzados}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe usar el método multipolar rápido (FMM) y el algoritmo de Barnes-Hut para optimizar los cálculos gravitacionales.
-        \item \textbf{Justificación:} Estos métodos aseguran eficiencia en las simulaciones.
-    \end{itemize}
-    \item \textbf{RF4: Uso de algoritmos bioinspirados para encontrar parámetros idóneos}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe implementar algoritmos bioinspirados (como optimización por enjambre de partículas o algoritmos genéticos) para ajustar dinámicamente los parámetros y encontrar los valores idóneos que garanticen la estabilidad del sistema a través del cambio dinámico de la masa de los cuerpos celestes.
-        \item \textbf{Justificación:} Estos algoritmos optimizan los ajustes de los cuerpos celestes para mantener la estabilidad del sistema, siendo un componente clave para cumplir con los objetivos del proyecto.
-    \end{itemize}
-    \item \textbf{RF5: Visualización gráfica}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe incluir un módulo para visualizar gráficamente la evolución de los dos cuerpos en iteraciones limitadas.
-        \item \textbf{Justificación:} La visualización es un objetivo explícito del proyecto.
-    \end{itemize}
-    \item \textbf{RF6: Interfaz de usuario}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe ofrecer una interfaz básica para modificar parámetros y ver resultados.
-        \item \textbf{Justificación:} Facilita la interacción del usuario con la simulación.
-    \end{itemize}
-\end{itemize}
+\begin{table}[H]
+    \centering
+    \caption{Requerimientos Funcionales}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{p{1cm}p{5cm}p{1.75cm}p{2.25cm}p{5cm}}
+    \hline
+    \textbf{ID} & \textbf{Descripción} & \textbf{Prioridad} & \textbf{Actor} & \textbf{Criterios de Aceptación} \\
+    \hline
+    RF-001 & El sistema debe permitir la modificación dinámica de la masa de los cuerpos celestes durante la simulación. & Alta & Usuario/Modelo & El usuario puede modificar la masa de los cuerpos celestes en tiempo real y la simulación responde adecuadamente a estos cambios. \\
+    \hline
+    RF-002 & El sistema debe simular las interacciones gravitacionales entre dos cuerpos celestes. & Alta & Modelo & La simulación calcula y representa correctamente las fuerzas gravitacionales entre los cuerpos según las leyes físicas establecidas. \\
+    \hline
+    RF-003 & El sistema debe usar el método multipolar rápido (FMM) y el algoritmo de Barnes-Hut para optimizar los cálculos gravitacionales. & Media & Modelo & Los algoritmos se implementan correctamente y mejoran el rendimiento de los cálculos en comparación con métodos directos. \\
+    \hline
+    RF-004 & El sistema debe implementar algoritmos bioinspirados para ajustar dinámicamente los parámetros y encontrar valores idóneos que garanticen la estabilidad del sistema. & Alta & Modelo & Los algoritmos bioinspirados funcionan correctamente y logran mantener la estabilidad del sistema durante los cambios de masa. \\
+    \hline
+    RF-005 & El sistema debe incluir un módulo para visualizar gráficamente la evolución de los dos cuerpos en iteraciones limitadas. & Media & Usuario & La visualización muestra claramente las trayectorias y estados de los cuerpos celestes durante la simulación. \\
+    \hline
+    RF-006 & El sistema debe ofrecer una interfaz básica para modificar parámetros y ver resultados. & Media & Usuario & El usuario puede interactuar con la interfaz para ajustar parámetros y visualizar los cambios en la simulación. \\
+    \hline
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
 
 \subsection{Requerimientos No Funcionales (RNF)}
 
-Los requerimientos no funcionales especifican las cualidades y restricciones del sistema, incluyendo los dos implícitos que me pediste añadir:
+Los requerimientos no funcionales especifican las cualidades y restricciones del modelo, incluyendo los dos implícitos que me pediste añadir:
 
-\subsubsection{Rendimiento}
-\begin{itemize}
-    \item \textbf{RNF1: Rendimiento computacional}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe optimizar la complejidad de las simulaciones de n-cuerpos para ser eficiente.
-        \item \textbf{Justificación:} La eficiencia es clave para manejar cálculos gravitacionales.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Escalabilidad}
-\begin{itemize}
-    \item \textbf{RNF2: Escalabilidad}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe permitir la extensión futura a más de dos cuerpos.
-        \item \textbf{Justificación:} El diseño debe prever simulaciones más complejas.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Fidelidad a las leyes físicas}
-\begin{itemize}
-    \item \textbf{RNF3: Fidelidad a las leyes de la física y mecánica celeste}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe respetar las leyes de la física y la mecánica celeste en las interacciones gravitacionales, sin garantizar precisión comparativa debido a la falta de datos registrados de eventos astronómicos similares.
-        \item \textbf{Justificación:} Como el modelo es innovador y no hay comparativas, la fidelidad a los principios físicos es el estándar de validez.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Estabilidad}
-\begin{itemize}
-    \item \textbf{RNF4: Estabilidad}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe mantener simulaciones estables al modificar parámetros dinámicamente.
-        \item \textbf{Justificación:} La estabilidad es esencial para resultados realistas.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Usabilidad}
-\begin{itemize}
-    \item \textbf{RNF5: Usabilidad}
-    \begin{itemize}
-        \item \textbf{Descripción:} La interfaz debe ser intuitiva y accesible sin necesidad de conocimientos avanzados.
-        \item \textbf{Justificación:} El diseño sencillo apoya su uso educativo y recreativo.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Compatibilidad con hardware}
-\begin{itemize}
-    \item \textbf{RNF6: Compatibilidad con hardware}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe ejecutarse en hardware de gama media (procesadores multinúcleo, 16 GB de RAM).
-        \item \textbf{Justificación:} Garantiza accesibilidad sin hardware especializado.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Portabilidad}
-\begin{itemize}
-    \item \textbf{RNF7: Portabilidad}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe integrarse con entornos virtuales como Unreal Engine.
-        \item \textbf{Justificación:} La portabilidad amplía su aplicabilidad.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Mantenibilidad (Implícito)}
-\begin{itemize}
-    \item \textbf{RNF8: Mantenibilidad}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe ser modular para facilitar actualizaciones y correcciones.
-        \item \textbf{Justificación:} Un diseño modular permite mejoras futuras en un proyecto innovador.
-    \end{itemize}
-\end{itemize}
-
-\subsubsection{Documentación (Implícito)}
-\begin{itemize}
-    \item \textbf{RNF9: Documentación}
-    \begin{itemize}
-        \item \textbf{Descripción:} El sistema debe incluir documentación clara para usuarios y desarrolladores.
-        \item \textbf{Justificación:} Esencial para su uso y desarrollo continuo por parte de académicos o investigadores.
-    \end{itemize}
-\end{itemize}
+\begin{table}[H]
+    \centering
+    \caption{Requerimientos No Funcionales}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{p{1.2cm}p{5cm}p{1.75cm}p{2.25cm}p{5cm}}
+    \hline
+    \textbf{ID} & \textbf{Descripción} & \textbf{Prioridad} & \textbf{Actor} & \textbf{Criterios de Aceptación} \\
+    \hline
+    RNF-001 & El sistema debe optimizar la complejidad de las simulaciones de n-cuerpos para ser eficiente. & Alta & Modelo & La simulación se ejecuta en tiempos razonables sin consumir excesivos recursos computacionales. \\
+    \hline
+    RNF-002 & El sistema debe permitir la extensión futura a más de dos cuerpos. & Media & Modelo & La arquitectura del sistema es escalable y puede adaptarse para simular más cuerpos sin cambios estructurales mayores. \\
+    \hline
+    RNF-003 & El sistema debe respetar las leyes de la física y la mecánica celeste en las interacciones gravitacionales. & Alta & Modelo & Las simulaciones producen resultados coherentes con las leyes físicas establecidas. \\
+    \hline
+    RNF-004 & El sistema debe mantener simulaciones estables al modificar parámetros dinámicamente. & Alta & Modelo & La simulación no colapsa ni presenta comportamientos erráticos cuando se modifican los parámetros durante la ejecución. \\
+    \hline
+    RNF-005 & La interfaz debe ser intuitiva y accesible sin necesidad de conocimientos avanzados. & Media & Usuario & Usuarios sin experiencia técnica pueden utilizar el sistema sin dificultades significativas. \\
+    \hline
+    RNF-006 & El sistema debe ejecutarse en hardware de gama media (procesadores multinúcleo, 16 GB de RAM). & Media & Modelo & El sistema funciona correctamente en equipos con las especificaciones mínimas establecidas. \\
+    \hline
+    RNF-007 & El sistema debe integrarse con entornos virtuales como Unreal Engine. & Baja & Modelo & La integración con Unreal Engine u otros entornos similares es posible y funcional. \\
+    \hline
+    RNF-008 & El sistema debe ser modular para facilitar actualizaciones y correcciones. & Media & Desarrollador & Los componentes del sistema están claramente separados y pueden modificarse independientemente. \\
+    \hline
+    RNF-009 & El sistema debe incluir documentación clara para usuarios y desarrolladores. & Media & Desarrollador & La documentación es completa, comprensible y cubre todos los aspectos relevantes del sistema. \\
+    \hline
+    \end{tabular}
+    \end{adjustbox}
+    \end{table}
