@@ -1,0 +1,32 @@
+\section[REBOUND para dinámica N-cuerpos]{Código REBOUND para dinámica N-cuerpos colisionante y no colisionante}
+
+\textit{REBOUND} es un código N-cuerpos de propósito general, de código abierto, diseñado inicialmente para estudiar dinámica colisionante en contextos como anillos planetarios, pero con capacidades completas para resolver también el problema clásico de dinámica N-cuerpos. Su arquitectura altamente modular permite adaptar el código fácilmente a distintos problemas en astrofísica, incluyendo dinámica planetaria, formación de sistemas estelares y simulaciones cosmológicas a pequeña escala.
+
+Este código y sus precursores han sido ya utilizados en una amplia variedad de publicaciones científicas, y continúa en desarrollo activo. A la fecha, no existe otro código de dinámica colisionante de acceso público que ofrezca la misma versatilidad para los tipos de problemas abordados, motivo por el cual ha sido liberado bajo la licencia de código abierto GPLv3.
+
+\subsection{Descripción y Arquitectura Técnica}
+
+El diseño de REBOUND se basa en una estructura modular que facilita la combinación de diferentes métodos numéricos para integración temporal, cálculo gravitacional, detección de colisiones y manejo de condiciones de frontera. Incluye tres integradores simplécticos: \textit{leap-frog}, el integrador simpléctico epicíclico (SEI), y el método de mapeo de Wisdom-Holman (WH), permitiendo así cubrir una amplia gama de escalas temporales y niveles de precisión.
+
+El código soporta condiciones de frontera abiertas, periódicas y del tipo \textit{shearing-sheet}, lo que lo hace ideal para simular sistemas que requieren modelado de geometrías específicas o entornos en rotación diferencial. Esta última condición es particularmente útil en simulaciones de anillos planetarios, que suelen modelarse con esta aproximación, y donde la gravedad propia desempeña un papel clave, especialmente en regiones densas como los anillos de Saturno.
+
+Para el cálculo de la auto-gravedad y las colisiones, REBOUND implementa el algoritmo de Barnes-Hut basado en árboles, con soporte completo para paralelización mediante MPI (paso de mensajes entre nodos) y OpenMP (multi-hilo compartido). La paralelización se logra a través de una descomposición estática del dominio y el uso de árboles distribuidos esenciales.
+
+\subsection{Aplicaciones Prácticas}
+
+REBOUND ha sido ampliamente utilizado en el estudio de anillos planetarios, donde los tiempos de colisión pueden ser comparables o incluso menores que los tiempos orbitales. También se emplea en simulaciones de formación de planetesimales, donde las colisiones entre cuerpos actúan como mecanismo disipativo que facilita el colapso gravitacional. Otra aplicación importante es en discos protoplanetarios, de transición y de escombros, donde se puede utilizar una versión estadística con partículas representativas (\textit{super-particles}) para estimar frecuencias de colisión sin simular cada evento individual.
+
+Además, el código permite estudiar sistemas completamente no colisionantes, como cúmulos estelares o sistemas planetarios en configuración estable, gracias a su capacidad para utilizar integradores simplécticos y seguir con precisión tanto partículas de prueba como cuerpos masivos. La combinación de estos enfoques lo hace adecuado también para estudios híbridos o multiescala.
+
+\subsection{Ventajas y Desventajas}
+
+Entre sus principales ventajas, REBOUND destaca por su arquitectura modular y extensible, la disponibilidad de múltiples integradores adecuados para diferentes escalas de tiempo, y su capacidad para manejar tanto colisiones físicas como dinámicas puramente gravitacionales. La paralelización mediante MPI y OpenMP permite escalar el código desde computadoras personales hasta supercomputadoras. Además, sus algoritmos de detección de colisiones tipo \textit{plane-sweep} ofrecen un rendimiento sobresaliente en geometrías cuasi-bidimensionales.
+
+Sin embargo, el código también presenta algunas limitaciones. Aunque su diseño modular permite gran flexibilidad, esto puede aumentar la complejidad inicial para usuarios novatos. Además, en simulaciones con geometrías tridimensionales muy complejas o con más de varios millones de partículas, el rendimiento puede verse limitado por la sobrecarga de comunicación entre nodos. Asimismo, ciertas aplicaciones especializadas pueden requerir la implementación de módulos propios, lo que implica un conocimiento más profundo del código fuente.
+
+\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
+
+El código REBOUND representa una herramienta versátil y poderosa para proyectos de simulación gravitacional que requieren modelar tanto interacciones suaves como encuentros cercanos o colisiones físicas entre cuerpos. Su diseño modular permite incorporar algoritmos adicionales, como optimizadores bioinspirados o métodos adaptativos de integración, facilitando la exploración de configuraciones dinámicas complejas.
+
+Además, su capacidad para ejecutarse eficientemente en una variedad de entornos computacionales, junto con su soporte para distintos esquemas de frontera, lo hacen ideal para experimentar con nuevos esquemas híbridos o sistemas autoajustables donde los parámetros de interacción se modifiquen en función del entorno dinámico.
+
