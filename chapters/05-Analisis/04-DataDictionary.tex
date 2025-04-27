@@ -1,0 +1,75 @@
+\section{diccionario de datos}
+
+En el desarrollo de este proyecto, la representación adecuada de los datos es fundamental para garantizar la consistencia, comprensión y el correcto funcionamiento del sistema, buscando facilitar tanto la interpretación del modelo, así como su mantenimiento y expansión futura.
+
+Por lo cual, en esta sección se mostrará el diccionario de datos, donde se describirán los atributos de los datos, sus significados, sus restricciones y ejemplos que ilustran su uso.
+
+\begin{table}[H]
+    \centering
+    \caption{Cuerpo celeste.}
+    \label{tab:diccionario_cuerpos}
+    \begin{adjustbox}{max width=\textwidth}
+        \begin{tabular}{@{}p{4cm} p{5cm} p{2cm} p{2cm} p{3cm}@{}}
+            \toprule
+            \textbf{Nombre del atributo} & \textbf{Descripción} & \textbf{Tipo de dato} & \textbf{Rango} & \textbf{Ejemplo} \\
+            \midrule
+            \textbf{masa} & Masa del cuerpo celeste que influye en su atracción gravitacional. & \texttt{float} & \(>0\) (positivos) para la primera masa, para la segunda masa mayor a 0 y menor a 10 veces la primera masa& 1.0 \\
+            \midrule
+            \textbf{a} & Semieje mayor de la órbita, define el tamaño de la órbita elíptica, es la mitad del eje largo de la elipse y en caso de ser circular es el radio. & \texttt{float} & \(>0\) (positivos) & 1.0 \\
+            \midrule
+            \textbf{e} & Excentricidad orbital, indica cuán alargada es la órbita siendo un circulo perfecto si la excentricidad es 0 y mientras mas estirada, mas cercana a 1 & \texttt{float} & [0, 1) & 0.1 \\
+            \midrule
+            \textbf{inc\_deg} & Inclinación orbital respecto al plano de referencia, en grados. & \texttt{float} & [0°, 180°] & 30.0 \\
+            \midrule
+            \textbf{perturba} & Indica si se aplica una perturbación inicial pequeña a los parámetros. & \texttt{bool} & \texttt{True} o \texttt{False} & True \\
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Simulación.}
+    \label{tab:diccionario_simulación}
+    \begin{adjustbox}{max width=\textwidth}
+        \begin{tabular}{@{}p{4cm} p{5cm} p{2cm} p{2cm} p{3cm}@{}}
+            \toprule
+            \textbf{Nombre del atributo} & \textbf{Descripción} & \textbf{Tipo de dato} & \textbf{Rango} & \textbf{Ejemplo} \\
+            \midrule
+            \textbf{t\_max} & Tiempo total de simulación en años. & \texttt{float} & \( > 0 \) (positivos) & 100.0 \\
+            \midrule
+            \textbf{N\_steps} & Número de pasos a almacenar, define la resolución temporal de la simulación. A mayor número de pasos, mayor resolución. & \texttt{entero} & \(>0\) (positivos) & 1000 \\
+            \midrule
+            \textbf{sim.units} & Unidades de la simulación, siendo en orden unidad de distancia, unidad de tiempo y unitad de masa. & \texttt{texto} & \texttt{AU, yr, Msun} & AU, yr, Msun \\
+            \midrule
+            \textbf{sim.integrator} & Indica el integrador numérico que se va a utilizar para avanzar la simulación en el tiempo. & \texttt{texto} & \texttt{ias15, whfast, BS, mercurius}  & ias15 \\
+            \midrule
+            \textbf{x, y, z} & Guarda las posiciones de nuestros cuerpos & \texttt{array(float)} & \(>0\) (positivos) & [5.0, 230.0, 20.0]  \\
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Métricas.}
+    \label{tab:diccionario_métricas}
+    \begin{adjustbox}{max width=\textwidth}
+        \begin{tabular}{@{}p{4cm} p{5cm} p{2cm} p{2cm} p{3cm}@{}}
+            \toprule
+            \textbf{Nombre del atributo} & \textbf{Descripción} & \textbf{Tipo de dato} & \textbf{Rango} & \textbf{Ejemplo} \\
+            \midrule
+            \textbf{times} & Array que guarda los tiempos en la simulación. & \texttt{array(float)} & \(>0\) (positivos) & [0.0, 100.0, 200.0] \\
+            \midrule
+            \textbf{energy} & Energía total del sistema, incluye la energía cinética y potencial. & \texttt{float} & Valor real & -0.5 \\
+            \midrule
+            \textbf{a\_arr, a\_pert} & Array que guarda el semieje mayor de la órbita en cada paso de la simulación y el array de semiejes mayores perturbados. & \texttt{array(float)} & \(>0\) (positivos) & [1.0, 1.5, 2.0] \\
+            \midrule
+            \textbf{e\_arr, e\_pert} & Array que guarda la excentricidad orbital en cada paso de la simulación y el array de excentricidades perturbadas. & \texttt{array(float)} & [0, 1) & [0.1, 0.2, 0.3] \\
+            \midrule
+            \textbf{Exponente de Lyapunov ($\mathbf{\lambda}$)}& Indica la tasa de crecimiento exponencial de las perturbaciones, relacionada con la estabilidad del sistema. & \texttt{float} & Valor real & 0.01 \\
+            \bottomrule
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+
