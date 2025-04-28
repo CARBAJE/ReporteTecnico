@@ -19,12 +19,21 @@
 \usepackage{changepage} % en el preámbulo
 \usepackage{bm}      % For bold math symbols (\bm command)
 \usepackage{array}   % For better table column specifications
+\usepackage{longtable}
 \usepackage{booktabs}% For professional looking tables (\toprule, \midrule, \bottomrule)
 \usepackage{adjustbox}
 \usepackage{enumitem}
+\usepackage{pgffor}
+\usepackage{enumitem}
+\usepackage{pdflscape}  % para PDF
 
 % Tikz packages
 \usetikzlibrary{shapes, arrows, positioning, calc}
+
+% enlistar con mayor profundidad
+\setlist[itemize,1]{label=\textbullet,ref={}}
+\setlist[enumerate,1]{label=\arabic*.}
+\setlistdepth{15}
 
 \setlength{\parindent}{0pt}
 % Añade esta línea antes de \begin{document}

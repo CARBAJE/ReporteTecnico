@@ -6,7 +6,7 @@ La representación explícita del flujo de trabajo operativo es fundamental para
 El diagrama de actividades presentado en la Sección~\ref{subsec:activity_diagram_img} sirve como una representación formal de este proceso dinámico. Modela cómo el algoritmo bioinspirado gestiona la generación de conjuntos de parámetros, inicia ejecuciones de simulación en REBOUND y evalúa los resultados para refinar iterativamente la búsqueda de soluciones que satisfagan criterios predefinidos (p.\ ej., estabilidad orbital).
 
 Mediante la descomposición del proceso global en pasos discretos y la asignación de responsabilidades a través de carriles (swimlanes), el diagrama clarifica la lógica operativa y establece una base para una implementación estructurada y verificable. Asegura que la integración del ciclo de optimización con el motor de simulación sea coherente con los objetivos del proyecto, facilitando el desarrollo de una solución robusta para la exploración de escenarios de N-cuerpos bajo criterios de optimización específicos.
-
+\newpage
 \subsection{Diagrama de Actividades}%
 \label{subsec:activity_diagram_img}
 
@@ -14,11 +14,13 @@ A continuación, se presenta el diagrama de actividades que modela el flujo oper
 
 \begin{figure}[H] % Opciones de posicionamiento: here, top, bottom, page
     \centering
-    \includegraphics[width=\textwidth]{img/Analisis/DiagramaActividades2.png}
+    \adjustbox{max width=\textwidth, max height=0.8\textheight}{%
+        \includegraphics{img/Analisis/DiagramaActividades2.png}
+    }
     \caption{Diagrama de Actividades UML del proceso de simulación y optimización.}%
     \label{fig:activity_diagram} % Etiqueta para referenciar la figura
 \end{figure}
-
+\newpage
 \subsection{Descripción del Diagrama de Actividades}
 
 \subsubsection{Estructura del Diagrama: Carriles (Swimlanes)}

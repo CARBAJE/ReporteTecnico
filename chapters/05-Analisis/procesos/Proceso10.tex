@@ -1,4 +1,4 @@
-\subsection[Proceso Interno 09: Recolectar Datos]{Proceso Interno 09: Recolectar Datos para Visualización}
+\subsection[Proceso Interno 10: Recolectar Datos]{Proceso Interno 10: Recolectar Datos para Visualización}
 
 \subsubsection{Objetivo del Proceso}
 El propósito principal de la actividad ``Recolectar Datos para Visualización'' es extraer el estado físico actual del sistema gravitacional (tiempo, masas, posiciones y, opcionalmente, velocidades) desde la instancia de simulación de REBOUND (\texttt{sim}) cuando se recibe una señal indicando que el tiempo actual coincide con un instante designado para la visualización ($t_{\text{vis}}$). Los datos recolectados se organizan en una estructura coherente para ser procesados por el siguiente paso del módulo de visualización, facilitando la representación gráfica del sistema en el contexto de la simulación de dos cuerpos.
@@ -112,11 +112,14 @@ Este apartado es proporcionado para profundizar y describir de forma textual cad
     \item \textbf{Con Estructuras de Datos Temporales}: Crea y llena arrays temporales (\texttt{masas}, \texttt{posiciones}, \texttt{velocidades}) y una estructura \texttt{VisualizationState} para organizar los datos recolectados.
     \item \textbf{Con el Pipeline de Visualización}: Transfiere la estructura \texttt{VisualizationState} al proceso ``Procesar Datos'', integrándose en el flujo de renderización gráfica.
 \end{itemize}
-
+\newpage
 \subsubsection{Diagrama del Proceso}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{img/Analisis/DiagramaProcesos/DiagramaProceso10_RecolectarDatos.png}
+    \adjustbox{max width=\textwidth, max height=0.9\textheight}{%
+    \includegraphics{img/Analisis/DiagramaProcesos/DiagramaProceso10_RecolectarDatos.png}
+    }
     \caption{Diagrama de Proceso Interno 10: Recolectar Datos}%
     \label{fig:process_diagram10}
 \end{figure}
+\newpage

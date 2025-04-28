@@ -16,21 +16,21 @@ Los requerimientos funcionales describen las capacidades que el modelo debe tene
     \caption{Requerimientos Funcionales}
     \begin{adjustbox}{width=\textwidth}
     \begin{tabular}{p{1cm}p{5cm}p{1.75cm}p{2.25cm}p{5cm}}
-    \hline
+    \hline %chktex 44
     \textbf{ID} & \textbf{Descripción} & \textbf{Prioridad} & \textbf{Actor} & \textbf{Criterios de Aceptación} \\
-    \hline
+    \hline %chktex 44
     RF-001 & El sistema debe permitir la modificación dinámica de la masa de los cuerpos celestes durante la simulación. & Alta & Usuario/Modelo & El usuario puede modificar la masa de los cuerpos celestes en tiempo real y la simulación responde adecuadamente a estos cambios. \\
-    \hline
+    \hline %chktex 44
     RF-002 & El sistema debe simular las interacciones gravitacionales entre dos cuerpos celestes. & Alta & Modelo & La simulación calcula y representa correctamente las fuerzas gravitacionales entre los cuerpos según las leyes físicas establecidas. \\
-    \hline
+    \hline %chktex 44
     RF-003 & El sistema debe usar el método multipolar rápido (FMM) y el algoritmo de Barnes-Hut para optimizar los cálculos gravitacionales. & Media & Modelo & Los algoritmos se implementan correctamente y mejoran el rendimiento de los cálculos en comparación con métodos directos. \\
-    \hline
+    \hline %chktex 44
     RF-004 & El sistema debe implementar algoritmos bioinspirados para ajustar dinámicamente los parámetros y encontrar valores idóneos que garanticen la estabilidad del sistema. & Alta & Modelo & Los algoritmos bioinspirados funcionan correctamente y logran mantener la estabilidad del sistema durante los cambios de masa. \\
-    \hline
+    \hline %chktex 44
     RF-005 & El sistema debe incluir un módulo para visualizar gráficamente la evolución de los dos cuerpos en iteraciones limitadas. & Media & Usuario & La visualización muestra claramente las trayectorias y estados de los cuerpos celestes durante la simulación. \\
-    \hline
+    \hline %chktex 44
     RF-006 & El sistema debe ofrecer una interfaz básica para modificar parámetros y ver resultados. & Media & Usuario & El usuario puede interactuar con la interfaz para ajustar parámetros y visualizar los cambios en la simulación. \\
-    \hline
+    \hline %chktex 44
     \end{tabular}
     \end{adjustbox}
 \end{table}
@@ -44,27 +44,27 @@ Los requerimientos no funcionales especifican las cualidades y restricciones del
     \caption{Requerimientos No Funcionales}
     \begin{adjustbox}{width=\textwidth}
     \begin{tabular}{p{1.2cm}p{5cm}p{1.75cm}p{2.25cm}p{5cm}}
-    \hline
+    \hline %chktex 44
     \textbf{ID} & \textbf{Descripción} & \textbf{Prioridad} & \textbf{Actor} & \textbf{Criterios de Aceptación} \\
-    \hline
+    \hline %chktex 44
     RNF-001 & El sistema debe optimizar la complejidad de las simulaciones de n-cuerpos para ser eficiente. & Alta & Modelo & La simulación se ejecuta en tiempos razonables sin consumir excesivos recursos computacionales. \\
-    \hline
+    \hline %chktex 44
     RNF-002 & El sistema debe permitir la extensión futura a más de dos cuerpos. & Media & Modelo & La arquitectura del sistema es escalable y puede adaptarse para simular más cuerpos sin cambios estructurales mayores. \\
-    \hline
+    \hline %chktex 44
     RNF-003 & El sistema debe respetar las leyes de la física y la mecánica celeste en las interacciones gravitacionales. & Alta & Modelo & Las simulaciones producen resultados coherentes con las leyes físicas establecidas. \\
-    \hline
+    \hline %chktex 44
     RNF-004 & El sistema debe mantener simulaciones estables al modificar parámetros dinámicamente. & Alta & Modelo & La simulación no colapsa ni presenta comportamientos erráticos cuando se modifican los parámetros durante la ejecución. \\
-    \hline
+    \hline %chktex 44
     RNF-005 & La interfaz debe ser intuitiva y accesible sin necesidad de conocimientos avanzados. & Media & Usuario & Usuarios sin experiencia técnica pueden utilizar el sistema sin dificultades significativas. \\
-    \hline
+    \hline %chktex 44
     RNF-006 & El sistema debe ejecutarse en hardware de gama media (procesadores multinúcleo, 16 GB de RAM). & Media & Modelo & El sistema funciona correctamente en equipos con las especificaciones mínimas establecidas. \\
-    \hline
+    \hline %chktex 44
     RNF-007 & El sistema debe integrarse con entornos virtuales como Unreal Engine. & Baja & Modelo & La integración con Unreal Engine u otros entornos similares es posible y funcional. \\
-    \hline
+    \hline %chktex 44
     RNF-008 & El sistema debe ser modular para facilitar actualizaciones y correcciones. & Media & Desarrollador & Los componentes del sistema están claramente separados y pueden modificarse independientemente. \\
-    \hline
+    \hline %chktex 44
     RNF-009 & El sistema debe incluir documentación clara para usuarios y desarrolladores. & Media & Desarrollador & La documentación es completa, comprensible y cubre todos los aspectos relevantes del sistema. \\
-    \hline
+    \hline %chktex 44
     \end{tabular}
     \end{adjustbox}
     \end{table}

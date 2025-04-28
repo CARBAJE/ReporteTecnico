@@ -4,29 +4,87 @@ El análisis detallado de los procesos internos del software constituye un pilar
 
 Esta sección establece la base operativa sobre la cual se construirá la solución. Proporciona el mapa necesario para implementar las innovaciones clave del proyecto –la modificación dinámica de parámetros– de manera estructurada, eficiente y verificable, asegurando que el modelo final cumpla con el objetivo de superar las limitaciones de las herramientas de simulación actuales.
 
-
+\foreach~\i in {1,...,9}{ %chktex 11
+    \input{chapters/05-Analisis/procesos/Proceso0\i.tex}
+}
+\foreach~\i in {0,...,5}{ %chktex 11
+    \input{chapters/05-Analisis/procesos/Proceso1\i.tex}
+}
 
 \subsection{Matriz de Procesos}
-\begin{table}[H]
-    \centering
-    \caption{Matriz resumen de los procesos internos del programa.}%
-    \label{tab:matriz_procesos}
-    \begin{adjustbox}{max width=\textwidth}
-        \begin{tabular}{@{}p{5cm} p{3cm} p{2.5cm} p{2.5cm} p{2.5cm} p{3cm} p{4cm}@{}}
-            \toprule
-            \textbf{Nombre del Proceso} & \textbf{Objetivo} & \textbf{Actores} & \textbf{Inicio} & \textbf{Entradas} & \textbf{Salidas} & \textbf{Pasos Clave} \\
-            \midrule
-            \textbf{Configuración Inicial de la Simulación} & Preparar la simulación estableciendo los parámetros iniciales de los dos cuerpos celestes y las condiciones del sistema. & Biblioteca \texttt{REBOUND} & Lanzamiento del programa o inicio de una nueva simulación & Masa, posición y velocidad inicial de los dos cuerpos; constante gravitacional y otros parámetros físicos & Una simulación configurada en \texttt{REBOUND} lista para ejecutarse & 1. Crear una instancia de simulación en \texttt{REBOUND} \newline 2. Agregar los dos cuerpos celestes con sus parámetros iniciales \newline 3. Definir las condiciones iniciales del sistema \\
-            \midrule
-            \textbf{Ejecución de la Simulación Gravitacional} & Simular las interacciones gravitacionales entre los dos cuerpos utilizando los algoritmos integrados en \texttt{REBOUND}. & Biblioteca \texttt{REBOUND} & Comando para ejecutar la simulación tras la configuración & Configuración inicial generada en el proceso anterior & Datos temporales de la simulación & 1. Iniciar la simulación mediante \texttt{REBOUND} \newline 2. Utilizar los integradores de \texttt{REBOUND} para resolver las ecuaciones de movimiento \newline 3. Actualizar el estado del sistema en cada paso de tiempo \\
-            \midrule
-            \textbf{Modificación Dinámica de Parámetros} & Ajustar parámetros como la masa de los cuerpos durante la simulación para observar cambios en el comportamiento gravitacional. & Biblioteca \texttt{REBOUND}, lógica interna del programa & Evento definido que requiere ajustar parámetros & Nuevos valores para parámetros & Simulación actualizada con los nuevos parámetros & 1. Detectar la necesidad de modificar un parámetro \newline 2. Pausar o preparar la simulación para el cambio \newline 3. Actualizar los parámetros en \texttt{REBOUND} \newline 4. Continuar la simulación con los valores ajustados \\
-            \midrule
-            \textbf{Visualización de la Simulación} & Mostrar gráficamente la evolución del sistema de dos cuerpos durante la simulación. & Módulo de visualización, datos generados por \texttt{REBOUND} & Necesidad de observar los resultados visualmente & Datos generados por la simulación & Representaciones gráficas o animaciones del sistema & 1. Recolectar datos de la simulación en cada paso \newline 2. Procesar los datos para adaptarlos a la herramienta de visualización \newline 3. Generar gráficos o animaciones del movimiento gravitacional \\
-            \midrule
-            \textbf{Interacción con la Interfaz de Usuario} & Permitir al usuario interactuar con la simulación, modificando parámetros y observando los resultados en tiempo real. & Interfaz de usuario, módulo de simulación con \texttt{REBOUND} & Acción del usuario & Instrucciones del usuario & Simulación y visualización actualizadas según las acciones del usuario & 1. Capturar las entradas del usuario a través de la interfaz \newline 2. Convertir las entradas en comandos para \texttt{REBOUND} o el módulo de visualización \newline 3. Ejecutar las modificaciones y reflejar los cambios en la simulación \\
-            \bottomrule
-        \end{tabular}
-    \end{adjustbox}
-\end{table}
+La Matriz de Resumen de Procesos presentada en esta sección ofrece un resumen consolidado y estructurado de los procesos clave del proyecto ``Modelo para representar comportamientos gravitacionales con dos cuerpos''. Cada fila de la tabla describe un proceso específico, incluyendo su nombre, objetivo, los actores o componentes involucrados, el evento que lo inicia, las entradas y salidas principales, y un resumen de los pasos esenciales. Esta disposición permite a los usuarios obtener una visión clara y rápida del propósito y funcionamiento de cada proceso dentro del sistema, facilitando la comprensión y el análisis sin necesidad de consultar descripciones más extensas.
 
+Los procesos detallados en la tabla son fundamentales para el desarrollo del proyecto, cubriendo desde la captura de parámetros ingresados por el usuario hasta la creación de gráficos que ilustran los comportamientos gravitacionales simulados. Estos procesos trabajan en conjunto para alcanzar el objetivo principal del proyecto: minimizar el Exponente de Lyapunov (LE) mediante algoritmos bioinspirados, apoyándose en herramientas como la biblioteca REBOUND para simulaciones y métodos de optimización como FMM/Barnes-Hut.
+
+Esta matriz está diseñada para ser una herramienta práctica tanto para analistas de sistemas como para diseñadores de software y otros stakeholders involucrados. Su estructura, con columnas específicas como ``\textit{Trigger} (Evento)'' y ``Pasos Clave'', destaca las dependencias y el flujo de datos entre los procesos, ofreciendo una perspectiva integral del sistema. En esencia, la tabla no solo actúa como una referencia rápida, sino que también ilustra cómo los distintos elementos del proyecto —interfaz, simulación, optimización y visualización— se integran para cumplir con los objetivos establecidos.
+\begin{landscape}
+    {\small
+    \begin{longtable}{@{}p{5cm} p{3cm} p{2.5cm} p{2.5cm} p{2.5cm} p{3cm} p{4cm}@{}}
+        \caption{Matriz de Procesos\label{tab:matriz_procesos}}\\
+        \toprule
+        \textbf{Nombre del Proceso} & \textbf{Objetivo} & \textbf{Actores Involucrados} & \textbf{Inicio (Evento)} & \textbf{Entradas Principales} & \textbf{Salidas Principales} & \textbf{Pasos Clave} \\
+        \midrule
+        \endfirsthead%
+
+        \multicolumn{7}{c}%
+        {{\bfseries Tabla \thetable{} -- continuación de la página anterior}} \\
+        \toprule
+        \textbf{Nombre del Proceso} & \textbf{Objetivo} & \textbf{Actores Involucrados} & \textbf{Inicio (Evento)} & \textbf{Entradas Principales} & \textbf{Salidas Principales} & \textbf{Pasos Clave} \\
+        \midrule
+        \endhead%
+
+        \midrule
+        \multicolumn{7}{r}{{Continúa en la siguiente página}} \\
+        \endfoot%
+
+        \bottomrule
+        \endlastfoot%
+
+        \textbf{Captura Parámetros} & Recopilar, validar y almacenar parámetros de configuración del usuario. & UI, Módulo de Validación & Usuario interactúa con la UI para configurar. & Evento de inicio, interacciones del usuario (clicks, selecciones, texto). & Estructura \texttt{ConfigurationData} validada, estado de UI actualizado. & 1. Presentar formulario en UI.\newline 2. Recibir y validar entradas.\newline 3. Almacenar configuración validada.\newline 4. Habilitar control de inicio.\\
+        \midrule
+
+        \textbf{Mostrar Resultados} & Presentar solución óptima y visualización final al usuario. & UI, Módulo de Visualización, Algoritmo Bioinspirado & Señal de finalización del Algoritmo Bioinspirado. & Parámetros óptimos, valor de fitness, datos de trayectoria (opcional). & Actualización visual de la UI con resultados finales. & 1. Recibir datos finales.\newline 2. Formatear datos para presentación.\newline 3. (Condicional) Generar visualización final.\newline 4. Presentar resultados en UI.\\
+        \midrule
+
+        \textbf{Inicializar Población} & Generar conjunto inicial de N individuos dentro de rangos válidos. & Algoritmo Bioinspirado, Generador Aleatorio & Inicio del proceso de optimización. & Tamaño de población (N), rangos de parámetros. & Lista de N individuos (conjuntos de parámetros). & 1. Leer configuración (N, rangos).\newline 2. Generar parámetros dentro de rangos.\newline 3. Crear lista de población inicial.\\
+        \midrule
+
+        \textbf{Generar Nueva Generación} & Crear nueva población de N individuos usando operadores genéticos. & Algoritmo Bioinspirado, Operadores Genéticos & Inicio de cada iteración del algoritmo genético. & Población actual, parámetros de configuración (Pc, Pm, $\eta_c$, $\eta_m$, k). & Lista de N nuevos individuos (conjuntos de parámetros). & 1. Seleccionar padres (Torneo).\newline 2. Aplicar cruzamiento (SBX) condicional.\newline 3. Aplicar mutación (Polinomial) condicional.\newline 4. Corregir límites de parámetros.\\
+        \midrule
+
+        \textbf{Evaluar Fitness} & Calcular fitness penalizado (\texttt{F\_p}) combinando LE y violaciones. & \texttt{REBOUND}, Módulo de Cálculo de LE, Restricciones & Evaluación de cada individuo en el algoritmo. & Parámetros del individuo, resultados de simulación, restricciones, lambda\_p. & Valor numérico de $F_p(x)$. & 1. Calcular LE ($f(x)$).\newline 2. Calcular penalización $P(x)$ por violaciones.\newline 3. Calcular $F_p(x) = f(x) + \lambda_p \cdot P(x)$. \\
+        \midrule
+
+        \textbf{Formar Siguiente Población} & Construir la población para la siguiente iteración con elitismo. & Algoritmo Bioinspirado & Después de generar descendencia y evaluar fitness. & Población actual, descendencia, tamaño de élite ($k$). & Lista de N individuos para la siguiente generación. & 1. Ordenar poblaciones por $F_p$.\newline 2. Copiar k mejores individuos (\textit{élite}).\newline 3. Completar con mejores descendientes. \\
+        \midrule
+
+        \textbf{Crear Nueva Simulación} & Instanciar un nuevo entorno de simulación vacío en \texttt{REBOUND}. & \texttt{REBOUND}, Algoritmo Bioinspirado & Solicitud del Algoritmo Bioinspirado para nueva simulación. & Solicitud de creación (trigger). & Referencia a nuevo objeto \texttt{Simulation}. & 1. Invocar constructor de \texttt{REBOUND}.\newline 2. Inicialización interna por \texttt{REBOUND}.\newline 3. Retornar referencia a `Simulation`. \\
+        \midrule
+
+        \textbf{Agregar Cuerpos} & Añadir una partícula con propiedades físicas a la simulación. & \texttt{REBOUND}, Algoritmo Bioinspirado & Configuración de la simulación antes de ejecutar. & Referencia a \texttt{sim}, parámetros del cuerpo (masa, posición, velocidad). & Instancia \texttt{sim} modificada con nueva partícula. & 1. Recibir parámetros del cuerpo.\newline 2. Invocar API de \texttt{REBOUND} para añadir partícula.\newline 3. Actualización interna por \texttt{REBOUND}. \\
+        \midrule
+
+        \textbf{Definir Condiciones} & Configurar parámetros operativos de la simulación ($dt$, $G$, $T_{\max}$). & \texttt{REBOUND}, Algoritmo Bioinspirado & Antes de iniciar la ejecución de la simulación. & Referencia a \texttt{sim}, parámetros de configuración ($dt$, $G$, $T_{\max}$). & Instancia \texttt{sim} configurada, valor $T_{\max}$ para ejecución. & 1. Recibir y desempaquetar parámetros.\newline 2. Establecer $dt$ y $G$ en \texttt{sim}.\newline 3. Procesar $T_{\max}$ para uso posterior. \\
+        \midrule
+
+        \textbf{Iniciar/Ejecutar Simulación} & Ejecutar la integración numérica paso a paso hasta $T_{\max}$. & \texttt{REBOUND}, Módulo de Visualización & Inicio de la simulación para un individuo. & Referencia a \texttt{sim}, $T_{\max}$, lista de tiempos de visualización. & Estructura \texttt{SimulationResult} con trayectoria completa. & 1. Inicializar almacenamiento de resultados.\newline 2. Bucle: avanzar un paso, almacenar estado, verificar visualización.\newline 3. Empaquetar y devolver resultados. \\
+        \midrule
+
+        \textbf{Avanzar un Paso de Simulación} & Avanzar el estado del sistema un paso $dt$ usando WHFast (DKD). & \texttt{REBOUND} (Integrador WHFast) & Cada iteración del bucle de simulación. & Estado actual de \texttt{sim}, target\_time ($t + dt$). & Instancia \texttt{sim} actualizada al tiempo target\_time. & 1. Primer Drift ($dt/2$).\newline 2. Kick ($dt$).\newline 3. Segundo Drift ($dt/2$).\newline 4. Finalización y sincronización. \\
+        \midrule
+
+        \textbf{Actualizar Estado} & Consolidar el nuevo estado del sistema tras la integración. & \texttt{REBOUND} & Después de cada paso de integración. & Referencia a \texttt{sim} post-integración. & Instancia \texttt{sim} con estado consolidado. & 1. Validar tiempo de simulación.\newline 2. Verificar actualización de posiciones y velocidades.\newline 3. Confirmar masas sin cambios. \\
+        \midrule
+
+        \textbf{Recolectar Datos} & Extraer estado actual del sistema en instantes de visualización. & Módulo de Visualización, \texttt{REBOUND} & Coincidencia de \texttt{sim.t} con t\_vis. & Referencia a \texttt{sim} o estado actual. & Estructura \texttt{VisualizationState} con instantánea del sistema. & 1. Leer tiempo, masas, posiciones (y velocidades si aplica).\newline 2. Empaquetar datos en \texttt{VisualizationState}. \\
+        \midrule
+
+        \textbf{Procesar Datos} & Transformar y formatear datos para la biblioteca gráfica. & Módulo de Visualización & Recepción de \texttt{VisualizationState}. & \texttt{VisualizationState}, configuración de visualización. & Datos formateados para la API gráfica. & 1. Verificar configuración de visualización.\newline 2. (Condicional) Transformar coordenadas.\newline 3. Seleccionar datos relevantes.\newline 4. (Condicional) Calcular valores derivados.\newline 5. Formatear para API gráfica. \\
+        \midrule
+
+        \textbf{Generar Gráficos} & Dibujar o actualizar la representación visual en la pantalla. & Módulo de Visualización, Biblioteca Gráfica & Recepción de datos formateados. & Datos formateados, contexto gráfico. & Representación gráfica actualizada en la UI. & 1. Preparar lienzo (limpiar si es actualización).\newline 2. Llamar funciones de dibujo de la API gráfica.\newline 3. Actualizar/refrescar pantalla. \\
+
+    \end{longtable}
+    }
+\end{landscape}
+\newpage

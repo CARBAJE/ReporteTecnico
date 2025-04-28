@@ -1,4 +1,4 @@
-\subsection[Proceso Interno: Procesar Datos]{Proceso Interno 11: Procesar Datos para Visualización}
+\subsection[Proceso Interno 11: Procesar Datos]{Proceso Interno 11: Procesar Datos para Visualización}
 
 \subsubsection{Objetivo del Proceso}
 El propósito principal de la actividad ``Procesar Datos para Visualización'' es transformar y formatear los datos brutos del estado del sistema gravitacional, recolectados en el proceso ``Recolectar Datos'', para que sean compatibles y óptimos para la biblioteca o herramienta gráfica específica utilizada en la visualización. Esta actividad asegura que los datos estén en el formato adecuado y contengan solo la información relevante para generar gráficos como trayectorias 2D/3D o gráficos de energía, soportando la representación visual del comportamiento dinámico en el contexto de la simulación de dos cuerpos.
@@ -181,11 +181,14 @@ Este apartado es proporcionado para profundizar y describir de forma textual cad
     \item \textbf{Con Cálculos Matemáticos}: Realiza operaciones como escalado, traslación, proyección, y cálculos de energía o momento angular, según sea necesario.
     \item \textbf{Con el Pipeline de Visualización}: Transfiere los datos formateados al proceso ``Generar Gráficos'', integrándose en el flujo de renderización gráfica.
 \end{itemize}
-
+\newpage
 \subsubsection{Diagrama del Proceso}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{img/Analisis/DiagramaProcesos/DiagramaProceso12_GenerarGrafico.png}
+    \adjustbox{max width=\textwidth, max height=0.9\textheight}{%
+    \includegraphics{img/Analisis/DiagramaProcesos/DiagramaProceso12_GenerarGrafico.png}
+    }
     \caption{Diagrama de Proceso Interno 12: Generar Gráfico}%
     \label{fig:process_diagram12}
 \end{figure}
+\newpage

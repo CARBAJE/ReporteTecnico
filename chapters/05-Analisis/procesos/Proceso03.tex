@@ -1,9 +1,9 @@
-\section{Proceso Interno 03: Generar Nueva Generación}
+\subsection{Proceso Interno 03: Generar Nueva Generación}
 
-\subsection*{Objetivo del Proceso}
+\subsubsection{Objetivo del Proceso}
 El propósito principal de la actividad \textbf{``Generar Nueva Generación''} es crear una nueva población de $N$ individuos mediante operadores genéticos (Selección por Torneo, Cruzamiento SBX y Mutación Polinomial), garantizando que los parámetros permanezcan dentro de los rangos $[\min, \max]$. La evaluación de fitness se realiza posteriormente.
 
-\subsection*{Entradas Principales}
+\subsubsection{Entradas Principales}
 \begin{itemize}
     \item \textbf{Población actual}:
     \begin{itemize}
@@ -16,7 +16,7 @@ El propósito principal de la actividad \textbf{``Generar Nueva Generación''} e
     \end{itemize}
 \end{itemize}
 
-\subsection*{Sub-pasos Secuenciales}
+\subsubsection{Sub-pasos Secuenciales}
 Este apartado es proporcionado para profundizar y describir de forma textual cada paso contenido dentro del diagrama del proceso descrito en la figura~\ref{fig:process_diagram03}
 \subsubsection*{1. Inicializar Nueva Población}
 \begin{itemize}
@@ -26,60 +26,83 @@ Este apartado es proporcionado para profundizar y describir de forma textual cad
 \subsubsection*{2. Iniciar Bucle de Generación}
 \begin{enumerate}[label= (\alph*)]
     \item \textbf{While} $|\texttt{new\_population}| < N$:
-    \begin{itemize}
-        \item Selección de padres:
-        \begin{itemize}
-            \item \texttt{Parent1} = Torneo~($k$, $F_p$)
-            \item \texttt{Parent2} = Torneo~($k$, $F_p$)
-        \end{itemize}
+\end{enumerate}
 
-        \item Cruzamiento SBX:\
-        \begin{itemize}
-            \item Generar $r_1 \sim U[0,1]$
-            \item \textbf{If} $r_1 < P_c$:
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+    \textbf{Paso 2a: Selección de padres}
+    \begin{itemize}
+        \item \texttt{Parent1} = Torneo~($k$, $F_p$)
+        \item \texttt{Parent2} = Torneo~($k$, $F_p$)
+    \end{itemize}
+    }%
+}
+
+\vspace{0.5em}
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+    \textbf{Paso 2b: Cruzamiento SBX}
+    \begin{itemize}
+        \item Generar $r_1 \sim U[0,1]$
+        \item \textbf{If} $r_1 < P_c$:
             \begin{itemize}
                 \item $\{\texttt{Offspring1}, \texttt{Offspring2}\} \leftarrow \text{SBX}(\texttt{Parent1}, \texttt{Parent2}, \eta_c)$
             \end{itemize}
-            \item \textbf{Else}:
+        \item \textbf{Else}:
             \begin{itemize}
                 \item Clonar padres
             \end{itemize}
-        \end{itemize}
-
-        \item Mutación Polinomial:
-        \begin{itemize}
-            \item $\forall$ offspring $\in \{\texttt{Offspring1}, \texttt{Offspring2}\}$:
-            \begin{itemize}
-                \item $\forall$ parámetro $x_i$:
-                \begin{itemize}
-                    \item Generar $r_2 \sim U[0,1]$
-                    \item \textbf{If} $r_2 < P_m$:
-                    \begin{itemize}
-                        \item $x_i \leftarrow \text{MutaciónPolinomial}(x_i, \eta_m, \text{min}_i, \text{max}_i)$
-                    \end{itemize}
-                \end{itemize}
-            \end{itemize}
-        \end{itemize}
-
-        \item Ajuste de límites:
-        \begin{itemize}
-            \item $\forall x_i \in$ offspring: $x_i \leftarrow \text{clip}(x_i, \text{min}_i, \text{max}_i)$
-        \end{itemize}
-
-        \item Añadir descendientes:
-        \begin{itemize}
-            \item Agregar \texttt{Offspring1} a \texttt{new\_population}
-            \item Si $|\texttt{new\_population}| < N$, agregar \texttt{Offspring2}
-        \end{itemize}
     \end{itemize}
-\end{enumerate}
+    }%
+}
+
+\vspace{0.5em}
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+    \textbf{Paso 2c: Mutación Polinomial}
+
+    Para cada descendiente en $\{\texttt{Offspring1}, \texttt{Offspring2}\}$:
+
+    Para cada parámetro $x_i$ del descendiente:
+    \begin{itemize}
+        \item Generar $r_2 \sim U[0,1]$
+        \item \textbf{If} $r_2 < P_m$:
+            \begin{itemize}
+                \item $x_i \leftarrow \text{MutaciónPolinomial}(x_i, \eta_m, \text{min}_i, \text{max}_i)$
+            \end{itemize}
+    \end{itemize}
+    }%
+}
+
+\vspace{0.5em}
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+    \textbf{Paso 2d: Ajuste de límites}
+
+    Para cada parámetro $x_i$ en cada descendiente:
+    \begin{itemize}
+        \item $x_i \leftarrow \text{clip}(x_i, \text{min}_i, \text{max}_i)$
+    \end{itemize}
+    }%
+}
+
+\vspace{0.5em}
+\noindent\fbox{%
+    \parbox{\textwidth}{%
+    \textbf{Paso 2e: Añadir descendientes}
+    \begin{itemize}
+        \item Agregar \texttt{Offspring1} a \texttt{new\_population}
+        \item Si $|\texttt{new\_population}| < N$, agregar \texttt{Offspring2}
+    \end{itemize}
+    }%
+}
 
 \subsubsection*{3. Devolver Nueva Población}
 \begin{itemize}
     \item Retornar \texttt{new\_population} con $N$ individuos
 \end{itemize}
 
-\subsection*{Lógica Interna y Decisiones}
+\subsubsection{Lógica Interna y Decisiones}
 \begin{itemize}
     \item \textbf{Control del bucle}:
     \begin{itemize}
@@ -99,7 +122,7 @@ Este apartado es proporcionado para profundizar y describir de forma textual cad
     \end{itemize}
 \end{itemize}
 
-\subsection*{Manejo de Datos Específico}
+\subsubsection{Manejo de Datos Específico}
 \begin{itemize}
     \item \textbf{Entradas}:
     \begin{itemize}
@@ -119,7 +142,7 @@ Este apartado es proporcionado para profundizar y describir de forma textual cad
     \end{itemize}
 \end{itemize}
 
-\subsection*{Salidas Principales}
+\subsubsection{Salidas Principales}
 \begin{itemize}
     \item \textbf{Nueva población}:
     \begin{itemize}
@@ -128,7 +151,7 @@ Este apartado es proporcionado para profundizar y describir de forma textual cad
     \end{itemize}
 \end{itemize}
 
-\subsection*{Interacciones Internas}
+\subsubsection{Interacciones Internas}
 \begin{itemize}
     \item \textbf{Con población actual}: Lectura de $F_p$ para torneos
     \item \textbf{Con módulos genéticos}:
@@ -137,11 +160,14 @@ Este apartado es proporcionado para profundizar y describir de forma textual cad
     \end{itemize}
     \item \textbf{Con gestor de restricciones}: Aplicación de $\text{clip}()$
 \end{itemize}
-
+\newpage
 \subsubsection{Diagrama del Proceso}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{img/Analisis/DiagramaProcesos/DiagramaProceso03_GenerarNuevaGeneración.png}
-    \caption{Diagrama de Proceso Interno 03: Generar Nueva Generación}%
+    \adjustbox{max width=\textwidth, max height=0.9\textheight}{%
+        \includegraphics{img/Analisis/DiagramaProcesos/DiagramaProceso03_GenerarNuevaGeneración.png}
+    }
+        \caption{Diagrama de Proceso Interno 03: Generar Nueva Generación}%
     \label{fig:process_diagram03}
 \end{figure}
+\newpage
