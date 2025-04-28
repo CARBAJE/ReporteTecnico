@@ -1,0 +1,19 @@
+\subsection{Relacion de datos}
+
+En esta sección explicaremos como se interconectan los distintos attributos descritos previamente para tener un mayor entendimiento del sistema, asi como el flujo de datos que se tiene.
+
+\begin{enumerate}
+    
+    \item \textbf{times}
+
+    Para conocer los tiempos en la simulación, lo que hacemos es generar un array de N\_steps elementos, empezando por el 0 hasta t\_max, cada elemento va a estar a una distancia de t\_max entre N\_steps
+
+    \item \textbf{x, y, z, energy, a\_arr, a\_pert, e\_arr, e\_pert}
+
+    Nos apoyamos de las funciones que nos brinda REBOUND el cual con su funcion de simulation nos brinda todos esos datos pero para ello necesitamos conocer los tiempos en la simulación (times), asi como las masas de los cuerpos involucrados, sus semiejes mayores, su excentricidad y el integrador que se va a utilizar
+
+    \item \textbf{Exponente de Lyapunov}
+
+    Para poder calcular el exponente de Lyapunovtimes necesitaremos calcular primero lo siguiente: a\_arr, e\_arr, a\_pert, e\_pert, para poder asi obtener nuestro delta de orbital
+
+\end{enumerate}
