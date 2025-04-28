@@ -1,9 +1,9 @@
 \begin{adjustbox}{width=\textwidth,center}
-\begin{tikzpicture}[
+    \begin{tikzpicture}[
     node distance=1.2cm and 0.8cm,
     state/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=1cm, align=center},
     choice/.style={diamond, draw, aspect=2, minimum width=1.5cm, minimum height=0.75cm, inner sep=0pt},
-    carril/.style={rectangle, draw=gray!50, thick, minimum width=3.5cm, minimum height=26cm, fill=gray!10},
+    carril/.style={rectangle, draw=gray!50, thick, minimum width=3.5cm, minimum height=28cm, fill=gray!10},
     carrillabel/.style={above, font=\bfseries\small, anchor=south},
     arrow/.style={-stealth, thick, >=latex},
     initial/.style={circle, fill=black, inner sep=2pt},
@@ -24,10 +24,10 @@
 
 \node[carril] (bio) at (0, 0) {};
 \node[carrillabel] at (bio.north) {
-	\begin{tabular}{c}
-		Algoritmo \\
-		Bioinspirado
-	\end{tabular}
+    \begin{tabular}{c}
+        Algoritmo \\
+        Bioinspirado
+    \end{tabular}
 };
 
 \node[carril] (rebound) at (3.5, 0) {};
@@ -35,10 +35,10 @@
 
 \node[carril] (visual) at (7, 0) {};
 \node[carrillabel] at (visual.north) {
-	\begin{tabular}{c}
-		Módulo de \\
-		Visualización
-	\end{tabular}
+    \begin{tabular}{c}
+        Módulo de \\
+        Visualización
+    \end{tabular}
 };
 
 % Estados Usuario
@@ -46,17 +46,18 @@
 \node[state, below=0.5cm of IniciarPrograma] (DefinirParametros) {Definir Parámetros};
 
 % Estados Interfaz
-\node[state] (CapturaParametros) at (-3.5, 8.5) {Captura Parámetros};
+\node[state] (CapturaParametros) at (-3.5, 8.5) {Captura \\ Parámetros};
 \node[state, below=20.3 cm of CapturaParametros] (MostrarResultados) {Mostrar Resultados};
 
 % Estados Bioinspirado
-\node[state] (InicializarPoblacion) at (0, 7.5) {Inicializar Población};
-\node[state, below=0.5cm of InicializarPoblacion] (GenerarNuevaGeneracion) {Generar Nueva \\Generación};
-\node[state, below=15cm of GenerarNuevaGeneracion] (SeleccionarMejores) {Seleccionar Mejores};
+\node[state] (InicializarPoblacion) at (0, 7.5) {Inicializar \\ Población};
+\node[state, below=0.5cm of InicializarPoblacion] (GenerarNuevaGeneracion) {Generar Nueva \\ Generación};
+\node[state, below=13cm of GenerarNuevaGeneracion] (EvaluarFitness) {Evaluar Fitness}; % Movido a Bioinspirado
+\node[state, below=0.5cm of EvaluarFitness] (SeleccionarMejores) {Seleccionar Mejores};
 \node[choice, below=0.5cm of SeleccionarMejores] (CriterioParada) {Criterio Parada};
 
 % Estados REBOUND
-\node[state] (CrearNuevaSimulacion) at (3.5, 6) {Crear Nueva \\Simulación};
+\node[state] (CrearNuevaSimulacion) at (3.5, 6) {Crear Nueva \\ Simulación};
 \node[state, below=0.5cm of CrearNuevaSimulacion] (AgregarCuerpos) {Agregar Cuerpos};
 \node[state, below=0.5cm of AgregarCuerpos] (DefinirCondiciones) {Definir Condiciones};
 \node[state, below=0.5cm of DefinirCondiciones] (IniciarSimulacion) {Iniciar Simulación};
@@ -74,12 +75,11 @@
         Simulación
     \end{tabular}
 };
-\node[state, below=0.5cm of ContinuarSimulacion] (EvaluarFitness) {Evaluar Fitness};
 
 % Estados Visualización
-\node[state] (RecolectarDatos) at (7, -5) {Recolectar \\Datos};
-\node[state, below=0.5cm of RecolectarDatos] (ProcesarDatos) {Procesar \\Datos};
-\node[state, below=0.5cm of ProcesarDatos] (GenerarGraficos) {Generar \\Gráficos};
+\node[state] (RecolectarDatos) at (7, -5) {Recolectar \\ Datos};
+\node[state, below=0.5cm of RecolectarDatos] (ProcesarDatos) {Procesar \\ Datos};
+\node[state, below=0.5cm of ProcesarDatos] (GenerarGraficos) {Generar \\ Gráficos};
 
 % Puntos inicial y final destacados
 \node[initial] (start) at ($(IniciarPrograma.north)+(0,1)$) {};
@@ -101,28 +101,28 @@
 
 % Transiciones de decisión mejoradas
 \draw[arrow] (VerificarTiempo.east) -| node[right] {Sí} (RecolectarDatos);
-\draw[arrow] (VerificarTiempo.west) -- node[right] {No} 
+\draw[arrow] (VerificarTiempo.west) -- node[right] {No}
     ($(VerificarTiempo.west)+(0,-1.5)$) |- (ContinuarSimulacion.north);
 
 \draw[arrow] (RecolectarDatos) -- (ProcesarDatos);
 \draw[arrow] (ProcesarDatos) -- (GenerarGraficos);
-\draw[arrow] (GenerarGraficos.south) -- ++(0,-0.5) -| ($(ContinuarSimulacion.east)+(0.25,0)$) |- (ContinuarSimulacion.east);(ContinuarSimulacion.east);
+\draw[arrow] (GenerarGraficos.south) -- ++(0,-0.5) -| ($(ContinuarSimulacion.east)+(0.25,0)$) |- (ContinuarSimulacion.east);
 
 % Conexiones mejoradas para evitar solapamientos
-\draw[arrow] (ContinuarSimulacion.west) -- node[above] {Sí} 
+\draw[arrow] (ContinuarSimulacion.west) -- node[below] {Sí}
     ($(ContinuarSimulacion.west)-(1,0)$) |- (ResolverEcuaciones.west);
-    
-\draw[arrow] (ContinuarSimulacion) -- node[right] {No} (EvaluarFitness);
+
+\draw[arrow] (ContinuarSimulacion) -| node[below] {No} (EvaluarFitness.north);
 
 % Transiciones finales ajustadas
-\draw[arrow] (EvaluarFitness) -| (SeleccionarMejores);
+\draw[arrow] (EvaluarFitness) -- (SeleccionarMejores);
 \draw[arrow] (SeleccionarMejores) -- (CriterioParada);
-\draw[arrow] (CriterioParada.west) -- 
-    node[above, pos=0.3] {No} 
-    ($(CriterioParada.west)-(1.2,0)$) coordinate (a) 
+\draw[arrow] (CriterioParada.west) --
+    node[above, pos=0.3] {No}
+    ($(CriterioParada.west)-(1.2,0)$) coordinate (a)
     |- ($(GenerarNuevaGeneracion.south) + (-1.2,-7.5)$) coordinate (b)
     -| (GenerarNuevaGeneracion.south);
-\draw[arrow] (CriterioParada.south) -- node[below] {Sí} (MostrarResultados.east);
+\draw[arrow] (CriterioParada.south) -| node[above] {Sí} (MostrarResultados.north);
 \draw[arrow] (MostrarResultados) -- (end);
 
 \end{tikzpicture}

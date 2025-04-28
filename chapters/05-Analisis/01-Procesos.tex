@@ -4,114 +4,12 @@ El análisis detallado de los procesos internos del software constituye un pilar
 
 Esta sección establece la base operativa sobre la cual se construirá la solución. Proporciona el mapa necesario para implementar las innovaciones clave del proyecto –la modificación dinámica de parámetros– de manera estructurada, eficiente y verificable, asegurando que el modelo final cumpla con el objetivo de superar las limitaciones de las herramientas de simulación actuales.
 
-\subsection{Procesos Internos del Programa y sus Actores}
 
-Los siguientes procesos describen el funcionamiento interno del programa para simular comportamientos gravitacionales de dos cuerpos, utilizando la biblioteca \texttt{REBOUND}. Cada proceso incluye sus actores, que son los componentes responsables de ejecutar las acciones.
-
-\begin{enumerate}
-    \item \textbf{Configuración Inicial de la Simulación}
-        \begin{itemize}
-            \item \textbf{Objetivo:} Preparar la simulación estableciendo los parámetros iniciales de los dos cuerpos celestes y las condiciones del sistema.
-            \item \textbf{Actores:} Biblioteca \texttt{REBOUND}.
-                \begin{itemize}
-                    \item \texttt{REBOUND} crea la instancia de simulación y configura los cuerpos celestes con sus parámetros iniciales.
-                \end{itemize}
-            \item \textbf{Inicio:} Lanzamiento del programa o inicio de una nueva simulación.
-            \item \textbf{Entradas:}
-                \begin{itemize}
-                    \item Masa, posición y velocidad inicial de los dos cuerpos.
-                    \item Constante gravitacional y otros parámetros físicos.
-                \end{itemize}
-            \item \textbf{Salidas:} Una simulación configurada en \texttt{REBOUND} lista para ejecutarse.
-            \item \textbf{Pasos Clave:}
-                \begin{enumerate}
-                    \item Crear una instancia de simulación en \texttt{REBOUND}.
-                    \item Agregar los dos cuerpos celestes con sus parámetros iniciales.
-                    \item Definir las condiciones iniciales del sistema (tiempo, paso de integración, etc.).
-                \end{enumerate}
-        \end{itemize}
-
-    \item \textbf{Ejecución de la Simulación Gravitacional}
-        \begin{itemize}
-            \item \textbf{Objetivo:} Simular las interacciones gravitacionales entre los dos cuerpos utilizando los algoritmos integrados en \texttt{REBOUND}.
-            \item \textbf{Actores:} Biblioteca \texttt{REBOUND}.
-                \begin{itemize}
-                    \item \texttt{REBOUND} utiliza sus integradores numéricos para resolver las ecuaciones de movimiento y actualizar el estado del sistema.
-                \end{itemize}
-            \item \textbf{Inicio:} Comando para ejecutar la simulación tras la configuración.
-            \item \textbf{Entradas:} Configuración inicial generada en el proceso anterior.
-            \item \textbf{Salidas:} Datos temporales de la simulación (posiciones, velocidades, etc.).
-            \item \textbf{Pasos Clave:}
-                \begin{enumerate}
-                    \item Iniciar la simulación mediante \texttt{REBOUND}.
-                    \item Utilizar los integradores de \texttt{REBOUND} para resolver las ecuaciones de movimiento.
-                    \item Actualizar el estado del sistema (posiciones y velocidades) en cada paso de tiempo.
-                \end{enumerate}
-        \end{itemize}
-
-    \item \textbf{Modificación Dinámica de Parámetros}
-        \begin{itemize}
-            \item \textbf{Objetivo:} Ajustar parámetros como la masa de los cuerpos durante la simulación para observar cambios en el comportamiento gravitacional.
-            \item \textbf{Actores:}
-                \begin{itemize}
-                    \item Biblioteca \texttt{REBOUND}: Actualiza los parámetros dentro de la simulación.
-                    \item Lógica interna del programa: Gestiona la pausa y reanudación de la simulación para aplicar los cambios.
-                \end{itemize}
-            \item \textbf{Inicio:} Evento definido (manual o automático) que requiere ajustar parámetros.
-            \item \textbf{Entradas:} Nuevos valores para parámetros (ej.\ masa actualizada).
-            \item \textbf{Salidas:} Simulación actualizada con los nuevos parámetros.
-            \item \textbf{Pasos Clave:}
-                \begin{enumerate}
-                    \item Detectar la necesidad de modificar un parámetro.
-                    \item Pausar o preparar la simulación para el cambio.
-                    \item Actualizar los parámetros en \texttt{REBOUND}.
-                    \item Continuar la simulación con los valores ajustados.
-                \end{enumerate}
-        \end{itemize}
-
-    \item \textbf{Visualización de la Simulación}
-        \begin{itemize}
-            \item \textbf{Objetivo:} Mostrar gráficamente la evolución del sistema de dos cuerpos durante la simulación.
-            \item \textbf{Actores:}
-                \begin{itemize}
-                    \item Módulo de visualización (herramienta gráfica específica): Procesa y representa los datos en forma de gráficos o animaciones.
-                    \item Datos generados por \texttt{REBOUND}: Proporcionan la información que se visualiza.
-                \end{itemize}
-            \item \textbf{Inicio:} Necesidad de observar los resultados visualmente.
-            \item \textbf{Entradas:} Datos generados por la simulación (posiciones, velocidades).
-            \item \textbf{Salidas:} Representaciones gráficas o animaciones del sistema.
-            \item \textbf{Pasos Clave:}
-                \begin{enumerate}
-                    \item Recolectar datos de la simulación en cada paso.
-                    \item Procesar los datos para adaptarlos a la herramienta de visualización.
-                    \item Generar gráficos o animaciones del movimiento gravitacional.
-                \end{enumerate}
-        \end{itemize}
-
-    \item \textbf{Interacción con la Interfaz de Usuario}
-        \begin{itemize}
-            \item \textbf{Objetivo:} Permitir al usuario interactuar con la simulación, modificando parámetros y observando los resultados en tiempo real.
-            \item \textbf{Actores:}
-                \begin{itemize}
-                    \item Interfaz de usuario: Captura las entradas del usuario (ej.\ clics, valores ingresados).
-                    \item Módulo de simulación con \texttt{REBOUND}: Ejecuta las modificaciones basadas en las entradas del usuario.
-                \end{itemize}
-            \item \textbf{Inicio:} Acción del usuario (ej.\ clic en un botón o entrada de datos).
-            \item \textbf{Entradas:} Instrucciones del usuario (ej.\ cambiar masa, iniciar/pausar simulación).
-            \item \textbf{Salidas:} Simulación y visualización actualizadas según las acciones del usuario.
-            \item \textbf{Pasos Clave:}
-                \begin{enumerate}
-                    \item Capturar las entradas del usuario a través de la interfaz.
-                    \item Convertir las entradas en comandos para \texttt{REBOUND} o el módulo de visualización.
-                    \item Ejecutar las modificaciones y reflejar los cambios en la simulación.
-                \end{enumerate}
-        \end{itemize}
-\end{enumerate}
 
 \subsection{Matriz de Procesos}
 \begin{table}[H]
     \centering
-    \caption{Matriz resumen de los procesos internos del programa.}
+    \caption{Matriz resumen de los procesos internos del programa.}%
     \label{tab:matriz_procesos}
     \begin{adjustbox}{max width=\textwidth}
         \begin{tabular}{@{}p{5cm} p{3cm} p{2.5cm} p{2.5cm} p{2.5cm} p{3cm} p{4cm}@{}}

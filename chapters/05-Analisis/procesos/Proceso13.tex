@@ -1,0 +1,114 @@
+\subsection{Proceso Interno 13: Evaluar Fitness}
+
+\subsubsection{Objetivo del Proceso}
+El propósito principal es calcular el \textit{fitness penalizado} $F_p(x) = f(x) + \lambda_p P(x)$, donde:
+\begin{itemize}
+    \item $f(x)$: Exponente de Lyapunov ($LE$)
+    \item $P(x) = \sum {\max(g_k(x), 0)}^2 + \sum |h_k(x)|^2$
+    \item $\lambda_p$: Parámetro de penalización
+\end{itemize}
+
+\subsubsection{Entradas Principales}
+\begin{itemize}
+    \item \textbf{Parámetros $x$}: Vector en $\mathbb{R}^n$ (ej. $[m_1, m_2]$)
+    \item \textbf{Datos REBOUND}: ${\{\text{pos}(t), \text{vel}(t), \text{mass}(t)\}}_{t=0}^{T_{\max}}$
+    \item \textbf{Restricciones}:
+    \begin{itemize}
+        \item $g_k(x) \leq 0$ (desigualdad)
+        \item $h_k(x) = 0$ (igualdad)
+    \end{itemize}
+    \item $\lambda_p \in \mathbb{R}^+$
+\end{itemize}
+
+\subsubsection{Sub-pasos Secuenciales}
+Este apartado es proporcionado para profundizar y describir de forma textual cada paso contenido dentro del diagrama del proceso descrito en la figura~\ref{fig:process_diagram13}
+\subsubsection*{1. Recibir Resultados de Simulación}
+\begin{itemize}
+    \item Validar integridad de datos y $T_{\max}$
+\end{itemize}
+
+\subsubsection*{2. Calcular $f(x)$}
+\begin{itemize}
+    \item Cálculo de $LE$:
+    \begin{equation*}
+        f(x) = \begin{cases}
+        LE_{\text{calc}} & \text{si converge} \\
+        \texttt{INF} & \text{si falla}
+        \end{cases}
+    \end{equation*}
+\end{itemize}
+
+\subsubsection*{3. Calcular $P(x)$}
+\begin{align*}
+    P(x) &= \sum_{k=1}^{K} {\max(g_k(x), 0)}^2 + \sum_{j=1}^{J} {|h_j(x)|}^2 \\
+    &+ \begin{cases}
+    \texttt{PENALTY\_LARGE} & \text{si simulación inviable}
+    \end{cases}
+\end{align*}
+
+\subsubsection*{4. Calcular $F_p(x)$}
+\begin{equation*}
+    F_p(x) = f(x) + \lambda_p \cdot P(x)
+\end{equation*}
+\begin{itemize}
+    \item Verificar $F_p \in \mathbb{R}$
+\end{itemize}
+
+\subsubsection{Lógica Interna y Decisiones}
+\begin{itemize}
+    \item \textbf{Convergencia LE}:
+    \begin{itemize}
+        \item Fallo $\Rightarrow f(x) \leftarrow \texttt{INF}$
+    \end{itemize}
+
+    \item \textbf{Violaciones}:
+    \begin{itemize}
+        \item $g_k$: $\max(g_k(x), 0) \Rightarrow$ solo violaciones positivas
+        \item $h_k$: $L^2$-norm del desvío
+    \end{itemize}
+
+    \item \textbf{Penalización catastrófica}:
+    \begin{itemize}
+        \item Activa para simulaciones físicamente inviables
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Manejo de Datos Específico}
+\begin{itemize}
+    \item \textbf{Entradas}:
+    \begin{itemize}
+        \item $x \in {[\min_i, \max_i]}^n$
+        \item $\lambda_p > 0$
+    \end{itemize}
+
+    \item \textbf{Intermedios}:
+    \begin{itemize}
+        \item $LE_{\text{calc}} \in \mathbb{R}$
+        \item $\text{violaciones} \in \mathbb{R}^+$
+    \end{itemize}
+
+    \item \textbf{Salida}:
+    \begin{itemize}
+        \item $F_p(x) \in \mathbb{R}$
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Salidas Principales}
+\begin{itemize}
+    \item \textbf{Fitness penalizado}: $F_p(x)$ ordenable para selección
+\end{itemize}
+
+\subsubsection{Interacciones Internas}
+\begin{itemize}
+    \item \textbf{REBOUND}: Provee $\{\text{pos}(t), \text{vel}(t)\}$
+    \item \textbf{Módulo LE}: Calcula $f(x)$
+    \item \textbf{Gestor de restricciones}: Evalúa $g_k(x)$, $h_j(x)$
+\end{itemize}
+
+\subsubsection{Diagrama del Proceso}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/Analisis/DiagramaProcesos/DiagramaProceso13_CalcularFitness.png}
+    \caption{Diagrama de Proceso Interno 13: Calcular Fitness}%
+    \label{fig:process_diagram13}
+\end{figure}

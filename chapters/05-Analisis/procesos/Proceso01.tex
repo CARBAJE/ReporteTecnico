@@ -1,0 +1,118 @@
+\subsection{Proceso Interno 01: Captura Parámetros}
+
+\subsubsection{Objetivo del Proceso}
+El propósito principal de la actividad \textbf{``Captura Parámetros''} es recopilar, validar y almacenar todos los parámetros de configuración necesarios proporcionados por el usuario a través de la interfaz gráfica (UI). Estos parámetros son esenciales para definir cómo se ejecutará tanto la simulación gravitacional como el proceso de optimización bioinspirado, asegurando que la configuración sea correcta y coherente antes de iniciar la ejecución del sistema.
+
+\subsubsection{Entradas Principales}
+\begin{itemize}
+    \item \textbf{Evento de inicio}: Interacción inicial del usuario con la UI para comenzar la configuración de parámetros.
+    \item \textbf{Interacciones del usuario}: Acciones como clicks, selecciones e ingreso de texto o números en los campos específicos de la UI.\
+\end{itemize}
+
+\subsubsection{Sub-pasos Secuenciales}
+Este apartado es proporcionado para profundizar y describir de forma textual cada paso contenido dentro del diagrama del proceso descrito en la figura~\ref{fig:process_diagram01}.
+\subsubsection*{1. Presentar Formulario/Interfaz UI}
+\begin{itemize}
+    \item La UI muestra una pantalla o conjunto de controles para ingresar la configuración
+    \item Campos presentados incluyen:
+    \begin{itemize}
+        \item \textbf{Parámetros a Optimizar}: Rangos (mínimo/máximo) de parámetros variables
+        \item \textbf{Restricciones del Sistema}: Condiciones obligatorias (ej.\ proporción máxima de masas)
+        \item \textbf{Configuración del Optimizador}:
+        \begin{itemize}
+            \item Indicador de fitness preseleccionado (Exponente de Lyapunov \- LE)
+            \item Criterios de parada (n° máximo de generaciones, umbral de mejora)
+        \end{itemize}
+        \item \textbf{Parámetros del Algoritmo Bioinspirado}: Tamaño de población, tasas de mutación/crossover
+        \item \textbf{Configuración de la Simulación Base}:
+        \begin{itemize}
+            \item Parámetros fijos: $G$, $T_{\text{max}}$, $dt$
+            \item Selección de integrador de REBOUND (si aplica)
+        \end{itemize}
+        \item \textbf{Configuración de Visualización}:
+        \begin{itemize}
+            \item Instantes de tiempo $t_{\text{vis}}$ para captura de datos
+            \item Variables a visualizar (trayectoria 2D, energía vs tiempo)
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection*{2. Recibir Entradas del Usuario}
+\begin{itemize}
+    \item La UI captura activamente valores ingresados/seleccionados en cada campo
+\end{itemize}
+
+\subsubsection*{3. Iniciar Ciclo de Validación}
+\begin{itemize}
+    \item Validaciones incluyen:
+    \begin{enumerate}[label=~(\alph*)]
+        \item Tipo de dato correcto (valores numéricos donde corresponda)
+        \item Rangos lógicos ($\min < \max $)
+        \item Criterios de parada coherentes ($\text{n° generaciones} > 0$)
+        \item $t_{\text{vis}} \in [0, T_{\max}]$
+        \item Consistencia $T_{\max} \geq \text{último } t_{\text{vis}}$
+        \item Restricciones físicamente posibles (ej.\ proporción de masas $> 0$)
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection*{4. Decisión de Validez}
+\begin{itemize}
+    \item \textbf{Si ocurren errores}:
+    \begin{itemize}
+        \item Generación de mensajes de error específicos
+        \item Resaltado de campos erróneos en UI
+        \item Retorno al paso de entrada de datos
+    \end{itemize}
+    \item \textbf{Si válido}:
+    \begin{itemize}
+        \item Creación de estructura \texttt{ConfigurationData}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection*{5. Almacenar Configuración Validada}
+\begin{itemize}
+    \item Valores guardados en estructura \texttt{ConfigurationData}
+    \item Accesible por otros componentes del sistema
+\end{itemize}
+
+\subsubsection*{6. Habilitar Inicio}
+\begin{itemize}
+    \item Activación de botón \texttt{``Iniciar Simulación/Optimización''}
+\end{itemize}
+
+\subsubsection{Lógica Interna y Decisiones}
+\begin{itemize}
+    \item Ciclo de validación activado por acción de usuario
+    \item Nodo de decisión principal: $\text{¿Todas las entradas válidas?}$
+    \begin{itemize}
+        \item Bucle de corrección hasta validación exitosa
+        \item Transición a ejecución tras validación satisfactoria
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Manejo de Datos Específico}
+\begin{itemize}
+    \item \textbf{Datos crudos}: Valores directos de UI
+    \item \textbf{Indicadores de validación}: Resultados booleanos por campo
+    \item \texttt{ConfigurationData}: Estructura final con parámetros validados
+\end{itemize}
+
+\subsubsection{Salidas Principales}
+\begin{itemize}
+    \item Estructura \texttt{ConfigurationData} completa
+    \item Estado UI actualizado (mensajes de error o botón habilitado)
+\end{itemize}
+
+\subsubsection{Interacciones Internas}
+\begin{itemize}
+    \item Comunicación con componentes UI (campos de texto, listas, botones)
+    \item Preparación de \texttt{ConfigurationData} para algoritmo bioinspirado
+\end{itemize}
+
+\subsubsection{Diagrama del Proceso}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/Analisis/DiagramaProcesos/DiagramaProceso01_Captura Parámetros.png}
+    \caption{Diagrama de Proceso Interno 01: Captura de Parámetros}%
+    \label{fig:process_diagram01}
+\end{figure}

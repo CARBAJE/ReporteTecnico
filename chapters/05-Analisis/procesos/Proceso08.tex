@@ -1,0 +1,122 @@
+\subsection[Proceso Interno 08: Resolver Ecuaciones]{Proceso Interno 08: Avanzar un Paso de Simulación Usando alIntegrador WHFast (Resolver Ecuaciones)}
+
+\subsubsection{Objetivo del Proceso}
+Actualizar el estado del sistema gravitacional usando el esquema Drift-Kick-Drift (DKD) de WHFast:
+\[
+H = H_{\text{Kepler}} + H_{\text{Interaction}}
+\]
+Garantizando precisión en el cálculo de posiciones y velocidades para la evaluación del LE.\
+
+\subsubsection{Entradas Principales}
+\begin{itemize}
+    \item \textbf{sim}: Objeto \texttt{Simulation} con:
+    \begin{itemize}
+        \item $\mathbf{r}_i(t) = [x_i, y_i, z_i]$
+        \item $\mathbf{v}_i(t) = [v_{x_i}, v_{y_i}, v_{z_i}]$
+        \item $m_i$, $dt$, sistema coordenadas
+    \end{itemize}
+    \item $t_{\text{target}} = t + dt$
+\end{itemize}
+
+\subsubsection{Sub-pasos Secuenciales}
+Este apartado es proporcionado para profundizar y describir de forma textual cada paso contenido dentro del diagrama del proceso descrito en la figura~\ref{fig:process_diagram08}
+\subsubsection*{1. Preparación de Coordenadas}
+\begin{itemize}
+    \item Transformación a coordenadas Jacobi si es necesario:
+    \[
+    \mathbf{r}_{\text{Jacobi}} = T(\mathbf{r}_{\text{inercial}})
+    \]
+    \item Verificación modo seguro
+\end{itemize}
+
+\subsubsection*{2. Primer Drift ($dt/2$)}
+\begin{itemize}
+    \item Integración Kepleriana:
+    \[
+    E - e\sin E = M \quad \text{(Ecuación de Kepler)}
+    \]
+    \item Solucionador mejorado (Newton/Laguerre-Conway)
+    \item Actualización posiciones: $\mathbf{r}_i(t + dt/2)$
+\end{itemize}
+
+\subsubsection*{3. Transformación para Interacción}
+\begin{itemize}
+    \item Conversión a coordenadas baricéntricas si es necesario
+\end{itemize}
+
+\subsubsection*{4. Kick ($dt$)}
+\begin{itemize}
+    \item Cálculo de aceleraciones:
+    \[
+    \mathbf{a}_i = G\sum_{j\neq i}\frac{m_j(\mathbf{r}_j - \mathbf{r}_i)}{|\mathbf{r}_j - \mathbf{r}_i|^3}
+    \]
+    \item Actualización velocidades:
+    \[
+    \mathbf{v}_i(t + dt) = \mathbf{v}_i(t) + \mathbf{a}_i \cdot dt
+    \]
+    \item Kernel modificado (si aplica)
+\end{itemize}
+
+\subsubsection*{5. Segundo Drift ($dt/2$)}
+\begin{itemize}
+    \item Integración Kepleriana final
+    \item Posiciones finales: $\mathbf{r}_i(t + dt)$
+\end{itemize}
+
+\subsubsection*{6. Sincronización Final}
+\begin{itemize}
+    \item Transformación a coordenadas de reporte
+    \item Actualización tiempo: $\texttt{sim.t} = t_{\text{target}}$
+    \item Verificaciones modo seguro
+\end{itemize}
+
+\subsubsection{Lógica Interna y Decisiones}
+\begin{itemize}
+    \item \textbf{Transformaciones coordenadas}:
+    \begin{itemize}
+        \item Optimizadas para precisión numérica
+        \item Jacobi $\leftrightarrow$ Baricéntricas
+    \end{itemize}
+    \item \textbf{Modo seguro}: Verificaciones de estabilidad
+    \item \textbf{Kernel}: Selección entre precisión/rendimiento
+\end{itemize}
+
+\subsubsection{Manejo de Datos Específico}
+\begin{itemize}
+    \item \textbf{Entradas}: Estado del sistema en $t$
+    \item \textbf{Intermedios}:
+    \begin{itemize}
+        \item Estados parciales DKD
+        \item Coordenadas transformadas
+    \end{itemize}
+    \item \textbf{Salida}: Estado del sistema en $t + dt$
+\end{itemize}
+
+\subsubsection{Salidas Principales}
+\begin{itemize}
+    \item \texttt{sim} actualizado con:
+    \begin{itemize}
+        \item $\mathbf{r}_i(t + dt)$
+        \item $\mathbf{v}_i(t + dt)$
+        \item $t = t + dt$
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Interacciones Internas}
+\begin{itemize}
+    \item \textbf{API REBOUND}:
+    \begin{itemize}
+        \item Módulo WHFast y solucionador Kepler
+        \item Transformaciones coordenadas
+    \end{itemize}
+    \item \textbf{Gestor de memoria}: Almacenamiento estados intermedios
+    \item \textbf{Sistema físico}: Conservación propiedades dinámicas
+\end{itemize}
+
+\subsubsection{Diagrama del Proceso}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/Analisis/DiagramaProcesos/DiagramaProceso08_ResolverEcuaciones.png}
+    \caption{Diagrama de Proceso Interno 08: Resolver Ecuaciones}%
+    \label{fig:process_diagram08}
+\end{figure}

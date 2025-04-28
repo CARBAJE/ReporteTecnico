@@ -1,0 +1,122 @@
+\subsection[Proceso Interno 09: Recolectar Datos]{Proceso Interno 09: Recolectar Datos para Visualización}
+
+\subsubsection{Objetivo del Proceso}
+El propósito principal de la actividad ``Recolectar Datos para Visualización'' es extraer el estado físico actual del sistema gravitacional (tiempo, masas, posiciones y, opcionalmente, velocidades) desde la instancia de simulación de REBOUND (\texttt{sim}) cuando se recibe una señal indicando que el tiempo actual coincide con un instante designado para la visualización ($t_{\text{vis}}$). Los datos recolectados se organizan en una estructura coherente para ser procesados por el siguiente paso del módulo de visualización, facilitando la representación gráfica del sistema en el contexto de la simulación de dos cuerpos.
+
+\subsubsection{Entradas Principales}
+\begin{itemize}
+    \item \textbf{Señal de Activación}: Un evento o llamada originada desde el bucle ``Iniciar Simulación'', que indica que el tiempo actual (\texttt{sim.t}) coincide con un instante de visualización ($t_{\text{vis}}$) de la lista \texttt{t\_vis\_list}.
+    \item \textbf{Acceso al Estado Actual}: Una referencia a la instancia del objeto \texttt{Simulation} (\texttt{sim}) de REBOUND, que contiene el estado actual del sistema, incluyendo:
+    \begin{itemize}
+        \item Tiempo actual (\texttt{sim.t}).
+        \item Masas ($m$), posiciones ($\mathbf{r} = [x, y, z]$), y velocidades ($\mathbf{v} = [v_x, v_y, v_z]$) de todas las partículas en \texttt{sim.particles}.
+    \end{itemize}
+    \item Alternativamente, una copia o extracto del estado actual (tiempo, masas, posiciones, velocidades) proporcionada directamente por el proceso llamador.
+\end{itemize}
+
+\subsubsection{Sub-pasos Secuenciales}
+Este apartado es proporcionado para profundizar y describir de forma textual cada paso contenido dentro del diagrama del proceso descrito en la figura~\ref{fig:process_diagram10}
+\subsubsection*{1. Recepción de Activación}
+\begin{itemize}
+    \item La actividad es invocada por el bucle principal de simulación cuando se detecta que \texttt{sim.t} está suficientemente cerca de un tiempo de visualización ($t_{\text{vis}}$).
+    \item Se recibe la referencia al objeto \texttt{sim} o los datos del estado actual del sistema, que serán utilizados para la recolección de datos.
+\end{itemize}
+
+\subsubsection*{2. Lectura del Estado Básico}
+\begin{itemize}
+    \item \textbf{Leer Tiempo Actual}: Se obtiene el valor del tiempo actual $t$ desde \texttt{sim.t}, que representa el instante exacto de la simulación en el que se realiza la visualización.
+    \item \textbf{Determinar Número de Partículas}: Se lee el número total de partículas en la simulación ($n = \texttt{sim.N}$), que indica cuántos cuerpos deben procesarse para extraer sus propiedades físicas.
+\end{itemize}
+
+\subsubsection*{3. Extracción de Datos por Partícula}
+\begin{itemize}
+    \item \textbf{Inicializar Arrays de Almacenamiento}: Se crean arrays o listas temporales para almacenar los datos recolectados:
+    \begin{itemize}
+        \item \texttt{masas[]}: Para almacenar la masa de cada partícula.
+        \item \texttt{posiciones[][]}: Para almacenar los vectores de posición ($\mathbf{r} = [x, y, z]$) de cada partícula.
+        \item \texttt{velocidades[][]} (opcional): Para almacenar los vectores de velocidad ($\mathbf{v} = [v_x, v_y, v_z]$) si son requeridos por la visualización.
+    \end{itemize}
+    \item \textbf{Bucle de Extracción}: Se itera sobre las $n$ partículas ($i$ de 0 a $n-1$):
+    \begin{itemize}
+        \item \textbf{Leer Masa}: Se extrae la masa de la partícula $i$ (\texttt{masas[i] = sim.particles[i].m}).
+        \item \textbf{Leer Posición}: Se extrae el vector de posición de la partícula $i$ (\texttt{posiciones[i] = [sim.particles[i].x, sim.particles[i].y, sim.particles[i].z]}).
+        \item \textbf{Verificar Requerimiento de Velocidades}: Se evalúa si la visualización requiere velocidades (por ejemplo, para dibujar vectores de velocidad en la interfaz gráfica).
+        \begin{itemize}
+             \item Si se requieren: Se extrae el vector de velocidad de la partícula $i$ (\texttt{velocidades[i] = [sim.particles[i].vx, sim.particles[i].vy, sim.particles[i].vz]}).
+             \item Si no se requieren: Se omite la lectura de velocidades, dejando \texttt{velocidades} vacía o sin inicializar.
+        \end{itemize}
+    \end{itemize}
+    \item El bucle continúa hasta procesar todas las partículas ($i < n$).
+\end{itemize}
+
+\subsubsection*{4. Empaquetado de Datos}
+\begin{itemize}
+    \item \textbf{Crear Estructura \texttt{VisualizationState}}: Se inicializa una estructura de datos temporal (por ejemplo, un diccionario o un objeto \texttt{VisualizationState}) para agrupar los datos recolectados.
+    \item \textbf{Añadir Tiempo}: Se asigna el tiempo actual $t$ a la estructura (\texttt{VisState.t = t}).
+    \item \textbf{Añadir Masas}: Se asigna el array de masas a la estructura (\texttt{VisState.masas = masas[]}).
+    \item \textbf{Añadir Posiciones}: Se asigna el array de posiciones a la estructura (\texttt{VisState.posiciones = posiciones[][]}).
+    \item \textbf{Verificar Velocidades}: Se evalúa si se recolectaron velocidades.
+    \begin{itemize}
+        \item Si se recolectaron: Se asigna el array de velocidades a la estructura (\texttt{VisState.velocidades = velocidades[][]}).
+        \item Si no se recolectaron: Se omite la inclusión de velocidades en la estructura.
+    \end{itemize}
+    \item \textbf{Verificar Metadatos Adicionales}: Se evalúa si son necesarios metadatos adicionales para la visualización (por ejemplo, nombres de partículas, colores, tamaños u otros parámetros gráficos).
+    \begin{itemize}
+        \item Si son necesarios: Se añaden los metadatos a la estructura (por ejemplo, \texttt{VisState.metadata = \{nombres, colores, tamaños\}}). Estos pueden provenir de configuraciones predefinidas o datos asociados a \texttt{sim}.
+        \item Si no son necesarios: Se omite la inclusión de metadatos.
+    \end{itemize}
+    \item \textbf{Finalizar Empaquetado}: La estructura \texttt{VisualizationState} se completa, representando una instantánea coherente del estado del sistema en el tiempo $t_{\text{vis}}$.
+\end{itemize}
+
+\subsubsection*{5. Pasar Datos a Procesamiento}
+\begin{itemize}
+    \item La estructura \texttt{VisualizationState} se envía al siguiente paso del pipeline de visualización, el proceso ``Procesar Datos'', que se encargará de transformar los datos para su renderización en la interfaz gráfica.
+\end{itemize}
+
+\subsubsection{Lógica Interna y Decisiones}
+\begin{itemize}
+    \item \textbf{Requerimiento de Velocidades}: La decisión de recolectar velocidades introduce una bifurcación condicional. Si la visualización no requiere velocidades (por ejemplo, si solo se muestran posiciones de partículas), se omite su extracción, optimizando el uso de recursos.
+    \item \textbf{Metadatos Adicionales}: La inclusión de metadatos depende de los requisitos específicos del módulo de visualización. Esta decisión permite flexibilidad para soportar diferentes estilos de visualización (por ejemplo, partículas con colores o tamaños personalizados).
+    \item \textbf{Bucle de Extracción}: El bucle sobre las partículas es controlado por la condición $i < n$, asegurando que se procesen todas las partículas en la simulación. No hay bifurcaciones dentro del bucle más allá de la decisión sobre velocidades.
+    \item \textbf{Manejo de Errores Implícito}: La lectura de datos desde \texttt{sim.particles} podría generar errores si el estado de \texttt{sim} es inválido (por ejemplo, valores \texttt{NaN}). Estos casos son manejados por REBOUND o por validaciones previas en el bucle de simulación, fuera del alcance de esta actividad.
+\end{itemize}
+
+\subsubsection{Manejo de Datos Específico}
+\begin{itemize}
+    \item \textbf{Datos de Entrada}:
+    \begin{itemize}
+        \item Señal de activación desde el bucle de simulación.
+        \item Referencia a \texttt{sim} o extracto del estado actual (tiempo, masas, posiciones, velocidades).
+    \end{itemize}
+    \item \textbf{Datos Intermedios}:
+    \begin{itemize}
+        \item Arrays temporales para almacenar masas (\texttt{masas[]}), posiciones (\texttt{posiciones[][]}), y opcionalmente velocidades (\texttt{velocidades[][]}).
+        \item Valores individuales extraídos de \texttt{sim.particles} ($t$, $m$, $x$, $y$, $z$, $v_x$, $v_y$, $v_z$).
+        \item Metadatos adicionales, si se requieren.
+    \end{itemize}
+    \item \textbf{Datos de Salida}:
+    \begin{itemize}
+        \item Estructura \texttt{VisualizationState} (o equivalente), que contiene la instantánea del sistema: tiempo ($t$), masas, posiciones, velocidades (si aplica), y metadatos (si aplica).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Salidas Principales}
+\begin{itemize}
+    \item \textbf{Estructura \texttt{VisualizationState}}: Una estructura de datos que encapsula el estado relevante del sistema en el instante de visualización ($t_{\text{vis}}$), incluyendo el tiempo, las masas, las posiciones, y opcionalmente las velocidades y metadatos, lista para ser procesada por el módulo de visualización.
+\end{itemize}
+
+\subsubsection{Interacciones Internas}
+\begin{itemize}
+    \item \textbf{Con el Bucle de Simulación}: La actividad es activada por el proceso ``Iniciar Simulación'' cuando \texttt{sim.t} coincide con un tiempo de visualización.
+    \item \textbf{Con la API de REBOUND}: Accede al estado interno del objeto \texttt{Simulation} (\texttt{sim.t}, \texttt{sim.N}, \texttt{sim.particles}) para extraer los datos físicos del sistema.
+    \item \textbf{Con Estructuras de Datos Temporales}: Crea y llena arrays temporales (\texttt{masas}, \texttt{posiciones}, \texttt{velocidades}) y una estructura \texttt{VisualizationState} para organizar los datos recolectados.
+    \item \textbf{Con el Pipeline de Visualización}: Transfiere la estructura \texttt{VisualizationState} al proceso ``Procesar Datos'', integrándose en el flujo de renderización gráfica.
+\end{itemize}
+
+\subsubsection{Diagrama del Proceso}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/Analisis/DiagramaProcesos/DiagramaProceso10_RecolectarDatos.png}
+    \caption{Diagrama de Proceso Interno 10: Recolectar Datos}%
+    \label{fig:process_diagram10}
+\end{figure}
