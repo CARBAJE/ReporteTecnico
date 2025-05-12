@@ -26,6 +26,13 @@
 \usepackage{pgffor}
 \usepackage{enumitem}
 \usepackage{pdflscape}  % para PDF
+\usepackage{tabularx}
+\usepackage{booktabs} % For professional table rules
+\usepackage{threeparttable}  % Opcionalmente, para mejor manejo de notas
+\usepackage{threeparttablex}  % Versión de threeparttable compatible con longtable
+\usepackage{seqsplit}
+
+
 
 % Tikz packages
 \usetikzlibrary{shapes, arrows, positioning, calc}
@@ -69,6 +76,9 @@
 
 \newcommand{\vect}[1]{\mathbf{#1}}
 
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+\renewcommand{\figurename}{Figura}
+
 \begin{document}
 \justifying%
 \frontmatter
@@ -91,6 +101,7 @@
     \include{chapters/03-MarcoTeorico}
     \include{chapters/04-Planeacion}
     \include{chapters/05-Analisis}
+    \include{chapters/06-Design.tex}
 
     \appendix
         %\include{Appendices/appendixA}

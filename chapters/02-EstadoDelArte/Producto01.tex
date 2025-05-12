@@ -1,16 +1,17 @@
-\textit{Framework} \texttt{ode\_num\_int}]{Producto 01: \textit{Framework} \texttt{ode\_num\_int} para Integración Numérica}\label{sec:ode_num_int}
+\section[\textit{Framework} \texttt{ode\_num\_int}]{Producto 01: \textit{Framework} \texttt{ode\_num\_int} para Integración Numérica}%
+\label{sec:state_of_the_art_01}
 
-En el ámbito de la simulación de sistemas gravitacionales, la integración numérica de ecuaciones diferenciales ordinarias (EDOs) desempeña un papel fundamental al describir el movimiento de cuerpos bajo influencias gravitacionales. La precisión y eficiencia de los métodos de integración utilizados impactan directamente la capacidad de los modelos para representar fenómenos físicos complejos, como los comportamientos dinámicos de sistemas de dos cuerpos. En este contexto, el \textit{framework} \texttt{ode\_num\_int}, presentado en el artículo ``C++ Playground for Numerical Integration Method Developers"~\cite{Orlov2017}, emerge como una herramienta relevante para el desarrollo y evaluación de métodos de integración numérica personalizados, con potencial aplicabilidad al proyecto descrito en este documento.
+En el ámbito de la simulación de sistemas gravitacionales, la integración numérica de ecuaciones diferenciales ordinarias (EDOs) desempeña un papel fundamental al describir el movimiento de cuerpos bajo influencias gravitacionales. La precisión y eficiencia de los métodos de integración utilizados impactan directamente la capacidad de los modelos para representar fenómenos físicos complejos, como los comportamientos dinámicos de sistemas de dos cuerpos. En este contexto, el \textit{framework} \texttt{ode\_num\_int}, presentado en el artículo ``C++ Playground for Numerical Integration Method Developers''~\cite{Orlov2017}, emerge como una herramienta relevante para el desarrollo y evaluación de métodos de integración numérica personalizados, con potencial aplicabilidad al proyecto descrito en este documento.
 
 \subsection{Descripción y Arquitectura Técnica}
 
 El \textit{framework} \texttt{ode\_num\_int} es una biblioteca de software desarrollada en \texttt{C++11}, diseñada para proporcionar a investigadores y desarrolladores un entorno flexible y extensible para la creación y prueba de métodos de integración numérica destinados a resolver EDOs. A diferencia de bibliotecas tradicionales como GSL o Boost.Odeint, que priorizan soluciones numéricas predefinidas, \texttt{ode\_num\_int} se centra en el proceso investigativo, ofreciendo una arquitectura modular basada en clases \textit{template}. Esta estructura permite a los usuarios personalizar componentes individuales según las necesidades específicas de sus simulaciones.
 
 La arquitectura del \textit{framework} se organiza en tres pilares principales:
-\begin{enumerate} 
-    \item Una infraestructura común que incluye el patrón observador para la gestión dinámica de \textit{callbacks}, \textit{holders} de propiedades para el manejo flexible de variables, factorías para la creación de instancias, parámetros opcionales y utilidades de temporización. 
-    \item Componentes de álgebra lineal con \textit{templates} para vectores y matrices dispersas, soporte para factorización $LU$ y almacenamiento optimizado de datos. 
-    \item Capacidades de resolución numérica que abarcan \textit{solvers} para sistemas algebraicos no lineales, métodos de iteración tipo Newton, \textit{solvers} explícitos e implícitos para EDOs, manejo de eventos y controladores de tamaño de paso. 
+\begin{enumerate}
+    \item Una infraestructura común que incluye el patrón observador para la gestión dinámica de \textit{callbacks}, \textit{holders} de propiedades para el manejo flexible de variables, factorías para la creación de instancias, parámetros opcionales y utilidades de temporización.
+    \item Componentes de álgebra lineal con \textit{templates} para vectores y matrices dispersas, soporte para factorización $LU$ y almacenamiento optimizado de datos.
+    \item Capacidades de resolución numérica que abarcan \textit{solvers} para sistemas algebraicos no lineales, métodos de iteración tipo Newton, \textit{solvers} explícitos e implícitos para EDOs, manejo de eventos y controladores de tamaño de paso.
 \end{enumerate}
 Esta modularidad permite combinar diferentes elementos de manera sencilla, facilitando la experimentación con métodos diversos.
 

@@ -1,0 +1,126 @@
+\section{Tabla Comparativa del Estado del Arte}
+% Definir ancho de la primera columna y demás columnas
+\newlength{\firstcolwidth}
+\setlength{\firstcolwidth}{2.8cm}
+\newlength{\desccolwidth}
+\setlength{\desccolwidth}{\dimexpr\textwidth-\firstcolwidth-3.5cm\relax}
+
+\begin{ThreePartTable}
+\renewcommand{\arraystretch}{1.3} % Ligeramente aumentar el espacio entre filas
+\scriptsize % Tamaño de fuente más pequeño para el contenido de la tabla
+
+\begin{TableNotes}
+    \item[*] \textbf{Cambios Dinámicos}: Capacidad de modificar parámetros clave durante la ejecución
+    \item[a] Sección~\ref{sec:state_of_the_art_01}: \textit{Framework} \texttt{ode\_num\_int} para Integración Numérica
+    \item[b] Sección~\ref{sec:state_of_the_art_02}: Representación de Objetos mediante \textit{Quadtrees} y \textit{Octrees} de División No Minimal
+    \item[c] Sección~\ref{sec:state_of_the_art_03}: Método de Red de n-Vecinos Más Cercanos (n-NNN) para Simulaciones Moleculares
+    \item[d] Sección~\ref{sec:state_of_the_art_04}: Implementación de Métodos Hidrodinámicos Sin Malla en PKDGRAV3 para Simulaciones Cosmológicas
+    \item[e] Sección~\ref{sec:state_of_the_art_05}: Método híbrido \textit{SPH/N}-cuerpos para simulaciones de cúmulos estelares
+    \item[f] Sección~\ref{sec:state_of_the_art_06}: Integrador simpléctico para problemas gravitacionales N-cuerpos colisionables
+    \item[j] Sección~\ref{sec:state_of_the_art_07}: Solver gravitacional híbrido TPM para simulaciones de N-cuerpos en arquitecturas paralelas
+    \item[h] Sección~\ref{sec:state_of_the_art_08}: Algoritmo Tree Particle-Mesh (TPM) para simulaciones N-cuerpos cosmológicas
+    \item[i] Sección~\ref{sec:state_of_the_art_09}: Código REBOUND para dinámica N-cuerpos colisionante y no colisionante
+    \item[j] Sección~\ref{sec:state_of_the_art_10}: Algoritmo TPM (Bode \& Ostriker 2000)
+    \item[**] Escalabilidad: ``Alta (Geom.)'' $=$ específica para operaciones geométricas
+\end{TableNotes}
+
+\begin{longtable}{@{}p{0.8\firstcolwidth}p{0.6\desccolwidth}ccc@{}}
+    \caption{Resumen comparativo de proyectos y artículos relacionados con simulaciones N-cuerpos analizados en el Estado del Arte.\label{tab:proyectos_articulos_comparativa}}\\
+
+    \toprule
+    \textbf{Producto/Método} & \textbf{Enfoque Principal y Características Distintivas} & \textbf{Escalabilidad} & \textbf{Usa IA} & \textbf{Cambios Dinámicos}\textsuperscript{*} \\
+    \midrule
+    \endfirsthead%
+
+    \multicolumn{5}{c}{\small\textit{Continuación de la Tabla~\ref{tab:proyectos_articulos_comparativa}}} \\
+    \toprule
+    \textbf{Producto/Método} & \textbf{Enfoque Principal y Características Distintivas} & \textbf{Escalabilidad} & \textbf{Usa IA} & \textbf{Cambios Dinámicos}\textsuperscript{*} \\
+    \midrule
+    \endhead%
+
+    \midrule
+    \multicolumn{5}{r}{\small\textit{Continúa en la siguiente página}} \\
+    \endfoot%
+
+    \bottomrule
+    \insertTableNotes%
+    \endlastfoot%
+
+    Framework ode\_num\_int \textsuperscript{a}
+    & Framework C++11 modular (template-based) para \textit{desarrollo y prueba} de integradores numéricos (EDOs); monitoreo de rendimiento. Orientado a sistemas de escala media.
+    & Media/Limitada
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    Representación Geométrica \textsuperscript{b}
+    & Representación eficiente de geometría 2D/3D usando Quadtrees/Octrees \textit{no minimales} (nodos EDGE/VERTEX); optimiza memoria y operaciones booleanas. No es un simulador dinámico.
+    & Alta (Geom.)**
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    Método n-NNN \textsuperscript{c}
+    & Simulación molecular usando Red de n-Vecinos Cercanos (matrices multidimensionales) y \textit{cirugía Hamiltoniana}; inspirado en IA para evitar cálculo completo de interacciones.
+    & Alta
+    & SÍ
+    & NO \\
+
+    \addlinespace[3pt]
+    PKDGRAV3 (Hidrodinámica) \textsuperscript{d}
+    & Métodos hidrodinámicos \textit{sin malla} (MFM/MFV) en PKDGRAV3; enfoque adaptativo basado en vecinos, bueno para altos contrastes de densidad (cosmología).
+    & Alta
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    Método Híbrido SPH/N-body\textsuperscript{e}
+    & Combina SPH (gas) y N-body (estrellas) usando árbol Barnes-Hut con \textit{criterio MAC} y \textit{block timestepping} para interacciones gas-estrella.
+    & Alta
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    Integrador Simpléctico\textsuperscript{f}
+    & Integrador simpléctico (orden 2+, reversible) basado en descomposición Kepler para problemas N-cuerpos \textit{colisionables}; preserva estructura de fase. Requiere paso fijo.
+    & Media
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    Solver Híbrido TPM\textsuperscript{g}
+    & Combina Particle-Mesh (largo alcance) y Tree (corto alcance), asignando tratamiento \textit{dinámicamente según densidad local}; optimizado para arquitecturas paralelas.
+    & Alta
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    Algoritmo TPM\textsuperscript{h}
+    & Tree-Particle-Mesh basado en \textit{descomposición de dominio por densidad}; usa árbol para regiones densas y PM para el resto; integración multi-escala temporal.
+    & Alta
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    REBOUND \textsuperscript{i}
+    & Código N-cuerpos \textit{modular} y abierto; incluye integradores simplécticos (WHFast, SEI), Barnes-Hut, manejo de colisiones y condiciones de frontera diversas. Paralelizable (MPI/OpenMP).
+    & Alta
+    & NO
+    & NO \\
+
+    \addlinespace[3pt]
+    Modelo Estabilidad Planetaria \textsuperscript{j}
+    & \textit{Estudio teórico} de estabilidad N-cuerpos (usando REBOUND) enfocado en correlación entre \textit{uniformidad de masa} (índice Gini) y tiempo de inestabilidad. No simula eventos dinámicos internos.
+    & Alta (Estudio)
+    & NO
+    & NO \\
+
+    \midrule
+    \textbf{Solución Propuesta}
+    & \textbf{Combina FMM/Barnes-Hut para cálculo gravitacional eficiente con Algoritmos Bioinspirados para la \textit{optimización y ajuste dinámico} de parámetros (masa) durante la simulación.}
+    & \textbf{Alta}
+    & \textbf{SÍ}
+    & \textbf{SÍ} \\
+
+\end{longtable}
+\end{ThreePartTable}

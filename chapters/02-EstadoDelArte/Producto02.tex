@@ -1,16 +1,17 @@
-\section[Representación de Objetos]{Producto 02: Representación de Objetos mediante \textit{Quadtrees} y \textit{Octrees} de División No Minimal}\label{sec:object_representation}
+\section[Representación de Objetos]{Producto 02: Representación de Objetos mediante \textit{Quadtrees} y \textit{Octrees} de División No Minimal}%
+\label{sec:state_of_the_art_02}
 
-Dentro del contexto que nos concierne, la simulación de sistemas gravitacionales, la representación eficiente de estructuras geométricas resulta esencial para modelar y visualizar cuerpos celestes y sus interacciones. La precisión en dicha representación influye directamente en la capacidad de los modelos para simular fenómenos físicos complejos, como trayectorias y colisiones en sistemas de dos cuerpos. En este contexto, el artículo ``Object Representation by Means of Nonminimal Division \textit{Quadtrees} and \textit{Octrees}"~\cite{Ayala1985} propone una técnica avanzada para la representación de objetos geométricos en dos y tres dimensiones mediante estructuras jerárquicas de datos, con potencial relevancia para el proyecto descrito en este reporte técnico.
+Dentro del contexto que nos concierne, la simulación de sistemas gravitacionales, la representación eficiente de estructuras geométricas resulta esencial para modelar y visualizar cuerpos celestes y sus interacciones. La precisión en dicha representación influye directamente en la capacidad de los modelos para simular fenómenos físicos complejos, como trayectorias y colisiones en sistemas de dos cuerpos. En este contexto, el artículo ``Object Representation by Means of Nonminimal Division \textit{Quadtrees} and \textit{Octrees}''~\cite{Ayala1985} propone una técnica avanzada para la representación de objetos geométricos en dos y tres dimensiones mediante estructuras jerárquicas de datos, con potencial relevancia para el proyecto descrito en este reporte técnico.
 
 \subsection{Descripción y Arquitectura Técnica}
 
-El artículo desarrolla un método innovador para representar objetos poligonales (en 2D) y polihédricos (en 3D) utilizando \textit{quadtrees} y \textit{octrees} de división no minimal. Estas estructuras jerárquicas subdividen recursivamente el espacio en cuadrantes (\textit{quadtree}) u octantes (\textit{octree}), optimizando la representación de geometrías complejas. A diferencia de los métodos tradicionales, este enfoque introduce nodos especializados: 
+El artículo desarrolla un método innovador para representar objetos poligonales (en 2D) y polihédricos (en 3D) utilizando \textit{quadtrees} y \textit{octrees} de división no minimal. Estas estructuras jerárquicas subdividen recursivamente el espacio en cuadrantes (\textit{quadtree}) u octantes (\textit{octree}), optimizando la representación de geometrías complejas. A diferencia de los métodos tradicionales, este enfoque introduce nodos especializados:
 \begin{itemize}
-    \item \textsc{WHITE}: áreas fuera del objeto. 
+    \item \textsc{WHITE}: áreas fuera del objeto.
     \item \textsc{BLACK}: áreas dentro del objeto.
-    \item \textsc{GRAY}: áreas que requieren subdivisión adicional. 
+    \item \textsc{GRAY}: áreas que requieren subdivisión adicional.
     \item \textsc{EDGE}: nodos con segmentos de borde.
-    \item \textsc{VERTEX}: nodos con vértices. 
+    \item \textsc{VERTEX}: nodos con vértices.
 \end{itemize}
 Esta clasificación permite una representación detallada de los contornos y vértices, facilitando operaciones como la intersección, unión y diferencia, así como la conversión precisa entre representaciones arbóreas y de bordes.
 
@@ -20,7 +21,7 @@ La técnica destaca por su capacidad para minimizar el uso de memoria mediante u
 
 \subsection{Ventajas y Desventajas}
 
-Entre las ventajas del método se encuentran la reducción significativa del espacio de memoria, la eficiencia en operaciones booleanas y la precisión en la representación de bordes y vértices gracias a los nodos EDGE y VERTEX. Sin embargo, presenta desafíos, como una mayor complejidad de implementación debido a la necesidad de algoritmos especializados y una posible pérdida de precisión en objetos con detalles extremadamente pequeños, derivada de la naturaleza discreta de la subdivisión.
+Entre las ventajas del método se encuentran la reducción significativa del espacio de memoria, la eficiencia en operaciones booleanas y la precisión en la representación de bordes y vértices gracias a los nodos EDGE y VERTEX.\ Sin embargo, presenta desafíos, como una mayor complejidad de implementación debido a la necesidad de algoritmos especializados y una posible pérdida de precisión en objetos con detalles extremadamente pequeños, derivada de la naturaleza discreta de la subdivisión.
 
 \subsection{Relevancia para el Proyecto de Simulación Gravitacional}
 

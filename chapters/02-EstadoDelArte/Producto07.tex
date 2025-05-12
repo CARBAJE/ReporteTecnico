@@ -1,12 +1,12 @@
-\section[Solver gravitacional híbrido TPM]{Solver gravitacional híbrido TPM para simulaciones de N-cuerpos en arquitecturas paralelas}
-
+\section[Solver gravitacional híbrido TPM]{Solver gravitacional híbrido TPM para simulaciones de N-cuerpos en arquitecturas paralelas}%
+\label{sec:state_of_the_art_07}
 Se presenta un nuevo solucionador gravitacional híbrido, denominado TPM (\textit{Tree-Particle-Mesh}), que combina las ventajas del método de partículas en malla (\textit{Particle-Mesh}, PM) y de técnicas jerárquicas basadas en árboles (\textit{TREE methods}). Este enfoque está especialmente diseñado para arquitecturas computacionales paralelas y permite realizar simulaciones de dinámica gravitacional con decenas de millones de partículas, manteniendo un balance óptimo entre precisión y eficiencia.
 
 \subsection{Descripción y Arquitectura Técnica}
 
-El método TPM asigna dinámicamente el tipo de tratamiento a cada partícula dependiendo de la densidad local del entorno: las partículas ubicadas en regiones de baja densidad son tratadas como partículas PM, mientras que las partículas en zonas sobredensas son tratadas como partículas TREE. Las fuerzas de largo alcance se calculan utilizando el método PM, eficiente para todo el volumen simulado, mientras que las fuerzas de corto alcance —específicas de las regiones sobredensas— se calculan utilizando estructuras jerárquicas tipo TREE.
+El método TPM asigna dinámicamente el tipo de tratamiento a czada partícula dependiendo de la densidad local del entorno: las partículas ubicadas en regiones de baja densidad son tratadas como partículas PM, mientras que las partículas en zonas sobredensas son tratadas como partículas TREE.\ Las fuerzas de largo alcance se calculan utilizando el método PM, eficiente para todo el volumen simulado, mientras que las fuerzas de corto alcance —específicas de las regiones sobredensas— se calculan utilizando estructuras jerárquicas tipo TREE.\
 
-En este esquema, la fuerza sobre una partícula TREE es la suma de dos contribuciones: una fuerza externa, proveniente de partículas fuera del árbol, calculada con el método PM; y una fuerza interna, debida a las partículas dentro del árbol, calculada con el método TREE. Esta separación permite una alta resolución espacial en las regiones más dinámicamente complejas, sin sacrificar eficiencia en el resto del dominio.
+En este esquema, la fuerza sobre una partícula TREE es la suma de dos contribuciones: una fuerza externa, proveniente de partículas fuera del árbol, calculada con el método PM;\ y una fuerza interna, debida a las partículas dentro del árbol, calculada con el método TREE.\ Esta separación permite una alta resolución espacial en las regiones más dinámicamente complejas, sin sacrificar eficiencia en el resto del dominio.
 
 La implementación aprovecha arquitecturas paralelas modernas como IBM SP1, SGI Challenge y clústeres de estaciones de trabajo. El código está diseñado para distribuir tanto la carga computacional como la memoria, logrando una escalabilidad casi lineal. En una IBM SP2 con 32 procesadores, se alcanzó una eficiencia del 80%, con una razón cómputo/comunicación cercana a 50, lo que implica que el 95% del tiempo de CPU se dedica al cálculo directo.
 
@@ -18,7 +18,7 @@ El solver TPM es especialmente útil en simulaciones de formación de estructura
 
 El principal beneficio del método TPM es su capacidad para combinar la eficiencia del método PM con la resolución espacial del método TREE, lo que permite realizar simulaciones masivas con un uso óptimo de los recursos computacionales. La integración temporal con múltiples escalas añade precisión sin afectar negativamente el rendimiento global. Además, su diseño orientado a arquitecturas paralelas modernas permite su uso en supercomputadoras y clústeres de alto rendimiento.
 
-Entre las desventajas, se encuentra la complejidad adicional en la implementación y mantenimiento del código, especialmente en lo relativo a la sincronización de tiempos y la gestión de zonas frontera entre regiones PM y TREE. Además, aunque el balance entre eficiencia y precisión es muy favorable, en ciertos escenarios altamente dinámicos puede requerirse una cuidadosa sintonización de parámetros para evitar pérdidas de precisión o sobrecostos computacionales.
+Entre las desventajas, se encuentra la complejidad adicional en la implementación y mantenimiento del código, especialmente en lo relativo a la sincronización de tiempos y la gestión de zonas frontera entre regiones PM y TREE.\ Además, aunque el balance entre eficiencia y precisión es muy favorable, en ciertos escenarios altamente dinámicos puede requerirse una cuidadosa sintonización de parámetros para evitar pérdidas de precisión o sobrecostos computacionales.
 
 \subsection{Relevancia para el Proyecto de Simulación Gravitacional}
 
