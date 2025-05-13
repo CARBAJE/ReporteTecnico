@@ -1,4 +1,5 @@
-\section{Problema de los \texorpdfstring{$n$}{n} cuerpos}\label{sec:n-body_problem}
+\section{Problema de los \texorpdfstring{$n$}{n} cuerpos}%
+\label{sec:n-body_problem}
 
 El problema de $n$ cuerpos estudia cómo $n$ objetos, como planetas o estrellas, se mueven bajo la atracción gravitacional mutua, siguiendo las leyes de Newton. Para dos cuerpos, como la Tierra y el Sol, se puede calcular exactamente sus órbitas, que suelen ser elípticas. Sin embargo, cuando hay tres o más cuerpos, como en el sistema Tierra-Luna-Sol, predecir el movimiento se complica mucho, y a menudo se necesita usar computadoras para simulaciones.
 
@@ -49,22 +50,22 @@ Resultando en un sistema de $6n$ ecuaciones diferenciales.
             \toprule
             \textbf{Enfoque} & \textbf{Descripción} & \textbf{Complejidad} & \textbf{Referencia} \\
             \midrule
-            Solución Analítica (n=2) & 
+            Solución Analítica (n=2) &
             Método que resuelve el problema de Kepler para dos cuerpos.
-            
-            Proporciona soluciones exactas para sistemas de dos objetos. & 
+
+            Proporciona soluciones exactas para sistemas de dos objetos. &
             $O(1)$ & [1] \\
             \midrule
-            Integración Numérica & 
+            Integración Numérica &
             Utiliza métodos como Runge-Kutta para simular movimientos.
-            
-            Permite aproximaciones numéricas para sistemas complejos. & 
+
+            Permite aproximaciones numéricas para sistemas complejos. &
             $O(n^2)$ & [5] \\
             \midrule
-            Algoritmo de Barnes-Hut & 
+            Algoritmo de Barnes-Hut &
             Método de agrupamiento jerárquico para reducir complejidad computacional.
-            
-            Mejora la eficiencia en simulaciones de múltiples cuerpos. & 
+
+            Mejora la eficiencia en simulaciones de múltiples cuerpos. &
             $O(n \log n)$ & [6] \\
             \bottomrule
         \end{tabular}

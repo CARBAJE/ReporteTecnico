@@ -1,0 +1,71 @@
+\subsection[Consulta con experto núm. 02]{Consulta con Experto en Optimización Evolutiva y Mecatrónica Aplicada}
+
+Para corroborar la relevancia del problema de investigación y la solidez del enfoque metodológico propuesto en este Trabajo Terminal, se llevó a cabo una consulta especializada con un experto en el campo de la optimización evolutiva y sus aplicaciones en ingeniería.
+
+\subsubsection{Perfil del Experto Consultado}
+
+Se consultó al Dr.\ Daniel Molina Pérez, Investigador titular en el área de Mecatrónica del Centro de Innovación y Desarrollo Tecnológico en Cómputo (CIDETEC) del Instituto Politécnico Nacional (IPN). El Dr.\ Molina ostenta un Doctorado en Ingeniería de Sistemas Robóticos y Mecatrónica por el mismo centro. Sus líneas de investigación y especialización abarcan la algoritmia, algoritmos bioinspirados, optimización, optimización aplicada a problemas de ingeniería y optimización evolutiva. Su trayectoria y conocimiento en estas áreas lo constituyen como un validador idóneo para los aspectos centrales de este proyecto.
+
+\subsubsection{Método de Consulta}
+
+La consulta se efectuó mediante una reunión formal el lunes 12 de mayo de 2025, de 14:40 a 15:15 horas, en las instalaciones del departamento de investigación de Mecatrónica del CIDETEC-IPN.\ Previo a la discusión, se proporcionó al Dr.\ Molina un borrador del presente reporte técnico para su revisión. Durante la reunión, se expuso verbalmente el propósito, los objetivos y la evolución conceptual del proyecto, desde su concepción inicial hasta la formulación actual del modelo de simulación y optimización.
+
+\subsubsection{Resumen de Opiniones y Observaciones Obtenidas}
+
+Tras la presentación y discusión, el Dr.\ Molina Pérez aportó las siguientes valoraciones y observaciones clave:
+
+\begin{itemize}
+    \item \textbf{Naturaleza del Problema de Optimización:}
+    \begin{itemize}
+        \item Confirmó que el problema, tal como está planteado (encontrar masas que conduzcan a un exponente de Lyapunov\footnote{El \textbf{exponente de Lyapunov} (LE) caracteriza la tasa de separación de trayectorias cercanas en sistemas dinámicos; un LE máximo positivo indica caos, mientras que uno no positivo sugiere estabilidad~\cite{Kuznetsov2016, Quarles2011}. Es crucial en el \textit{estudio del caos} y la \textit{teoría de la dimensión}~\cite{Kuznetsov2016, KaplanYorke1979, Kuznetsov_2016}.} indicativo de estabilidad local), puede interpretarse como un \textbf{problema de factibilidad}\footnote{Un \textbf{problema de factibilidad} busca determinar si existe al menos una solución que satisfaga un conjunto de restricciones, sin optimizar una función objetivo particular.\ \textit{Cf.}~\cite{boyd2004convex}.} si el único objetivo es encontrar \textit{cualquier} conjunto de masas que cumpla la restricción de estabilidad. No obstante, si se buscase el \textit{mejor} conjunto (por ejemplo, el que minimice alguna otra métrica mientras mantiene la estabilidad, o el exponente de Lyapunov más cercano a cero sin ser positivo), se trataría de un problema de optimización con una función objetivo definida.
+        \item Subrayó la importancia de definir claramente si el objetivo es la mera factibilidad o la optimización de un criterio específico.
+    \end{itemize}
+
+    \item \textbf{Variables de Decisión y Aplicabilidad del Modelo:}
+    \begin{itemize}
+        \item Identificó correctamente que, al ser las masas las variables de decisión, el modelo se orienta a la estabilidad de sistemas de cuerpos celestes (limitado a dos en esta etapa).
+        \item Hipotetizó que considerar variables adicionales como la densidad o la relación masa/volumen (kg/m³) podría enriquecer el modelo y la resolución del problema, sugiriendo una investigación en astrofísica y aerofísica.
+    \end{itemize}
+
+    \item \textbf{Dinámica del Sistema y la Optimización:}
+    \begin{itemize}
+        \item Inicialmente, dedujo que las masas serían fijas \textit{después} del proceso de optimización para la simulación. Se clarificó que, si bien las masas son el resultado de la optimización y se usan para \textit{una} simulación, el concepto más amplio del proyecto implica que estas podrían cambiar dinámicamente en la simulación general (aunque no durante un ciclo de optimización individual para encontrar \textit{un} conjunto de masas estables).
+        \item Respecto a la simulación con REBOUND (específicamente con WHFast), reconoció su idoneidad para determinar trayectorias.
+        \item Consideró que el problema de optimización, tal como se describió (encontrar un conjunto de masas), no es inherentemente dinámico en el sentido de que la función de aptitud (exponente de Lyapunov para un conjunto dado de masas iniciales) no varía entre ejecuciones idénticas. Sin embargo, reconoció el aspecto dinámico \textit{general} del sistema si las masas se modifican en función del tiempo \textit{t} durante la simulación. Esta distinción es crucial: la optimización busca un estado inicial, la simulación general podría explorar cambios en ese estado.
+        \item Sugirió la necesidad de un \textbf{activador} (\textit{trigger})\footnote{Un \textbf{activador} (\textit{trigger}) es una condición o evento que, al cumplirse, inicia un proceso subsecuente, como la re-evaluación o un nuevo ciclo de optimización.} que inicie una nueva búsqueda (optimización/factibilidad) si la aptitud del sistema cambia durante una simulación extendida, implicando un chequeo continuo del fitness.
+    \end{itemize}
+
+    \item \textbf{Justificación Metodológica y Relevancia:}
+    \begin{itemize}
+        \item Consideró el modelo como ``super interesante'', con aplicaciones potenciales en la simulación científica para el desarrollo de motores físicos en videojuegos, aunque de interés prioritario en el ámbito aeroespacial y astrofísico.
+        \item Afirmó que el uso de \textbf{algoritmos bioinspirados}\footnote{Los \textbf{algoritmos bioinspirados} son métodos de optimización inspirados en procesos naturales como la evolución o el comportamiento de enjambres~\cite{eiben2015, goldberg1989}.} se justifica en problemas de simulación donde esta actúa como una ``caja negra'', desconociéndose a priori la relación explícita entre las variables de entrada y la métrica de salida.
+        \item Mencionó que los \textbf{Algoritmos Genéticos}\footnote{Los \textbf{Algoritmos Genéticos} (AGs) son algoritmos bioinspirados basados en la selección natural y la genética, que operan sobre una población de soluciones para evolucionar hacia mejores resultados~\cite{goldberg1989}. Ver Sección 3.8.} son particularmente adecuados para resolver problemas con características dinámicas (refiriéndose a la capacidad de adaptar la búsqueda si el entorno o los objetivos cambian, lo cual se alinea con la idea del \textit{trigger}).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Análisis de la Validación Experta y Vinculación con el Proyecto}
+
+Las observaciones del Dr.\ Daniel Molina Pérez ofrecen una validación sustancial y directrices valiosas para el proyecto:
+
+\begin{itemize}
+    \item \textbf{Validación de la Pertinencia del Problema:}
+    \begin{itemize}
+        \item La distinción entre problema de factibilidad y optimización es fundamental y será clarificada en la formulación del problema dentro del reporte, enfocándose en la búsqueda de conjuntos de parámetros que satisfagan el criterio de estabilidad del exponente de Lyapunov.
+        \item Su énfasis en las aplicaciones aeroespaciales y astrofísicas refuerza la relevancia del dominio elegido, aunque el modelo pueda tener implicaciones secundarias en otras áreas como la simulación para videojuegos.
+        \item La confirmación de que los algoritmos bioinspirados son una elección justificada para problemas donde la simulación actúa como evaluador de ``caja negra'' respalda la metodología central del proyecto.
+    \end{itemize}
+
+    \item \textbf{Respaldo a la Solución Propuesta y Metodología:}
+    \begin{itemize}
+        \item El reconocimiento de REBOUND y WHFast como herramientas adecuadas para la simulación de trayectorias apoya la elección tecnológica.
+        \item La sugerencia de un \textit{trigger} para la re-optimización basada en el chequeo continuo del fitness se alinea con la visión de un sistema adaptable y será considerada para futuras extensiones del modelo, aunque la implementación actual se centre en encontrar un conjunto inicial estable.
+        \item Su comentario sobre los Algoritmos Genéticos siendo aptos para problemas dinámicos valida su elección como el paradigma bioinspirado principal, especialmente si se considera la adaptación del sistema a largo plazo.
+    \end{itemize}
+
+    \item \textbf{Consideraciones para el Desarrollo y Reporte:}
+    \begin{itemize}
+        \item La necesidad de un modelo matemático claro para la trayectoria (satisfecha por REBOUND) es un punto ya cubierto.
+        \item La hipótesis sobre la inclusión de densidad y kg/m³ se tomará como una posible línea de investigación futura para enriquecer el modelo, aunque excede el alcance actual de dos cuerpos puntuales con masa como única variable de decisión.
+        \item Se refinará la descripción del ``dinamismo'' del problema, distinguiendo claramente entre la naturaleza estática de una evaluación de fitness individual (para un conjunto de masas) y el comportamiento dinámico de la simulación gravitacional en sí misma a lo largo del tiempo.
+    \end{itemize}
+\end{itemize}

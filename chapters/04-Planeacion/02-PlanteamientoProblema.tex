@@ -1,0 +1,151 @@
+\section[Planteamiento del Problema de Factibilidad]{Planteamiento del Problema Principal: Factibilidad de Estabilidad del Modelo}%
+\label{sec:problema_principal_factibilidad}
+
+El objetivo fundamental y principal de este proyecto es determinar si existe al menos una configuración de masas $(m_1, m_2)$ para un sistema de dos cuerpos celestes que produzca un comportamiento gravitacional localmente estable. Esta estabilidad se cuantifica principalmente a través del Exponente de Lyapunov ($LE$), donde valores más bajos (idealmente negativos, $LE < 0$) indican mayor estabilidad. Este es, en esencia, un \textit{problema de factibilidad}: buscamos probar la existencia de al menos una solución que satisfaga un conjunto de criterios.
+
+A continuación, se presenta la formulación matemática de este problema de factibilidad. Posteriormente, se detallará cómo este problema puede ser abordado mediante una formulación de optimización, una estrategia común para resolver problemas de factibilidad complejos, especialmente cuando se utilizan algoritmos bioinspirados.
+
+\subsection{Definiciones Preliminares: Variables, Parámetros y Función de Evaluación}%
+\label{subsec:definiciones_preliminares}
+
+Para formular el problema, primero definimos las variables de decisión, los parámetros del sistema, los conjuntos relevantes y la función de evaluación.
+
+\subsubsection{Variables de Decisión}%
+\label{ssubsec:variables_decision}
+Las decisiones fundamentales giran en torno a las masas de los dos cuerpos celestes:
+\begin{itemize}
+    \item $m_1$: Masa del primer cuerpo celeste.
+    \begin{itemize}
+        \item Naturaleza: Continua.
+        \item Unidades: Kilogramos (kg).
+    \end{itemize}
+    \item $m_2$: Masa del segundo cuerpo celeste.
+    \begin{itemize}
+        \item Naturaleza: Continua.
+        \item Unidades: Kilogramos (kg).
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Parámetros del Modelo}%
+\label{ssubsec:parametros_modelo}
+Estos son los valores fijos o predefinidos que contextualizan el problema:
+\begin{itemize}
+    \item $\mathcal{C}_{\text{ini}}$: Conjunto de condiciones iniciales del sistema. Incluye:
+    \begin{itemize}
+        \item $\mathbf{r}_{1,0}, \mathbf{r}_{2,0}$: Vectores de posición inicial para el cuerpo 1 y el cuerpo 2, respectivamente (e.g., $(x_0, y_0, z_0)$ para cada uno). Unidades: metros (m).
+        \item $\mathbf{v}_{1,0}, \mathbf{v}_{2,0}$: Vectores de velocidad inicial para el cuerpo 1 y el cuerpo 2, respectivamente (e.g., $(v_{x,0}, v_{y,0}, v_{z,0})$ para cada uno). Unidades: metros por segundo (m/s).
+    \end{itemize}
+    \item $\mathcal{P}_{\text{sim}}$: Conjunto de parámetros de la simulación gravitacional. Incluye:
+    \begin{itemize}
+        \item $G$: Constante de gravitación universal. Unidades: N$\cdot$m$^2$/kg$^2$. (Valor aproximado: $6.674 \times 10^{-11}$ N$\cdot$m$^2$/kg$^2$)
+        \item $\Delta t$: Paso de tiempo de integración numérica. Unidades: segundos (s).
+        \item $T_{\text{max}}$: Tiempo máximo de simulación para cada evaluación del Exponente de Lyapunov. Unidades: segundos (s).
+        \item $I_{\text{type}}$: Especificación del tipo de integrador numérico utilizado (e.g., WHFast).
+        \item Otros parámetros relevantes para los algoritmos de cálculo de interacciones (e.g., parámetros específicos de FMM, Barnes-Hut si se usan).
+    \end{itemize}
+    \item $\alpha$: Constante real positiva que define la cota superior para la relación de masas ($m_2/m_1$). Adimensional.
+    \item $\beta$: Constante real positiva que define la cota inferior para la relación de masas ($m_2/m_1$). Adimensional.
+    \item $S_{\text{target}}$: Umbral de estabilidad objetivo para el Exponente de Lyapunov. Para que una configuración sea considerada factiblemente estable, se requiere $LE \leq S_{\text{target}}$.
+    \begin{itemize}
+        \item Este valor es crucial para el problema de factibilidad. Puede ser un $L_{\text{target}}$ específico (si $L_{\text{target}} < 0$ está definido como el objetivo mínimo de estabilidad).
+        \item Alternativamente, $S_{\text{target}}$ puede ser $-\delta_{\text{stability}}$, donde $\delta_{\text{stability}}$ es una constante positiva pequeña (e.g., $10^{-5}$), asegurando que $LE$ sea significativamente negativo.
+        \item Unidades: Adimensional o s$^{-1}$.
+    \end{itemize}
+    \item $\varepsilon_m$: Un valor positivo pequeño para asegurar que las masas sean estrictamente positivas (e.g., $10^{-6}$ kg). Unidades: kg.
+    \item $\varepsilon_{\text{ineq}}$: Un valor positivo pequeño para manejar desigualdades estrictas en restricciones numéricas (e.g., $10^{-9}$). Adimensional o unidades consistentes con la restricción.
+    \item $m_{1,\text{min}}, m_{1,\text{max}}$: Límites absolutos inferior y superior para la masa $m_1$ (opcional). Unidades: kg.
+    \item $m_{2,\text{min}}, m_{2,\text{max}}$: Límites absolutos inferior y superior para la masa $m_2$ (opcional). Unidades: kg.
+\end{itemize}
+
+\subsubsection{Función de Evaluación (Exponente de Lyapunov)}%
+\label{ssubsec:funcion_evaluacion}
+El Exponente de Lyapunov, $LE$, es una función que depende de las masas de los cuerpos y del conjunto de parámetros de simulación y condiciones iniciales. No es una forma cerrada simple, sino el resultado de una simulación numérica:
+\begin{equation}
+LE(m_1, m_2; \mathcal{C}_{\text{ini}}, \mathcal{P}_{\text{sim}}) \colon \mathbb{R}^+ \times \mathbb{R}^+ \to \mathbb{R}
+\end{equation}
+Este valor, $LE(m_1, m_2; \mathcal{C}_{\text{ini}}, \mathcal{P}_{\text{sim}})$, es el Exponente de Lyapunov calculado para una configuración dada de masas $m_1, m_2$, con condiciones iniciales $\mathcal{C}_{\text{ini}}$ y parámetros de simulación $\mathcal{P}_{\text{sim}}$. Sus unidades son adimensionales o s$^{-1}$.
+\subsection{Definición Formal Matemática del Problema de Factibilidad}%
+\label{subsec:definicion_formal_factibilidad}
+
+Sea el espacio de decisión \(\mathcal{M} = \{(m_1, m_2) \in \mathbb{R}^2:\ m_1, m_2 \ge 0\}\). Definimos el conjunto factible:
+
+\begin{equation}
+\mathcal{F} = \left\{(m_1, m_2) \in \mathcal{M} \;\middle|\;
+\begin{aligned}
+& m_1 \ge \varepsilon_m, \\
+& m_2 \ge \varepsilon_m, \\
+& m_2 - \beta\,m_1 \ge 0,  \\
+& \alpha\,m_1 - m_2 \ge 0,  \\
+& 10\,m_1 - m_2 \ge \varepsilon_{\mathrm{ineq}},  \\
+& \mathrm{LE}(m_1,m_2;\mathcal{C}_{\mathrm{ini}},\mathcal{P}_{\mathrm{sim}}) \le S_{\mathrm{target}}, \\
+& m_{1,\mathrm{\min}} \le m_1 \le m_{1,\mathrm{\max}}, \\
+& m_{2,\mathrm{\min}} \le m_2 \le m_{2,\mathrm{\max}}
+\end{aligned}
+\right\}.
+\end{equation}
+
+
+El \emph{problema de factibilidad} consiste en:
+\[
+\text{Encontrar } (m_1,m_2) \in \mathcal{F}.
+\]
+Si \(\mathcal{F} \neq \emptyset\), existe al menos una configuración de masas que satisface todas las restricciones y, por tanto, el sistema puede alcanzar estabilidad bajo el criterio \(S_{\mathrm{target}}\).
+
+\subsection{Abordaje del Problema de Factibilidad mediante Formulación de Optimización}%
+\label{subsec:abordaje_optimizacion}
+
+Para resolver el problema de factibilidad definido en la sección~\ref{subsec:definicion_formal_factibilidad}, especialmente cuando la función $LE$ es compleja y el espacio de búsqueda es extenso, es ventajoso reformularlo como un problema de optimización. Esta aproximación es particularmente adecuada para la aplicación de algoritmos bioinspirados.
+
+La estrategia consiste en buscar la minimización del Exponente de Lyapunov ($LE$) sujeto a las restricciones del dominio. Si el proceso de optimización encuentra una solución $(m_1^*, m_2^*)$ cuyo valor $LE(m_1^*, m_2^*)$ satisface $LE \leq S_{\text{target}}$ y todas las demás restricciones, entonces se ha encontrado una solución al problema de factibilidad.
+
+\subsubsection{Descripción Verbal del Objetivo y Restricciones de la Formulación de Optimización}%
+\label{ssubsec:descripcion_verbal_opt}
+
+\begin{itemize}
+    \item \textbf{Objetivo de la Formulación de Optimización:}
+    Se busca minimizar el valor del Exponente de Lyapunov $Z = LE(m_1, m_2; \mathcal{C}_{\text{ini}}, \mathcal{P}_{\text{sim}})$. El propósito principal de esta minimización es encontrar \textit{alguna} configuración de masas $(m_1, m_2)$ para la cual el valor de $LE$ resultante sea igual o inferior al umbral de estabilidad $S_{\text{target}}$, satisfaciendo a su vez todas las demás restricciones (positividad, relaciones de masa, rangos).
+
+    \item \textbf{Restricciones del Dominio de Búsqueda (para la optimización):}
+    Las mismas restricciones que definen el espacio de soluciones factibles (sección~\ref{subsec:definicion_formal_factibilidad}, puntos 1, 2, 3, 5 y 6), excluyendo la condición de $LE \leq S_{\text{target}}$ (punto 4 de la sección~\ref{subsec:definicion_formal_factibilidad}), que se convierte en el criterio de éxito de la búsqueda.
+\end{itemize}
+
+\subsubsection{Definición Formal Matemática de la Formulación de Optimización}%
+\label{ssubsec:definicion_formal_opt}
+
+El problema se formula matemáticamente como:
+\begin{equation}
+\begin{aligned}
+& \underset{m_1, m_2}{\text{Minimizar}} & & Z(m_1, m_2) = LE(m_1, m_2; \mathcal{C}_{\text{ini}}, \mathcal{P}_{\text{sim}}) \\
+& \text{sujeto a} & & \\
+& & & m_1 \geq \varepsilon_m \\
+& & & m_2 \geq \varepsilon_m \\
+& & & m_2 - \beta \cdot m_1 \geq 0 \\
+& & & \alpha \cdot m_1 - m_2 \geq 0 \\
+& & & 10 \cdot m_1 - m_2 \geq \varepsilon_{\text{ineq}} \\
+& & & m_{1,\text{min}} \leq m_1 \leq m_{1,\text{max}} \quad (\text{Opcional}) \\
+& & & m_{2,\text{min}} \leq m_2 \leq m_{2,\text{max}} \quad (\text{Opcional}) \\
+& & & m_1, m_2 \in \mathbb{R}
+\end{aligned}%
+\label{eq:problema_optimizacion}
+\end{equation}
+
+\subsubsection{Criterio de Éxito para Resolver el Problema de Factibilidad mediante esta Optimización}%%
+\label{ssubsec:criterio_exito_opt}
+Se considera que se ha encontrado una solución al problema de factibilidad original (sección~\ref{subsec:definicion_formal_factibilidad}) si el proceso de optimización produce un par de masas $(m_1^*, m_2^*)$ que:
+\begin{enumerate}
+    \item Satisface todas las restricciones del problema de optimización~\eqref{eq:problema_optimizacion}.
+    \item Y para el cual el valor de la función objetivo evaluada $Z^* = LE(m_1^*, m_2^*; \mathcal{C}_{\text{ini}}, \mathcal{P}_{\text{sim}})$ cumple con la condición de estabilidad original:
+    \begin{equation}
+        Z^* \leq S_{\text{target}}
+    \end{equation}
+\end{enumerate}
+Si, tras ejecutar el algoritmo de optimización, el valor mínimo de $Z$ encontrado ($Z_{\text{min}}$) es persistentemente mayor que $S_{\text{target}}$ (o si no se puede encontrar ninguna solución que satisfaga las restricciones de la ecuación~\eqref{eq:problema_optimizacion}), se concluiría que, dentro del alcance y las capacidades del método de optimización utilizado, no se ha podido encontrar una configuración de masas que resuelva el problema de factibilidad.
+
+\subsection{Consideraciones Adicionales}%%
+\label{subsec:consideraciones_adicionales}
+
+\begin{itemize}
+    \item \textbf{Optimización Pura de la Estabilidad (Paso Secundario Opcional):}
+    Si el objetivo secundario fuera, además de encontrar \textit{una} configuración estable, encontrar la configuración \textit{más} estable (el $LE$ más negativo posible), la formulación de optimización (ecuación~\eqref{eq:problema_optimizacion}) sigue siendo válida. El interés no se detendría al alcanzar $S_{\text{target}}$, sino que el algoritmo continuaría buscando minimizar $LE$ tanto como sea posible.
+    \item \textbf{Interpretación Física de Restricciones:} La relación $\beta \leq \frac{m_2}{m_1} \leq \alpha$ y la condición $m_2 < 10 \cdot m_1$ son ejemplos de restricciones que aseguran proporciones de masa físicamente significativas o relevantes para el estudio específico.
+\end{itemize}

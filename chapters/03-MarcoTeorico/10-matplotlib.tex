@@ -1,0 +1,117 @@
+\section{Matplotlib}
+
+\subsection{Introducción: El Papel de Matplotlib en la Visualización de Datos Científicos}%
+\label{subsec:introduccion}
+
+En la investigación científica, especialmente en disciplinas como la Física Computacional, Astrofísica y el análisis de algoritmos complejos, la visualización de datos es un componente fundamental~\cite{VanderPlas2016}. La capacidad de transformar datos numéricos abstractos en representaciones visuales claras facilita la identificación de patrones, la interpretación de resultados y la comunicación efectiva de hallazgos~\cite{Hunter2007}. En este contexto, Matplotlib, una biblioteca de Python ampliamente adoptada, se ha consolidado como una piedra angular para la visualización dentro del ecosistema científico de Python~\cite{MatplotlibDevTeamMain}. Su diseño busca emular la usabilidad de MATLAB, aprovechando la potencia y flexibilidad de Python, siendo además de código abierto y gratuito~\cite{ActiveStateMatplotlib}. Su integración con bibliotecas esenciales como NumPy, utilizada para la manipulación de arrays, subraya su idoneidad para aplicaciones numéricas y científicas~\cite{VanderPlas2016, GeeksforGeeksSciComp}. La prevalencia de Matplotlib en la comunidad científica sugiere un amplio respaldo y una continua evolución para satisfacer las necesidades de los investigadores~\cite{MatplotlibDevTeamMain}.
+
+\subsection{Definición, Contexto Histórico y Orígenes}%
+\label{subsec:definicion_historia}
+
+Matplotlib se define como una biblioteca fundamental para la generación de gráficos 2D (y con capacidades básicas 3D) en Python, utilizada para el desarrollo de aplicaciones, la creación de scripts interactivos y la generación de imágenes con calidad de publicación~\cite{Hunter2007, ActiveStateMatplotlib}. Su propósito primordial es ofrecer un entorno flexible para crear visualizaciones estáticas, animadas e interactivas~\cite{ActiveStateMatplotlib}.
+
+El origen de Matplotlib se remonta al trabajo de John D. Hunter en 2003~\cite{MatplotlibDevTeamMain, MatplotlibDevTeamHistory}. Hunter, un neurobiólogo, la desarrolló inicialmente por la necesidad de visualizar datos de electrocorticografía (ECoG) de pacientes con epilepsia, buscando una alternativa de código abierto al software propietario existente~\cite{Jones2012Matplotlib}. En un entorno académico con acceso limitado a licencias costosas, se hizo evidente la necesidad de una herramienta gratuita y extensible~\cite{Jones2012Matplotlib}. Inspirado en MATLAB, Hunter buscó replicar sus capacidades de trazado en Python, facilitando la transición para científicos ya familiarizados con ese entorno~\cite{ActiveStateMatplotlib, MatplotlibDevTeamHistory}. Sin embargo, limitaciones en la gestión de grandes conjuntos de datos biomédicos en MATLAB impulsaron el desarrollo en Python, con el objetivo de lograr gráficos con calidad de publicación y un entorno más flexible~\cite{MatplotlibDevTeamHistory}. La introducción formal a la comunidad científica se produjo con el artículo ``Matplotlib: A 2D Graphics Environment'' en \textit{Computing in Science \& Engineering} en 2007~\cite{Hunter2007}, un trabajo seminal para la biblioteca. Su desarrollo recibió apoyo temprano de instituciones como el Space Telescope Science Institute (STScI)~\cite{desosa2021}, destacando su valor en proyectos científicos de alto impacto.
+
+\subsection{Arquitectura y Conceptos Fundamentales}%
+\label{subsec:arquitectura}
+
+La arquitectura de Matplotlib se basa conceptualmente en tres capas distintas, fomentando la modularidad y permitiendo su uso en diversos entornos~\cite{Jones2012Matplotlib, MatplotlibDevTeamArchitectureYT}:
+
+\begin{enumerate}
+    \item \textbf{Capa Backend:} Se encarga de la interfaz con los dispositivos de salida (renderizadores) y los kits de herramientas de interfaz de usuario (GUI). Es la capa que dibuja en la pantalla o guarda en un archivo (ej. PNG, PDF, SVG)~\cite{Jones2012Matplotlib}. Incluye backends interactivos (para Tkinter, wxPython, Qt, GTK) y no interactivos (para generar archivos de imagen como Agg, PDF, SVG)~\cite{delftswaMatplotlib}. Esta separación permite la portabilidad entre diferentes sistemas operativos y entornos~\cite{Jones2012Matplotlib}.
+    \item \textbf{Capa Artist (Núcleo/API):} Es el corazón de la biblioteca, donde reside la lógica de trazado. Contiene un conjunto de clases (los ``Artistas'') que representan y gestionan todos los elementos de un gráfico (figuras, ejes, líneas, texto, etc.)~\cite{ActiveStateMatplotlib, delftswaMatplotlib}. Proporciona un control granular sobre cada elemento visual~\cite{ActiveStateMatplotlib}. Los componentes clave en esta capa son:
+    \begin{itemize}
+        \item \textbf{Figure:} El contenedor de nivel superior para todos los elementos del gráfico; representa la ventana o página completa~\cite{ActiveStateMatplotlib, delftswaMatplotlib}.
+        \item \textbf{Axes:} El área de trazado dentro de la Figure donde se dibujan los datos; incluye los ejes (x, y, y opcionalmente z), etiquetas, títulos y leyendas~\cite{ActiveStateMatplotlib, delftswaMatplotlib}. Es importante distinguir \texttt{Axes} (el área) de \texttt{Axis} (los objetos que representan los ejes de coordenadas)~\cite{delftswaMatplotlib}.
+        \item \textbf{Artist:} Cualquier objeto visible en la Figure es un Artist (incluyendo Figure, Axes, líneas, texto, colecciones, parches, etc.)~\cite{ActiveStateMatplotlib, delftswaMatplotlib}. Comprender esta jerarquía es esencial para la personalización avanzada~\cite{ActiveStateMatplotlib}.
+    \end{itemize}
+    \item \textbf{Capa Scripting (pyplot):} Proporciona una interfaz de alto nivel, principalmente a través del módulo \texttt{matplotlib.pyplot}. Ofrece una colección de funciones que emulan los comandos de MATLAB, permitiendo crear gráficos rápidamente con comandos simples~\cite{ActiveStateMatplotlib, MatplotlibDevTeamPyplotTut}. Mantiene un estado interno (la figura y ejes actuales), lo que facilita la creación rápida de gráficos pero ofrece menos control explícito que la API orientada a objetos~\cite{MatplotlibDevTeamPyplotTut}.
+\end{enumerate}
+
+\subsection{Estilos de API:\ Pyplot vs. Orientada a Objetos (OO)}%
+\label{subsec:estilos_api}
+
+Matplotlib ofrece dos interfaces principales para crear gráficos~\cite{ActiveStateMatplotlib}:
+
+\begin{table}[htbp]
+\centering
+\caption{Estilos de API:\ Pyplot vs. Orientada a Objetos (OO)}%
+\label{tab:api_styles}
+\begin{tabular}{@{}p{0.25\textwidth}p{0.35\textwidth}p{0.4\textwidth}@{}}
+\toprule
+\textbf{Característica}      & \textbf{Pyplot API}                                       & \textbf{Object-Oriented (OO) API}                              \\
+\midrule
+\textbf{Descripción}     & Interfaz con estado, similar a MATLAB            & Creación y manipulación explícita de objetos Figure/Axes \\
+\textbf{Facilidad de Uso}& Generalmente más fácil para gráficos simples     & Curva de aprendizaje más pronunciada para principiantes \\
+\textbf{Control}         & Control limitado sobre elementos individuales    & Control total sobre todos los aspectos del gráfico      \\
+\textbf{Estructura Código}& Estilo procedural, a menudo más corto para básicos & Más detallado, mejor para gráficos complejos/reutilizables \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La interfaz \texttt{pyplot} es conveniente para exploración rápida y scripts sencillos, mientras que la API OO es preferida para funciones complejas, desarrollo de aplicaciones y cuando se necesita un control total sobre la figura~\cite{ActiveStateMatplotlib, MatplotlibDevTeamPyplotTut}. La coexistencia de ambas puede ser confusa para principiantes~\cite{RedditBioinfoMatplotlibSucks}.
+
+\subsection{Características Clave y Capacidades de Trazado}%
+\label{subsec:caracteristicas_trazado}
+
+Matplotlib admite una amplia gama de tipos de gráficos 2D, incluyendo gráficos de líneas, dispersión, barras, histogramas, circulares, diagramas de caja y mapas de calor~\cite{VanderPlas2016}. También ofrece capacidades básicas de trazado 3D a través del módulo \texttt{mpl\_toolkits.mplot3d}~\cite{VanderPlas2016}. Proporciona extensas opciones de personalización para controlar casi cada aspecto de un gráfico: colores, marcadores, estilos de línea, fuentes, etiquetas, anotaciones, etc.~\cite{GeeksforGeeksIntroMPL, Vu2023}. Admite diversos formatos de salida, incluyendo formatos rasterizados (PNG) y vectoriales (PDF, SVG, EPS), siendo estos últimos cruciales para mantener la calidad en publicaciones académicas~\cite{Jones2012Matplotlib, Zhauniarovich2022}. Matplotlib también ofrece capacidades de animación para visualizar datos cambiantes en el tiempo o en respuesta a parámetros~\cite{llegodev2023}.
+
+\begin{table}[htbp]
+\centering
+\caption{Tipos de Gráficos Comunes en Matplotlib y Aplicaciones Científicas}%
+\label{tab:graficos_comunes}
+\begin{tabular}{@{}p{0.2\textwidth}p{0.4\textwidth}p{0.4\textwidth}@{}}
+\toprule
+\textbf{Tipo de Gráfico}        & \textbf{Descripción}                                                          & \textbf{Aplicaciones Típicas (Computación Científica)}                                  \\
+\midrule
+Gráfico de Líneas      & Muestra datos como serie de puntos conectados por líneas rectas.     & Series temporales, trayectorias de partículas, espectros.                      \\
+Gráfico de Dispersión  & Muestra puntos de datos individuales como marcadores.                & Espacio de fases, condiciones iniciales, correlación entre variables.          \\
+Gráfico de Barras      & Usa barras rectangulares para representar categorías de datos.         & Comparación de métricas de rendimiento, distribuciones categóricas.          \\
+Histograma             & Muestra la distribución de frecuencia de un conjunto de datos.       & Distribución de energías, errores, tamaños de partículas.                     \\
+Gráfico de Contorno    & Muestra líneas de valor constante de una superficie 3D en un plano 2D. & Paisajes de energía potencial, campos escalares (temperatura, presión).       \\
+Mapa de Calor (Heatmap)& Muestra datos matriciales donde los valores se representan por color. & Matrices de correlación, patrones espaciales, expresión génica.             \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Aplicaciones Típicas en Computación Científica y Campos Relacionados}%
+\label{subsec:aplicaciones}
+
+Matplotlib es ampliamente utilizada en física, astronomía, ingeniería, biología y ciencia de datos para visualizar datos y crear gráficos de calidad~\cite{VanderPlas2016}. Su integración con NumPy, SciPy y pandas facilita flujos de trabajo de análisis y visualización~\cite{VanderPlas2016, SciPyLecturesEcosystem}. Es la base para bibliotecas de visualización de más alto nivel como Seaborn~\cite{Waskom2021}.
+
+Ejemplos notables incluyen su uso por la colaboración del Telescopio de Horizonte de Eventos (EHT) para visualizar los datos que llevaron a la primera imagen de un agujero negro~\cite{EHT2019} y por la NASA para visualizar datos de la misión Phoenix en Marte~\cite{delftswaMatplotlib}. En Física Computacional, se usa para visualizar simulaciones de sistemas dinámicos (ej.\ péndulo accionado), densidades de probabilidad cuántica (ej. átomo de hidrógeno)~\cite{Landau2015}, análisis de radiación de cuerpo negro y diagramas de Hertzsprung-Russell en Astrofísica~\cite{RealPythonAstro}. También se utiliza en simulaciones de N-cuerpos para visualizar trayectorias e interacciones~\cite{GitHubARPMayNBody}. En educación, se integra frecuentemente con Jupyter Notebooks para enseñar programación y visualización de datos de forma interactiva~\cite{VanderPlas2016}.
+
+\subsection{Ventajas de Matplotlib}%
+\label{subsec:ventajas}
+
+\begin{itemize}
+    \item \textbf{Versatilidad y Flexibilidad:} Admite una gran variedad de gráficos 2D y ofrece control detallado sobre casi todos los elementos~\cite{GeeksforGeeksIntroMPL, Vu2023}.
+    \item \textbf{Calidad de Publicación:} Capaz de producir figuras de alta calidad en diversos formatos, incluyendo vectoriales (PDF, SVG), adecuados para artículos académicos~\cite{Hunter2007, Zhauniarovich2022}. Existen herramientas como SciencePlots para simplificar el formateo para revistas específicas~\cite{GarrettSciencePlots}.
+    \item \textbf{Compatibilidad Multiplataforma:} Funciona en diversos sistemas operativos y admite múltiples backends gráficos~\cite{Jones2012Matplotlib}.
+    \item \textbf{Integración con el Ecosistema Científico:} Se integra estrechamente con NumPy, SciPy, pandas y otras bibliotecas científicas~\cite{VanderPlas2016, SciPyLecturesEcosystem}.
+    \item \textbf{Comunidad Grande y Documentación Extensa:} Cuenta con una comunidad activa y una documentación detallada con tutoriales y ejemplos~\cite{MatplotlibDevTeamMain, MatplotlibDevTeamQuickStart}.
+    \item \textbf{Código Abierto y Gratuito:} Accesible para todos sin costos de licencia, fomentando su adopción y colaboración~\cite{ActiveStateMatplotlib}.
+\end{itemize}
+
+\subsection{Limitaciones de Matplotlib}%
+\label{subsec:limitaciones}
+
+\begin{itemize}
+    \item \textbf{Verbosidad para Gráficos Complejos:} Crear gráficos altamente personalizados puede requerir una sintaxis más detallada en comparación con bibliotecas de nivel superior~\cite{Vu2023}.
+    \item \textbf{Estilos Predeterminados:} Los estilos por defecto a menudo necesitan personalización significativa para lograr una apariencia profesional o de publicación~\cite{desosa2021, EHT2019}.
+    \item \textbf{API Menos Intuitiva (Percibida):} La API, especialmente la diferencia entre \texttt{pyplot} y la OO, puede tener una curva de aprendizaje pronunciada y ser percibida como menos intuitiva que otras bibliotecas~\cite{RedditBioinfoMatplotlibSucks, RedditPythonMPLBad}.
+    \item \textbf{Rendimiento con Datos Muy Grandes:} Puede enfrentar limitaciones de rendimiento con conjuntos de datos extremadamente grandes (millones de puntos), pudiendo requerir optimización o bibliotecas alternativas~\cite{StackOverflowGnuplotMPL}.
+    \item \textbf{Interactividad Limitada:} Aunque soporta cierta interactividad, es menos avanzada en comparación con bibliotecas diseñadas específicamente para visualizaciones web interactivas (ej., Plotly, Bokeh)~\cite{GeeksforGeeksIntroMPL}.
+\end{itemize}
+
+\subsection{Personalización para Figuras con Calidad de Publicación}%
+\label{subsec:personalizacion_publicacion}
+
+Lograr figuras de calidad de publicación requiere atención al detalle. Matplotlib ofrece un control exhaustivo sobre la estética~\cite{Vu2023}:
+\begin{itemize}
+    \item \textbf{Ajustes de Elementos:} Permite ajustar fuentes (tamaño, tipo), estilos de línea, colores y marcadores para asegurar legibilidad y distinción~\cite{Zhauniarovich2022}.
+    \item \textbf{Etiquetas y Leyendas:} La adición de etiquetas de ejes claras, títulos descriptivos y leyendas informativas es fundamental~\cite{GeeksforGeeksDataVis}.
+    \item \textbf{Métodos de Configuración:} Se pueden modificar parámetros globalmente o localmente mediante \texttt{rcParams}, aplicar estilos predefinidos con hojas de estilo (\textit{style sheets}), o configurar permanentemente a través del archivo \texttt{matplotlibrc}~\cite{MatplotlibDevTeamCustomizing}.
+    \item \textbf{Paquetes Externos:} Herramientas como SciencePlots proporcionan estilos preconfigurados para cumplir con los formatos de revistas académicas~\cite{GarrettSciencePlots}.
+    \item \textbf{Formatos Vectoriales:} Guardar en PDF o SVG asegura que las figuras mantengan la claridad al redimensionarlas~\cite{Zhauniarovich2022}.
+\end{itemize}
