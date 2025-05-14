@@ -1,6 +1,6 @@
 @InProceedings{AguilarRivera2019,
   author    = {A. Aguilar-Rivera},
-  editor    = {J. M. F. Rodrigues, P. J. S. Cardoso, J. Monteiro, R. Lam, V. V. Krzhizhanovskaya, M. H. Lees, J. J. Dongarra and P. M. A. Sloot},
+  editor    = {J. Rodrigues \& P.Cardoso \& J. Monteiro \& R. Lam \& V. Krzhizhanovskaya \& M. Lees \& J. Dongarra \& P. Sloot},
   title     = {Path-Finding with a Full-Vectorized GPU Implementation of Evolutionary Algorithms in an Online Crowd Model Simulation Framework},
   booktitle = {Computational Science -- ICCS 2019},
   year      = {2019},
@@ -959,13 +959,14 @@ url = {https://www.cambridge.org/core/books/manybody-tree-methods-in-physics/74A
   note         = {Advisors: Geoffrey C. Fox, Thomas A. Prince. Division: Physics, Mathematics and Astronomy. Publicly available.},
 }
 
-@bachelorsthesis{aguirre2020,
+@thesis{aguirre2020,
   author    = {Maia Aguirre Pascual de Zulueta},
   title     = {Estudio e implementación del algoritmo Barnes-Hut para el cálculo de la interacción gravitatoria entre N-cuerpos},
   school    = {Universidad del País Vasco},
   year      = {2020},
   month     = {12},
   url       = {https://addi.ehu.es/handle/10810/49069},
+  type      = {Bachelor's thesis},
   abstract  = {En este trabajo, se proporciona una implementación original del algoritmo Barnes-Hut en Python 3.7, tanto en 2D como en 3D. Este algoritmo resuelve aproximadamente el problema de N-cuerpos y es conocido por lograr orden al agrupar cuerpos cercanos en un solo individuo cuando son observados desde una distancia suficientemente lejana. Además, se concibió un esquema original para agrupar esos cuerpos; esta prueba de concepto resultó funcionar con precisión. Asimismo, se analizó el rango de validez del prototipo y se contrastó con el algoritmo de suma directa mediante un conjunto seleccionado de ejemplos. La implementación del algoritmo BH depende en gran medida de una estructura de datos de tipo árbol profundamente anidada. Como tal, su manipulación es fundamentalmente recursiva y altamente compleja. Esta es la razón por la que se incluyó una explicación extendida, con dibujos y esquemas, de la estrategia de contabilidad involucrada en su uso. Finalmente, se subió el código completo a la plataforma GitHub y, por lo tanto, se puso a disposición del público.},
 }
 
@@ -995,7 +996,7 @@ issn = {0010-4655},
 doi = {https://doi.org/10.1016/S0010-4655(97)00102-1},
 url = {https://www.sciencedirect.com/science/article/pii/S0010465597001021},
 author = {U Becciani and R Ansaloni and V Antonuccio-Delogu and G Erbacci and M Gambera and A Pagliaro},
-abstract = {N-body algorithms for long-range unscreened interactions like gravity belong to a class of highly irregular problems whose optimal solution is a challenging task for present-day massively parallel computers. In this paper we describe a strategy for optimal memory and work distribution which we have applied to our parallel implementation of the Barnes & Hut (1986) recursive tree scheme on a Cray T3D using the CRAFT programming environment. We have performed a series of tests to find an optimal data distribution in the T3D memory, and to identify a strategy for the Dynamic Load Balance in order to obtain good performances when running large simulations (more than 10 million particles). The results of tests show that the step duration depends on two main factors: the data locality and the T3D network contention. Increasing data locality we are able to minimize the step duration if the closest bodies (direct interaction) tend to be located in the same PE local memory (contiguous block subdivision, high granularity), whereas the tree properties have a fine grain distributuion. In a very large simulation, due to network contention, an unbalanced load arises. To remedy this we have devised an automatic work redistribution mechanism which provided a good Dynamic Load Balance at the price of an insignificant overhead.}
+abstract = {N-body algorithms for long-range unscreened interactions like gravity belong to a class of highly irregular problems whose optimal solution is a challenging task for present-day massively parallel computers. In this paper we describe a strategy for optimal memory and work distribution which we have applied to our parallel implementation of the Barnes \& Hut (1986) recursive tree scheme on a Cray T3D using the CRAFT programming environment. We have performed a series of tests to find an optimal data distribution in the T3D memory, and to identify a strategy for the Dynamic Load Balance in order to obtain good performances when running large simulations (more than 10 million particles). The results of tests show that the step duration depends on two main factors: the data locality and the T3D network contention. Increasing data locality we are able to minimize the step duration if the closest bodies (direct interaction) tend to be located in the same PE local memory (contiguous block subdivision, high granularity), whereas the tree properties have a fine grain distributuion. In a very large simulation, due to network contention, an unbalanced load arises. To remedy this we have devised an automatic work redistribution mechanism which provided a good Dynamic Load Balance at the price of an insignificant overhead.}
 }
 @article{becciani2000,
 title = {A Modified Parallel Tree Code for N-Body Simulation of the Large-Scale Structure of the Universe},
@@ -1283,11 +1284,11 @@ abstract = {The efficient parallelization of fast multipole-based algorithms for
 }
 
 @misc{qt_wiki,
-  author       = {{Wikipedia contributors}},
-  title        = {Qt (software)},
+  author       = {{Qt Group}},
+  title        = {Qt Group Frequently Asked Questions},
   year         = {2025},
-  url          = {https://en.wikipedia.org/wiki/Qt_(software)},
-  note         = {Wikipedia article, last edited May 1, 2025}
+  url          = {https://www.qt.io/faq},
+  note         = {Qt Group page, last edited May 1, 2025}
 }
 
 @misc{qt_docs,
@@ -1388,14 +1389,6 @@ abstract = {The efficient parallelization of fast multipole-based algorithms for
   note         = {Industry blog post}
 }
 
-@misc{pyqt_wiki,
-  author       = {{Wikipedia contributors}},
-  title        = {PyQt},
-  year         = {2025},
-  url          = {https://en.wikipedia.org/wiki/PyQt},
-  note         = {Wikipedia article, last edited April 18, 2025}
-}
-
 @misc{tutorialspoint_pyqt,
   author       = {{TutorialsPoint}},
   title        = {PyQt Tutorial},
@@ -1443,14 +1436,6 @@ abstract = {The efficient parallelization of fast multipole-based algorithms for
   year         = {2025},
   url          = {https://businesscloud.co.uk/news/introduction-to-qt-development-a-beginners-guide/},
   note         = {BusinessCloud news article, posted April 24, 2025}
-}
-
-@misc{qt_wiki,
-  author       = {{Wikipedia contributors}},
-  title        = {Qt (software)},
-  year         = {2025},
-  url          = {https://en.wikipedia.org/wiki/Qt_(software)},
-  note         = {Wikipedia article, last edited May 1, 2025}
 }
 
 @misc{qt_docs,
@@ -1459,153 +1444,6 @@ abstract = {The efficient parallelization of fast multipole-based algorithms for
   year         = {2025},
   url          = {https://doc.qt.io/qt-6/signalsandslots.html},
   note         = {Official Qt 6 Documentation (Signals and Slots reference)}
-}
-
-@misc{lemberg,
-  author       = {Ivan Kubara},
-  title        = {What is Qt framework, Why to Use It, and How?},
-  year         = {2023},
-  publisher    = {Lemberg Solutions},
-  url          = {https://lembergsolutions.com/blog/why-use-qt-framework},
-  note         = {Lemberg Solutions blog post (Embedded Engineering)}
-}
-
-@misc{qt_history,
-  author       = {{Qt Wiki contributors}},
-  title        = {Qt History},
-  year         = {2024},
-  url          = {https://wiki.qt.io/Qt_History},
-  note         = {Qt Wiki page (last edited August 14, 2024)}
-}
-
-@misc{qt_framework,
-  author       = {{The Qt Company}},
-  title        = {Qt Framework: Development Framework for Cross-platform Applications},
-  year         = {2025},
-  url          = {https://www.qt.io/product/framework},
-  note         = {Official Qt product page}
-}
-
-@misc{qt_mit_signals,
-  author       = {{Trolltech (archived)}},
-  title        = {Signals and Slots},
-  year         = {2003},
-  url          = {https://web.mit.edu/~firebird/arch/sun4x_58/doc/html/signalsandslots.html},
-  note         = {Archived Qt 3.1.2 documentation (Trolltech, 2003)}
-}
-
-@misc{qt_widgets,
-  author       = {{The Qt Company}},
-  title        = {Qt Widgets Module},
-  year         = {2025},
-  url          = {https://doc.qt.io/qt-6/qtwidgets-index.html},
-  note         = {Qt 6.9 Documentation (Qt Widgets overview)}
-}
-
-@misc{qt_quick,
-  author       = {{The Qt Company}},
-  title        = {Qt Quick Module},
-  year         = {2025},
-  url          = {https://doc.qt.io/qt-6/qtquick-index.html},
-  note         = {Qt 6.9 Documentation (Qt Quick overview)}
-}
-
-@misc{qt_licensing,
-  author       = {{The Qt Company}},
-  title        = {Qt Licensing: Choose the Right License for Your Development Needs},
-  year         = {2025},
-  url          = {https://www.qt.io/qt-licensing},
-  note         = {Qt official licensing information page}
-}
-
-@misc{qt_tools,
-  author       = {{The Qt Company}},
-  title        = {Qt Creator: Embedded Software Development Tools \& Cross-Platform IDE},
-  year         = {2025},
-  url          = {https://www.qt.io/product/development-tools},
-  note         = {Qt official page for development tools (Qt Creator IDE)}
-}
-
-@misc{qt_use_cases,
-  author       = {{The Qt Company}},
-  title        = {Qt Use Cases},
-  year         = {2025},
-  url          = {https://www.qt.io/use-cases},
-  note         = {Official Qt page on industry use cases}
-}
-
-@misc{ontosight_pyqt_basics,
-  author       = {{Ontosight AI}},
-  title        = {Introduction to PyQt Basics},
-  year         = {2024},
-  url          = {https://ontosight.ai/glossary/term/introduction-to-pyqt-basics},
-  note         = {OntoSight AI glossary entry}
-}
-
-@article{itsupplychain,
-  author       = {Ellie Yantsan},
-  title        = {What is Qt -- Key Features of Qt Development},
-  year         = {2024},
-  journal      = {IT Supply Chain (Industry Talk)},
-  url          = {https://itsupplychain.com/what-is-qt-key-features-of-qt-development/},
-  note         = {Industry blog post}
-}
-
-@misc{pyqt_wiki,
-  author       = {{Wikipedia contributors}},
-  title        = {PyQt},
-  year         = {2025},
-  url          = {https://en.wikipedia.org/wiki/PyQt},
-  note         = {Wikipedia article, last edited April 18, 2025}
-}
-
-@misc{tutorialspoint_pyqt,
-  author       = {{TutorialsPoint}},
-  title        = {PyQt Tutorial},
-  year         = {2025},
-  url          = {https://www.tutorialspoint.com/pyqt/index.htm},
-  note         = {Online tutorial (TutorialsPoint)}
-}
-
-@misc{qtforpython_api,
-  author       = {{The Qt Company}},
-  title        = {Qt for Python Modules},
-  year         = {2025},
-  url          = {https://doc.qt.io/qtforpython-5/api.html},
-  note         = {Qt for Python 5.15 API documentation}
-}
-
-@misc{qt_for_python_video,
-  author       = {{Qt for Python Project}},
-  title        = {Introduction to PyQt (YouTube video)},
-  year         = {2021},
-  howpublished = {YouTube},
-  note         = {Video tutorial (TutorialsPoint channel)},
-  url          = {https://www.youtube.com/watch?v=dqznRyYunGE}
-}
-
-@misc{qt_for_python,
-  author       = {{The Qt Company}},
-  title        = {Qt for Python: Design GUI with Python (Python Bindings for Qt)},
-  year         = {2025},
-  url          = {https://www.qt.io/qt-for-python},
-  note         = {Official Qt page on Python bindings (PySide6)}
-}
-
-@misc{gfg_pyqt_vs_tkinter,
-  author       = {{GeeksforGeeks}},
-  title        = {Python GUI -- PyQt vs. Tkinter},
-  year         = {2020},
-  url          = {https://www.geeksforgeeks.org/python-gui-pyqt-vs-tkinter/},
-  note         = {GeeksforGeeks tutorial (last updated Dec 11, 2020)}
-}
-
-@misc{businesscloud,
-  author       = {{BusinessCloud staff}},
-  title        = {Introduction to Qt development: A beginner's guide},
-  year         = {2025},
-  url          = {https://businesscloud.co.uk/news/introduction-to-qt-development-a-beginners-guide/},
-  note         = {BusinessCloud news article, posted April 24, 2025}
 }
 
 @book{goldberg1989,
@@ -1984,10 +1822,11 @@ url="https://doi.org/10.1007/0-387-28356-0_10"
   isbn      = {978-0521833783}
 }
 
-@slides{BoydVandenbergheSlides2023,
+@misc{BoydVandenbergheSlides2023,
   author    = {Stephen Boyd and Lieven Vandenberghe},
   title     = {Convex Optimization -- Slides},
   year      = {2023},
+  howpublished = {Presentation slides},
   note      = {Presentation slides accompanying the book "Convex Optimization". Revised by Stephen Boyd, Lieven Vandenberghe, and Parth Nobel. Version date on title page of PDF: 2023.}
 }
 

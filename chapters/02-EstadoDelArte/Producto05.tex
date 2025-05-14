@@ -1,4 +1,3 @@
-\newpage
 \section[Método híbrido \textit{SPH/N}-cuerpos]{Método híbrido \textit{SPH/N}-cuerpos para simulaciones de cúmulos estelares}%
 \label{sec:state_of_the_art_05}
 
@@ -18,7 +17,6 @@ Otro aspecto relevante es la incorporación del cálculo del jerk gravitacional,
 
 Además, el código usa un esquema de integración por bloques de tiempo (block timestepping), que ajusta dinámicamente los pasos de integración de cada partícula según su estado dinámico. Las partículas con interacciones más fuertes o aceleraciones altas pueden usar pasos de tiempo más cortos, mientras que aquellas en regiones más estables pueden emplear pasos más largos, optimizando así el rendimiento computacional.
 
-\newpage
 \subsection{Ventajas y Desventajas}
 
 El método híbrido SPH/N-body presenta varias ventajas clave. En primer lugar, proporciona una mayor precisión en la interacción entre el gas y las estrellas, al combinar ambos métodos en una estructura conservativa, eliminando la separación artificial entre estos componentes. Su eficiencia computacional se ve optimizada por el uso del árbol de gravedad Barnes-Hut y el esquema de integración por block timestepping, lo que permite realizar simulaciones más rápidas sin sacrificar la precisión. Además, el criterio MAC mejora significativamente la estimación de la fuerza gravitacional, reduciendo errores numéricos acumulativos y garantizando una mejor conservación de la energía. También ofrece flexibilidad en la resolución, al establecer criterios que equilibran la fidelidad física con los costos computacionales.

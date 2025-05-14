@@ -6,7 +6,7 @@
 \setlength{\desccolwidth}{\dimexpr\textwidth-\firstcolwidth-3.5cm\relax}
 
 \begin{ThreePartTable}
-\renewcommand{\arraystretch}{1.3} % Ligeramente aumentar el espacio entre filas
+\renewcommand{\arraystretch}{1.15} % Ligeramente aumentar el espacio entre filas
 \scriptsize % Tamaño de fuente más pequeño para el contenido de la tabla
 
 \begin{TableNotes}
@@ -24,11 +24,11 @@
     \item[**] Escalabilidad: ``Alta (Geom.)'' $=$ específica para operaciones geométricas
 \end{TableNotes}
 
-\begin{longtable}{@{}p{0.8\firstcolwidth}p{0.6\desccolwidth}ccc@{}}
+\begin{longtable}{@{}p{0.8\firstcolwidth}p{0.9\desccolwidth}ccc@{}}
     \caption{Resumen comparativo de proyectos y artículos relacionados con simulaciones N-cuerpos analizados en el Estado del Arte.\label{tab:proyectos_articulos_comparativa}}\\
 
     \toprule
-    \textbf{Producto/Método} & \textbf{Enfoque Principal y Características Distintivas} & \textbf{Escalabilidad} & \textbf{Usa IA} & \textbf{Cambios Dinámicos}\textsuperscript{*} \\
+    \textbf{Producto/Método} & \textbf{Enfoque Principal y Características Distintivas} & \textbf{\seqsplit{Escalabilidad}} & \textbf{Usa IA} & \textbf{Cambios Dinámicos}\textsuperscript{*} \\
     \midrule
     \endfirsthead%
 
@@ -48,7 +48,7 @@
 
     Framework ode\_num\_int \textsuperscript{a}
     & Framework C++11 modular (template-based) para \textit{desarrollo y prueba} de integradores numéricos (EDOs); monitoreo de rendimiento. Orientado a sistemas de escala media.
-    & Media/Limitada
+    & \seqsplit{Media/Limitada}
     & NO
     & NO \\
 
