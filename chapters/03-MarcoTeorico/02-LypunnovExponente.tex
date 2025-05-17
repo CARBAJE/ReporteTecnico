@@ -8,19 +8,19 @@ El concepto de exponente de Lyapunov surge de la necesidad de cuantificar la est
 
 \begin{enumerate}
     \item \textbf{Exponentes Característicos de Lyapunov (LCEs):} Introducidos originalmente por A.M. Lyapunov~\cite{Lyapunov1992}, se definen como los límites superiores de las tasas de crecimiento exponencial de las \textit{normas} de las soluciones $x_i(t, x_0)$ del sistema linealizado $\dot{x} = J(t, x_0)x$ a lo largo de una trayectoria $z(t, x_0)$ del sistema no lineal original $\dot{z} = F(z)$. Formalmente:~\cite{Kuznetsov2005, Kuznetsov2016}:
-    
+
     \begin{equation}
         LCE_i(x_0) = \limsup_{t \to +\infty} \frac{1}{t} \ln |x_i(t, x_0)|
     \end{equation}
-    
+
     Estos miden cómo crecen o decrecen las longitudes de los vectores solución individuales. Geométricamente, se relacionan con la evolución de las aristas de un hipercubo infinitesimal bajo el mapeo linealizado~\cite{Kuznetsov2016}.
 
     \item \textbf{Exponentes de Lyapunov (LEs):} Definidos más tarde en el contexto de la teoría ergódica~\cite{Oseledec1968}, se basan en las tasas de crecimiento exponencial de los \textit{valores singulares} $\sigma_i(t, x_0)$ de la matriz fundamental $X(t, x_0)$ del sistema linealizado. Formalmente~\cite{Kuznetsov2016}:
-    
+
     \begin{equation}
         LE_i(x_0) = \limsup_{t \to +\infty} \frac{1}{t} \ln \sigma_i(X(t, x_0))
     \end{equation}
-    
+
     Estos miden cómo crecen o decrecen las longitudes de los semiejes principales de un elipsoide infinitesimal transformado por el sistema linealizado. Los LEs son cruciales para la teoría de la dimensión (p.ej., dimensión de Lyapunov) y son los que usualmente se calculan en estudios de caos~\cite{Kuznetsov2016}.
 \end{enumerate}
 
@@ -55,7 +55,7 @@ El cálculo y la interpretación de los exponentes de Lyapunov se basan en:
     \item \textbf{Invariancia:} Los LEs son invariantes bajo diffeomorfismos del espacio de fases, lo que los hace adecuados para caracterizar atractores. Los LCEs no comparten esta propiedad general, pero son invariantes bajo transformaciones de Lyapunov específicas~\cite{Kuznetsov2016}.
 \end{itemize}
 
-\subsection{Aplicaciones (basadas en los artículos)}
+\subsection{Aplicaciones Típicas}
 \begin{itemize}
     \item \textbf{Detección y Caracterización del Caos:} El signo del LE máximo ($\lambda_1$) se usa como indicador primario de caos~\cite{Quarles2011}.
     \item \textbf{Estabilidad Orbital:} En el CR3BP (\textit{Problema Restringido Circular de Tres Cuerpos}), se usa $\lambda_1$ para determinar los límites de estabilidad de órbitas planetarias~\cite{Quarles2011}.

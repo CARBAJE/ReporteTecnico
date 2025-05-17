@@ -1,14 +1,14 @@
 \section{Objetivo general}
-Desarrollar un modelo teórico para la simulación del problema de dos cuerpos que permita la modificación dinámica de la masa, mejorando la precisión en la representación de sus interacciones gravitacionales y eventos asociados.
+Desarrollar un modelo teórico para la simulación del problema de dos cuerpos que permita la modificación dinámica de la masa, mejorando la estabilidad local del sistema visible en la representación de sus interacciones gravitacionales y eventos asociados.
 \subsection{Objetivos específicos}
 \begin{itemize}
-    \item Desarrollar el módulo de simulación para la integración del método multipolar rápido (FMM) y el algoritmo de Barnes-Hut.
-    
-    \item Desarrollar el módulo de optimización para ajustar dinámicamente la configuración del sistema con algoritmos bioinspirados.
+    \item Implementar el módulo de simulación encargado de integrar los distintos procedimientos algorítmicos requeridos para obtener la descripción numérica del sistema de interacción de n cuerpos, incluyendo la aplicación de métodos de integración numérica, el cálculo de fuerzas gravitatorias y la detección de colisiones.
 
-    \item Desarrollar la implementación del modelo de simulación dinámica de interacciones gravitatorias entre dos cuerpos.
+    \item Diseñar e implementar el módulo de optimización orientado al ajuste dinámico de las masas de los cuerpos que conforman el sistema de \textit{n}-cuerpos, mediante el uso de algoritmos bioinspirados, con el fin de identificar el primer conjunto de valores que satisfaga las restricciones impuestas en cuanto a estabilidad y viabilidad del sistema.
 
-    \item Desarrollar el módulo de visualización para representar gráficamente la evolución del sistema en un número limitado de iteraciones.
+    \item Desarrollar e implementar el modelo computacional de para la simulación dinámica de un sistema de dos cuerpos bajo interacción gravitatoria.
 
-    \item Desarrollar una interfaz básica para la modificación de parámetros y la visualización de resultados.
+    \item Implementar el módulo de visualización gráfica para la representación dinámica del sistema simulado, mostrando su evolución temporal a lo largo de un conjunto limitado de iteraciones, a fin de apoyar la interpretación de los resultados del modelo
+
+    \item Diseñar e implementar una interfaz básica que permita el ingreso estructurado de parámetros asociados a los cuerpos del sistema, diferenciando entre atributos fijos (e.g., radio) y variables susceptibles de optimización (e.g., masa), así como la definición de restricciones obligatorias y opcionales que condicionan el espacio de soluciones. Además de permitir visualizar los resultados generados por los módulos de simulación y optimización
 \end{itemize}
