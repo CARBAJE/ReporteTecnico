@@ -1,27 +1,34 @@
 \section[Integrador simpléctico para problemas gravitacionales]{Integrador simpléctico para problemas gravitacionales N-cuerpos colisionables}%
 \label{sec:state_of_the_art_06}
-En el articulo se muestra un nuevo integrador simpléctico diseñado específicamente para problemas gravitacionales N-cuerpos con colisiones. El integrador se inspira en el método no simpléctico y no reversible SAKURA, desarrollado por Gonçalves Ferrari, pero introduce modificaciones clave que permiten conservar las propiedades simplécticas y de reversibilidad temporal. El enfoque que se tiene descompone el problema N-cuerpos en múltiples problemas de dos cuerpos utilizando solucionadores de Kepler.
+Se presenta un nuevo integrador simpléctico, reversible en el tiempo y de segundo orden, diseñado para sistemas gravitacionales N-cuerpos con colisiones. Inspirado en el método no simpléctico SAKURA de Gonçalves Ferrari, el esquema descompone el problema general en parejas de cuerpos resolviendo cada par con solucionadores de Kepler, preservando con precisión de máquina nueve integrales del movimiento y la estructura de fase a largo plazo. Mediante composición de Yoshida es posible elevar el orden sin sacrificar la simplécticidad, y al emplear un paso de tiempo fijo se evita la pérdida de reversibilidad y la degradación en la conservación de cantidades físicas.
 
-\subsection{Descripción y Arquitectura Técnica}
+En pruebas comparativas con el método Hermite de cuarto orden y otros integradores simplécticos de segundo orden, el nuevo integrador mostró igual o mejor desempeño, destacando su estabilidad y precisión en escenarios con colisiones frecuentes. Esto lo hace adecuado para estudios de cúmulos estelares densos, núcleos galácticos activos y discos protoplanetarios, donde las colisiones son relevantes.
 
-El integrador propuesto es de segundo orden, reversible en el tiempo y conserva nueve integrales del movimiento del problema N-cuerpos con precisión de máquina. Está basado en una estructura simpléctica, lo que garantiza una evolución temporal coherente con la física del sistema, preservando la estructura de fase a largo plazo.
+Las principales ventajas son la conservación exacta de propiedades simplécticas y de los integrales de movimiento, así como su extensión a órdenes superiores. Su limitación radica en la necesidad de un paso de tiempo fijo, lo que puede restar flexibilidad frente a métodos con paso adaptativo, y en un mayor coste computacional por su complejidad estructural. Como alternativa robusta para simulaciones a largo plazo, este integrador ofrece un equilibrio excepcional entre estabilidad numérica y fidelidad física.
 
-Aunque el método base es de segundo orden, su precisión puede incrementarse mediante el esquema de composición de Yoshida, sin comprometer las propiedades simplécticas del integrador.
-
-Durante todas las pruebas numéricas presentadas en el artículo, se utilizó un paso de tiempo fijo para mantener exactamente la simplécticidad. Esta elección evita los problemas típicos de los pasos adaptativos, como la pérdida de reversibilidad temporal y la degradación de la conservación de cantidades físicas.
-
-\subsection{Características y Aplicaciones Prácticas}
-
-El integrador fue evaluado en escenarios con bajo número de cuerpos y colisiones frecuentes, situaciones desafiantes para los métodos tradicionales. En estas pruebas, el nuevo integrador mostró un rendimiento comparable o superior al del método Hermite de cuarto orden, ampliamente utilizado en dinámica estelar. También se realizaron comparaciones con integradores simplécticos de segundo orden, superándolos en precisión y estabilidad, especialmente en contextos colisionables.
-
-Estas propiedades lo convierten en una herramienta eficaz para el estudio de cúmulos estelares densos, núcleos galácticos activos, discos protoplanetarios y otros sistemas donde las interacciones gravitacionales colisionables juegan un papel central. Su estructura conservativa lo hace especialmente adecuado para simulaciones a largo plazo donde se requiere estabilidad numérica y precisión en la conservación de cantidades físicas.
-
-\subsection{Ventajas y Desventajas}
-
-Entre las ventajas del nuevo integrador destacan su capacidad para preservar la estructura simpléctica incluso en presencia de colisiones, conservar integrales del movimiento con alta precisión, y su posibilidad de ser extendido a órdenes superiores. Además, ha mostrado un rendimiento superior frente a integradores ampliamente usados, especialmente en escenarios colisionables. Como desventaja principal, el integrador requiere el uso de un paso de tiempo fijo para mantener su estructura simpléctica exacta, lo que puede limitar su flexibilidad en contextos donde el uso de pasos adaptativos resulta beneficioso. Asimismo, su complejidad estructural podría representar un mayor costo computacional frente a métodos más simples, especialmente en simulaciones de gran escala sin optimización.
-
-\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
-
-Este integrador simpléctico proporciona un marco robusto para estudios donde las colisiones no pueden ser ignoradas. Su estructura conservativa y reversible lo hace especialmente apto para simulaciones a largo plazo, donde es esencial preservar las propiedades físicas del sistema.
-
-Además, su rendimiento superior frente a integradores estándar lo posiciona como una alternativa eficaz y precisa para estudios computacionales intensivos.
+%En el articulo se muestra un nuevo integrador simpléctico diseñado específicamente para problemas gravitacionales N-cuerpos con colisiones. El integrador se inspira en el método no simpléctico y no reversible SAKURA, desarrollado por Gonçalves Ferrari, pero introduce modificaciones clave que permiten conservar las propiedades simplécticas y de reversibilidad temporal. El enfoque que se tiene descompone el problema N-cuerpos en múltiples problemas de dos cuerpos utilizando solucionadores de Kepler.
+%
+%\subsection{Descripción y Arquitectura Técnica}
+%
+%El integrador propuesto es de segundo orden, reversible en el tiempo y conserva nueve integrales del movimiento del problema N-cuerpos con precisión de máquina. Está basado en una estructura simpléctica, lo que garantiza una evolución temporal coherente con la física del sistema, preservando la estructura de fase a largo plazo.
+%
+%Aunque el método base es de segundo orden, su precisión puede incrementarse mediante el esquema de composición de Yoshida, sin comprometer las propiedades simplécticas del integrador.
+%
+%Durante todas las pruebas numéricas presentadas en el artículo, se utilizó un paso de tiempo fijo para mantener exactamente la simplécticidad. Esta elección evita los problemas típicos de los pasos adaptativos, como la pérdida de reversibilidad temporal y la degradación de la conservación de cantidades físicas.
+%
+%\subsection{Características y Aplicaciones Prácticas}
+%
+%El integrador fue evaluado en escenarios con bajo número de cuerpos y colisiones frecuentes, situaciones desafiantes para los métodos tradicionales. En estas pruebas, el nuevo integrador mostró un rendimiento comparable o superior al del método Hermite de cuarto orden, ampliamente utilizado en dinámica estelar. También se realizaron comparaciones con integradores simplécticos de segundo orden, superándolos en precisión y estabilidad, especialmente en contextos colisionables.
+%
+%Estas propiedades lo convierten en una herramienta eficaz para el estudio de cúmulos estelares densos, núcleos galácticos activos, discos protoplanetarios y otros sistemas donde las interacciones gravitacionales colisionables juegan un papel central. Su estructura conservativa lo hace especialmente adecuado para simulaciones a largo plazo donde se requiere estabilidad numérica y precisión en la conservación de cantidades físicas.
+%
+%\subsection{Ventajas y Desventajas}
+%
+%Entre las ventajas del nuevo integrador destacan su capacidad para preservar la estructura simpléctica incluso en presencia de colisiones, conservar integrales del movimiento con alta precisión, y su posibilidad de ser extendido a órdenes superiores. Además, ha mostrado un rendimiento superior frente a integradores ampliamente usados, especialmente en escenarios colisionables. Como desventaja principal, el integrador requiere el uso de un paso de tiempo fijo para mantener su estructura simpléctica exacta, lo que puede limitar su flexibilidad en contextos donde el uso de pasos adaptativos resulta beneficioso. Asimismo, su complejidad estructural podría representar un mayor costo computacional frente a métodos más simples, especialmente en simulaciones de gran escala sin optimización.
+%
+%\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
+%
+%Este integrador simpléctico proporciona un marco robusto para estudios donde las colisiones no pueden ser ignoradas. Su estructura conservativa y reversible lo hace especialmente apto para simulaciones a largo plazo, donde es esencial preservar las propiedades físicas del sistema.
+%
+%Además, su rendimiento superior frente a integradores estándar lo posiciona como una alternativa eficaz y precisa para estudios computacionales intensivos.
+%

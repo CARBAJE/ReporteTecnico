@@ -1,33 +1,48 @@
 \section[\textit{Framework} \texttt{ode\_num\_int}]{Producto 01: \textit{Framework} \texttt{ode\_num\_int} para Integración Numérica}%
 \label{sec:state_of_the_art_01}
 
-En el ámbito de la simulación de sistemas gravitacionales, la integración numérica de ecuaciones diferenciales ordinarias (EDOs) desempeña un papel fundamental al describir el movimiento de cuerpos bajo influencias gravitacionales. La precisión y eficiencia de los métodos de integración utilizados impactan directamente la capacidad de los modelos para representar fenómenos físicos complejos, como los comportamientos dinámicos de sistemas de dos cuerpos. En este contexto, el \textit{framework} \texttt{ode\_num\_int}, presentado en el artículo ``C++ Playground for Numerical Integration Method Developers''~\cite{Orlov2017}, emerge como una herramienta relevante para el desarrollo y evaluación de métodos de integración numérica personalizados, con potencial aplicabilidad al proyecto descrito en este documento.
+En la simulación de sistemas gravitacionales, la integración numérica de ecuaciones diferenciales ordinarias es clave para describir con precisión el movimiento bajo fuerzas mutuas. El \textit{framework} \texttt{ode\_num\_int}~\cite{Orlov2017} ofrece un entorno en \texttt{C++11} pensado para el desarrollo y evaluación de métodos de integración personalizados, destacando por su arquitectura modular y su orientación investigativa.
 
-\subsection{Descripción y Arquitectura Técnica}
-
-El \textit{framework} \texttt{ode\_num\_int} es una biblioteca de software desarrollada en \texttt{C++11}, diseñada para proporcionar a investigadores y desarrolladores un entorno flexible y extensible para la creación y prueba de métodos de integración numérica destinados a resolver EDOs. A diferencia de bibliotecas tradicionales como GSL o Boost.Odeint, que priorizan soluciones numéricas predefinidas, \texttt{ode\_num\_int} se centra en el proceso investigativo, ofreciendo una arquitectura modular basada en clases \textit{template}. Esta estructura permite a los usuarios personalizar componentes individuales según las necesidades específicas de sus simulaciones.
-
-La arquitectura del \textit{framework} se organiza en tres pilares principales:
+Su diseño se apoya en tres componentes principales:
 \begin{enumerate}
-    \item Una infraestructura común que incluye el patrón observador para la gestión dinámica de \textit{callbacks}, \textit{holders} de propiedades para el manejo flexible de variables, factorías para la creación de instancias, parámetros opcionales y utilidades de temporización.
-    \item Componentes de álgebra lineal con \textit{templates} para vectores y matrices dispersas, soporte para factorización $LU$ y almacenamiento optimizado de datos.
-    \item Capacidades de resolución numérica que abarcan \textit{solvers} para sistemas algebraicos no lineales, métodos de iteración tipo Newton, \textit{solvers} explícitos e implícitos para EDOs, manejo de eventos y controladores de tamaño de paso.
+    \item Una infraestructura común con patrón observador, factorías, gestión de callbacks y utilidades de temporización.
+    \item Una capa de álgebra lineal basada en \textit{templates} para vectores y matrices dispersas con soporte LU.\
+    \item \textit{Solvers} explícitos e implícitos para EDOs, iteradores tipo Newton y controladores de tamaño de paso. Esta modularidad facilita la experimentación con distintos métodos y la combinación de piezas a medida.
 \end{enumerate}
-Esta modularidad permite combinar diferentes elementos de manera sencilla, facilitando la experimentación con métodos diversos.
 
-\subsection{Características y Aplicaciones Prácticas}
+Entre sus particularidades, \texttt{ode\_num\_int} permite monitoreo de rendimiento integrado y soporte para métodos explícitos, implícitos y de extrapolación, resultando útil en simulaciones de gran complejidad física. Por ejemplo, en la dinámica de transmisiones continuamente variables (3 600 variables de estado), se comprobó que el método del trapecio con paso \(10^{-5}\) alcanzaba similar precisión al RK4 con paso \(10^{-8}\), sugiriendo mejoras en eficiencia computacional.
 
-Entre las características distintivas de \texttt{ode\_num\_int} se encuentra su flexibilidad para integrar componentes de \textit{solver}, su monitoreo de rendimiento integrado y su soporte para múltiples tipos de métodos numéricos, incluyendo explícitos, implícitos y basados en extrapolación. Estas capacidades lo hacen adecuado para simulaciones de sistemas físicos complejos. Un ejemplo concreto de su aplicación es la simulación de la dinámica de transmisiones continuamente variables (CVT), un sistema con 3,600 variables de estado que involucra modelos de cuerpos elásticos deformables e interacciones de fricción. En este caso, se observó que el método del trapecio con un tamaño de paso de \(10^{-5}\) alcanzó una precisión comparable a la del método Runge-Kutta de cuarto orden (RK4) con un tamaño de paso de \(10^{-8}\), lo que indica un potencial de mejora en la eficiencia computacional.
+Las ventajas de este \textit{framework} incluyen su alta extensibilidad, enfoque en rendimiento y licencia GNU GPL, que favorecen el desarrollo colaborativo; sus limitaciones residen en la escala media para la que está diseñado, lo que puede no ser óptimo para problemas masivos de \(n\)-cuerpos, y en la necesidad de un conocimiento profundo de \texttt{C++}. Actualmente, se centra en métodos de un solo paso, aunque se prevé ampliar esta capacidad.
 
-El \textit{framework} se utiliza principalmente en campos como la computación científica, simulaciones de ingeniería, modelado de sistemas mecánicos y análisis de dinámica en aeronáutica y robótica. Su diseño lo posiciona como una herramienta valiosa para investigadores que requieren un alto grado de control sobre los métodos de integración.
+Para el trabajo terminal que nos concierne, el modelo de simulación gravitacional de dos cuerpos con masas dinámicos, \texttt{ode\_num\_int} se perfila como complemento, pues combina integradores personalizables con herramientas de monitoreo, y puede integrarse con técnicas como FMM y Barnes–Hut para calcular fuerzas eficientemente, permitiendo modificar parámetros en tiempo de ejecución según los objetivos del modelo.
 
-\subsection{Ventajas y Desventajas}
-
-El \texttt{ode\_num\_int} ofrece varias ventajas significativas. Su alta extensibilidad permite a los usuarios incorporar nuevos componentes y métodos, mientras que su enfoque en el rendimiento, respaldado por herramientas de monitoreo, facilita la optimización de simulaciones. Además, su carácter \textit{open-source} bajo la licencia GNU GPL fomenta la colaboración y el desarrollo comunitario. Sin embargo, presenta limitaciones notables: está diseñado principalmente para sistemas de escala media, lo que podría restringir su uso en simulaciones de gran escala como las de \(n\)-cuerpos masivos, y requiere un conocimiento avanzado de \texttt{C++}, lo que puede limitar su accesibilidad. Actualmente, se enfoca en métodos de un solo paso, aunque se planea ampliar esta capacidad en futuras versiones.
-
-\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
-
-En el contexto del trabajo terminal abordado en este reporte, el cual busca desarrollar un modelo para simular comportamientos gravitacionales de dos cuerpos con modificación dinámica de parámetros de posición y velocidad inicial, \texttt{ode\_num\_int} podría desempeñar un papel complementario. La simulación de sistemas gravitacionales requiere integrar las ecuaciones de movimiento, que son EDOs, y combinarlas con técnicas como el Método Multipolo Rápido (FMM) y el algoritmo de Barnes-Hut para calcular fuerzas gravitacionales de manera eficiente. La flexibilidad de \texttt{ode\_num\_int} para adaptar métodos de integración y su capacidad de monitoreo de rendimiento podrían facilitar la implementación de integradores personalizados que soporten cambios dinámicos en los parámetros durante la ejecución, un objetivo central del proyecto.
+%En el ámbito de la simulación de sistemas gravitacionales, la integración numérica de ecuaciones diferenciales ordinarias (EDOs) desempeña un papel fundamental al describir el movimiento de cuerpos bajo influencias gravitacionales. La precisión y eficiencia de los métodos de integración utilizados impactan directamente la capacidad de los modelos para representar fenómenos físicos complejos, como los comportamientos dinámicos de sistemas de dos cuerpos. En este contexto, el \textit{framework} \texttt{ode\_num\_int}, presentado en el artículo ``C++ Playground for Numerical Integration Method Developers''~\cite{Orlov2017}, emerge como una herramienta relevante para el desarrollo y evaluación de métodos de integración numérica personalizados, con potencial aplicabilidad al proyecto descrito en este documento.
+%
+%\subsection{Descripción y Arquitectura Técnica}
+%
+%El \textit{framework} \texttt{ode\_num\_int} es una biblioteca de software desarrollada en \texttt{C++11}, diseñada para proporcionar a investigadores y desarrolladores un entorno flexible y extensible para la creación y prueba de métodos de integración numérica destinados a resolver EDOs. A diferencia de bibliotecas tradicionales como GSL o Boost.Odeint, que priorizan soluciones numéricas predefinidas, \texttt{ode\_num\_int} se centra en el proceso investigativo, ofreciendo una arquitectura modular basada en clases \textit{template}. Esta estructura permite a los usuarios personalizar componentes individuales según las necesidades específicas de sus simulaciones.
+%
+%La arquitectura del \textit{framework} se organiza en tres pilares principales:
+%\begin{enumerate}
+%    \item Una infraestructura común que incluye el patrón observador para la gestión dinámica de \textit{callbacks}, \textit{holders} de propiedades para el manejo flexible de variables, factorías para la creación de instancias, parámetros opcionales y utilidades de temporización.
+%    \item Componentes de álgebra lineal con \textit{templates} para vectores y matrices dispersas, soporte para factorización $LU$ y almacenamiento optimizado de datos.
+%    \item Capacidades de resolución numérica que abarcan \textit{solvers} para sistemas algebraicos no lineales, métodos de iteración tipo Newton, \textit{solvers} explícitos e implícitos para EDOs, manejo de eventos y controladores de tamaño de paso.
+%\end{enumerate}
+%Esta modularidad permite combinar diferentes elementos de manera sencilla, facilitando la experimentación con métodos diversos.
+%
+%\subsection{Características y Aplicaciones Prácticas}
+%
+%Entre las características distintivas de \texttt{ode\_num\_int} se encuentra su flexibilidad para integrar componentes de \textit{solver}, su monitoreo de rendimiento integrado y su soporte para múltiples tipos de métodos numéricos, incluyendo explícitos, implícitos y basados en extrapolación. Estas capacidades lo hacen adecuado para simulaciones de sistemas físicos complejos. Un ejemplo concreto de su aplicación es la simulación de la dinámica de transmisiones continuamente variables (CVT), un sistema con 3,600 variables de estado que involucra modelos de cuerpos elásticos deformables e interacciones de fricción. En este caso, se observó que el método del trapecio con un tamaño de paso de \(10^{-5}\) alcanzó una precisión comparable a la del método Runge-Kutta de cuarto orden (RK4) con un tamaño de paso de \(10^{-8}\), lo que indica un potencial de mejora en la eficiencia computacional.
+%
+%El \textit{framework} se utiliza principalmente en campos como la computación científica, simulaciones de ingeniería, modelado de sistemas mecánicos y análisis de dinámica en aeronáutica y robótica. Su diseño lo posiciona como una herramienta valiosa para investigadores que requieren un alto grado de control sobre los métodos de integración.
+%
+%\subsection{Ventajas y Desventajas}
+%
+%El \texttt{ode\_num\_int} ofrece varias ventajas significativas. Su alta extensibilidad permite a los usuarios incorporar nuevos componentes y métodos, mientras que su enfoque en el rendimiento, respaldado por herramientas de monitoreo, facilita la optimización de simulaciones. Además, su carácter \textit{open-source} bajo la licencia GNU GPL fomenta la colaboración y el desarrollo comunitario. Sin embargo, presenta limitaciones notables: está diseñado principalmente para sistemas de escala media, lo que podría restringir su uso en simulaciones de gran escala como las de \(n\)-cuerpos masivos, y requiere un conocimiento avanzado de \texttt{C++}, lo que puede limitar su accesibilidad. Actualmente, se enfoca en métodos de un solo paso, aunque se planea ampliar esta capacidad en futuras versiones.
+%
+%\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
+%
+%En el contexto del trabajo terminal abordado en este reporte, el cual busca desarrollar un modelo para simular comportamientos gravitacionales de dos cuerpos con modificación dinámica de parámetros de posición y velocidad inicial, \texttt{ode\_num\_int} podría desempeñar un papel complementario. La simulación de sistemas gravitacionales requiere integrar las ecuaciones de movimiento, que son EDOs, y combinarlas con técnicas como el Método Multipolo Rápido (FMM) y el algoritmo de Barnes-Hut para calcular fuerzas gravitacionales de manera eficiente. La flexibilidad de \texttt{ode\_num\_int} para adaptar métodos de integración y su capacidad de monitoreo de rendimiento podrían facilitar la implementación de integradores personalizados que soporten cambios dinámicos en los parámetros durante la ejecución, un objetivo central del proyecto.
 
 %\subsection{Experiencia Personal y Opinión}
 

@@ -1,28 +1,35 @@
 \section[Solver gravitacional híbrido TPM]{Solver gravitacional híbrido TPM para simulaciones de N-cuerpos en arquitecturas paralelas}%
 \label{sec:state_of_the_art_07}
-Se presenta un nuevo solucionador gravitacional híbrido, denominado TPM (\textit{Tree-Particle-Mesh}), que combina las ventajas del método de partículas en malla (\textit{Particle-Mesh}, PM) y de técnicas jerárquicas basadas en árboles (\textit{TREE methods}). Este enfoque está especialmente diseñado para arquitecturas computacionales paralelas y permite realizar simulaciones de dinámica gravitacional con decenas de millones de partículas, manteniendo un balance óptimo entre precisión y eficiencia.
+El método TPM (\textit{Tree-Particle-Mesh}) combina partículas en malla (\textit{PM}) y técnicas jerárquicas de árbol (\textit{TREE}) para simulaciones gravitacionales en arquitecturas paralelas, adaptando el tratamiento de cada partícula a su densidad local. En regiones de baja densidad se emplea el enfoque PM para el cálculo de fuerzas de largo alcance, mientras que en zonas sobredensas se utiliza un árbol que aplica PM para contribuciones externas y TREE para las internas, logrando alta resolución espacial sin sacrificar eficiencia global.
 
-\subsection{Descripción y Arquitectura Técnica}
+La implementación logra escalabilidad casi lineal en sistemas como IBM SP2 con 32 procesadores (80\% de eficiencia y 95\% del tiempo de CPU en cálculo) mediante la distribución equilibrada de carga y memoria en plataformas SP1, SGI Challenge y clusters de estaciones de trabajo. Este diseño paralelo optimiza la relación cómputo/comunicación, permitiendo simular decenas de millones de partículas con balance óptimo entre precisión y rendimiento.
 
-El método TPM asigna dinámicamente el tipo de tratamiento a czada partícula dependiendo de la densidad local del entorno: las partículas ubicadas en regiones de baja densidad son tratadas como partículas PM, mientras que las partículas en zonas sobredensas son tratadas como partículas TREE.\ Las fuerzas de largo alcance se calculan utilizando el método PM, eficiente para todo el volumen simulado, mientras que las fuerzas de corto alcance —específicas de las regiones sobredensas— se calculan utilizando estructuras jerárquicas tipo TREE.\
+TPM es idóneo para estudios de formación de estructuras cósmicas, evolución de cúmulos y formación de galaxias, así como para la dinámica de materia oscura y subestructuras en volúmenes cosmológicos, al ofrecer alta resolución local donde se requiera y bajo costo computacional en el resto del dominio. Su principal ventaja es la combinación de la eficiencia PM con la resolución TREE y la integración multiescala en el tiempo; entre sus limitaciones figura la complejidad de sincronización y gestión de fronteras, además de la necesidad de afinar parámetros en escenarios muy dinámicos.
 
-En este esquema, la fuerza sobre una partícula TREE es la suma de dos contribuciones: una fuerza externa, proveniente de partículas fuera del árbol, calculada con el método PM;\ y una fuerza interna, debida a las partículas dentro del árbol, calculada con el método TREE.\ Esta separación permite una alta resolución espacial en las regiones más dinámicamente complejas, sin sacrificar eficiencia en el resto del dominio.
+Para el trabajo termianal que aborla la temática de simulación gravitacional de dos cuerpos con parámetros dinámicos, el solver TPM propone un marco multiescala y modular que puede integrarse con métodos como FMM o Barnes–Hut y algoritmos bioinspirados, optimizando la asignación de recursos según densidad local y permitiendo simulaciones adaptativas de alta fidelidad en tiempo real.
 
-La implementación aprovecha arquitecturas paralelas modernas como IBM SP1, SGI Challenge y clústeres de estaciones de trabajo. El código está diseñado para distribuir tanto la carga computacional como la memoria, logrando una escalabilidad casi lineal. En una IBM SP2 con 32 procesadores, se alcanzó una eficiencia del 80%, con una razón cómputo/comunicación cercana a 50, lo que implica que el 95% del tiempo de CPU se dedica al cálculo directo.
-
-\subsection{Aplicaciones Prácticas}
-
-El solver TPM es especialmente útil en simulaciones de formación de estructuras cósmicas, evolución de cúmulos de galaxias y formación de galaxias, donde coexisten regiones de muy diferentes densidades y escalas dinámicas. Su capacidad para diferenciar el tratamiento de partículas según su entorno lo convierte en una herramienta adecuada para estudios donde se requiere alta resolución local sin comprometer el rendimiento global. También es aplicable en estudios de materia oscura, colisiones de halos, y evolución de subestructuras dentro de grandes volúmenes cosmológicos.
-
-\subsection{Ventajas y Desventajas}
-
-El principal beneficio del método TPM es su capacidad para combinar la eficiencia del método PM con la resolución espacial del método TREE, lo que permite realizar simulaciones masivas con un uso óptimo de los recursos computacionales. La integración temporal con múltiples escalas añade precisión sin afectar negativamente el rendimiento global. Además, su diseño orientado a arquitecturas paralelas modernas permite su uso en supercomputadoras y clústeres de alto rendimiento.
-
-Entre las desventajas, se encuentra la complejidad adicional en la implementación y mantenimiento del código, especialmente en lo relativo a la sincronización de tiempos y la gestión de zonas frontera entre regiones PM y TREE.\ Además, aunque el balance entre eficiencia y precisión es muy favorable, en ciertos escenarios altamente dinámicos puede requerirse una cuidadosa sintonización de parámetros para evitar pérdidas de precisión o sobrecostos computacionales.
-
-\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
-
-El enfoque híbrido TPM es especialmente relevante para proyectos que requieren simulaciones multiescala de sistemas gravitacionales. Al permitir un tratamiento diferenciado de las regiones según su densidad, el método ofrece una solución eficaz para abordar la evolución tanto de estructuras globales como de subestructuras internas con alto nivel de detalle.
-
-Además, su compatibilidad con plataformas de alto rendimiento lo hace ideal para futuras generaciones de simulaciones astrofísicas. Su arquitectura modular también permite incorporar técnicas avanzadas como algoritmos bioinspirados o esquemas adaptativos para optimizar la asignación dinámica de recursos computacionales.
-
+%Se presenta un nuevo solucionador gravitacional híbrido, denominado TPM (\textit{Tree-Particle-Mesh}), que combina las ventajas del método de partículas en malla (\textit{Particle-Mesh}, PM) y de técnicas jerárquicas basadas en árboles (\textit{TREE methods}). Este enfoque está especialmente diseñado para arquitecturas computacionales paralelas y permite realizar simulaciones de dinámica gravitacional con decenas de millones de partículas, manteniendo un balance óptimo entre precisión y eficiencia.
+%
+%\subsection{Descripción y Arquitectura Técnica}
+%
+%El método TPM asigna dinámicamente el tipo de tratamiento a czada partícula dependiendo de la densidad local del entorno: las partículas ubicadas en regiones de baja densidad son tratadas como partículas PM, mientras que las partículas en zonas sobredensas son tratadas como partículas TREE.\ Las fuerzas de largo alcance se calculan utilizando el método PM, eficiente para todo el volumen simulado, mientras que las fuerzas de corto alcance —específicas de las regiones sobredensas— se calculan utilizando estructuras jerárquicas tipo TREE.\
+%
+%En este esquema, la fuerza sobre una partícula TREE es la suma de dos contribuciones: una fuerza externa, proveniente de partículas fuera del árbol, calculada con el método PM;\ y una fuerza interna, debida a las partículas dentro del árbol, calculada con el método TREE.\ Esta separación permite una alta resolución espacial en las regiones más dinámicamente complejas, sin sacrificar eficiencia en el resto del dominio.
+%
+%La implementación aprovecha arquitecturas paralelas modernas como IBM SP1, SGI Challenge y clústeres de estaciones de trabajo. El código está diseñado para distribuir tanto la carga computacional como la memoria, logrando una escalabilidad casi lineal. En una IBM SP2 con 32 procesadores, se alcanzó una eficiencia del 80%, con una razón cómputo/comunicación cercana a 50, lo que implica que el 95% del tiempo de CPU se dedica al cálculo directo.
+%
+%\subsection{Aplicaciones Prácticas}
+%
+%El solver TPM es especialmente útil en simulaciones de formación de estructuras cósmicas, evolución de cúmulos de galaxias y formación de galaxias, donde coexisten regiones de muy diferentes densidades y escalas dinámicas. Su capacidad para diferenciar el tratamiento de partículas según su entorno lo convierte en una herramienta adecuada para estudios donde se requiere alta resolución local sin comprometer el rendimiento global. También es aplicable en estudios de materia oscura, colisiones de halos, y evolución de subestructuras dentro de grandes volúmenes cosmológicos.
+%
+%\subsection{Ventajas y Desventajas}
+%
+%El principal beneficio del método TPM es su capacidad para combinar la eficiencia del método PM con la resolución espacial del método TREE, lo que permite realizar simulaciones masivas con un uso óptimo de los recursos computacionales. La integración temporal con múltiples escalas añade precisión sin afectar negativamente el rendimiento global. Además, su diseño orientado a arquitecturas paralelas modernas permite su uso en supercomputadoras y clústeres de alto rendimiento.
+%
+%Entre las desventajas, se encuentra la complejidad adicional en la implementación y mantenimiento del código, especialmente en lo relativo a la sincronización de tiempos y la gestión de zonas frontera entre regiones PM y TREE.\ Además, aunque el balance entre eficiencia y precisión es muy favorable, en ciertos escenarios altamente dinámicos puede requerirse una cuidadosa sintonización de parámetros para evitar pérdidas de precisión o sobrecostos computacionales.
+%
+%\subsection{Relevancia para el Proyecto de Simulación Gravitacional}
+%
+%El enfoque híbrido TPM es especialmente relevante para proyectos que requieren simulaciones multiescala de sistemas gravitacionales. Al permitir un tratamiento diferenciado de las regiones según su densidad, el método ofrece una solución eficaz para abordar la evolución tanto de estructuras globales como de subestructuras internas con alto nivel de detalle.
+%
+%Además, su compatibilidad con plataformas de alto rendimiento lo hace ideal para futuras generaciones de simulaciones astrofísicas. Su arquitectura modular también permite incorporar técnicas avanzadas como algoritmos bioinspirados o esquemas adaptativos para optimizar la asignación dinámica de recursos computacionales.
