@@ -1,82 +1,48 @@
 \section{Algoritmos Genéticos (AGs) Simples Mono-objetivo mediante \texttt{pymoo}}
-\label{sec:ags_simples_pymoo}
+\label{sec:ags_simples_pymoo}% chktex 24
 
-\subsection{Fundamentos de los Algoritmos Genéticos (AGs) Canónicos}
-\label{subsec:fundamentos_ags}
+\subsection{Fundamentos de los AGs canónicos}
+\label{subsec:fundamentos_ags}% chktex 24
+Los \textbf{Algoritmos Genéticos (AGs)} son metaheurísticas de \textbf{computación evolutiva} que optimizan una \emph{población} de soluciones con tres operadores: \textbf{selección} (mayor probabilidad para mayor aptitud), \textbf{cruce} (recombinación de padres) y \textbf{mutación} (pequeñas perturbaciones para mantener diversidad). El \emph{AG canónico} usaba codificación binaria, ruleta, cruce de un punto y mutación por bit; hoy se emplean variantes robustas para variables continuas y problemas \emph{no lineales/no diferenciables} con múltiples óptimos locales.
 
-La \textbf{optimización} busca la mejor solución posible para un problema dado dentro de un conjunto de restricciones. Los \textbf{Algoritmos Genéticos (AGs)} son una clase de algoritmos de \textbf{computación evolutiva} inspirados en la selección natural y la genética. Su idea central radica en la mejora iterativa de una \textbf{población} de soluciones candidatas mediante la simulación de tres procesos biológicos clave:
-
-\begin{enumerate}
-    \item \textbf{Selección:} Los individuos con mayor \textit{aptitud} (evaluados por la función objetivo) tienen mayor probabilidad de sobrevivir y reproducirse.
-    \item \textbf{Cruce (Recombinación):} Se combina el material genético (variables de decisión) de dos padres para crear nuevos descendientes, explorando nuevas combinaciones en el espacio de búsqueda.
-    \item \textbf{Mutación:} Se introducen pequeños cambios aleatorios en los descendientes, manteniendo la \textbf{diversidad genética} y previniendo la convergencia prematura a óptimos locales.
-\end{enumerate}
-
-El término \textbf{AG canónico} se refiere a la forma estándar y fundamental, que históricamente utilizaba la representación binaria, selección por ruleta, cruce de un solo punto y mutación por inversión de bits. Los AGs son particularmente robustos para problemas de optimización mono-objetivo que son \textbf{no lineales, no diferenciables} o poseen múltiples óptimos locales, donde los métodos basados en gradientes resultan ineficaces.
-
-\subsection{Arquitectura Modular de la Biblioteca \texttt{pymoo}}
+\subsection{Arquitectura modular de \texttt{pymoo}}% chktex 24
 \label{subsec:arquitectura_pymoo}
-
-\texttt{Pymoo} es una biblioteca moderna de Python diseñada principalmente para la optimización multiobjetivo, pero su \textbf{arquitectura modular y flexible} la convierte en una herramienta poderosa para la optimización con un único objetivo (Single-Objective Optimization, SOO). Su diseño desacopla la \textbf{definición del problema} de la \textbf{implementación del algoritmo} y los \textbf{operadores genéticos}.
-
-La estructura de \texttt{pymoo} se organiza en torno a módulos clave que interactúan durante el proceso de optimización:
-
+\texttt{pymoo} desacopla \textbf{problema}, \textbf{algoritmo} y \textbf{operadores}:
 \begin{itemize}
-    \item \texttt{\seqsplit{pymoo.core.problem}}: Define la función objetivo, las variables de decisión (\texttt{\seqsplit{n\_var}}) y sus límites (\texttt{\seqsplit{xl}}, \texttt{\seqsplit{xu}}).
-    \item \texttt{\seqsplit{pymoo.algorithms}}: Contiene las implementaciones de los algoritmos evolutivos, incluyendo la clase \texttt{\seqsplit{GA}} para el caso mono-objetivo.
-    \item \texttt{\seqsplit{pymoo.operators}}: Provee la colección de operadores genéticos para muestreo (\texttt{\seqsplit{sampling}}), selección (\texttt{\seqsplit{selection}}), cruce (\texttt{\seqsplit{crossover}}) y mutación (\texttt{\seqsplit{mutation}}).
-    \item \texttt{\seqsplit{pymoo.termination}}: Especifica los criterios para detener la ejecución (p. ej., número de generaciones, \texttt{\seqsplit{n\_gen}}).
-    \item \texttt{\seqsplit{pymoo.optimize}}: Función de alto nivel que orquesta la ejecución del algoritmo de optimización.
+  \item \texttt{pymoo.core.problem}: define función objetivo, $n\_var$, y límites \texttt{xl}/\texttt{xu}.
+  \item \texttt{pymoo.algorithms}: incluye \texttt{GA} para mono-objetivo.
+  \item \texttt{pymoo.operators}: \texttt{sampling}, \texttt{selection}, \texttt{crossover}, \texttt{mutation}.
+  \item \texttt{pymoo.termination}: criterios de parada (p.\,ej., \texttt{(``n\_gen'', 100)}).
+  \item \texttt{pymoo.optimize}: \texttt{minimize~()} orquesta la ejecución.
 \end{itemize}
 
-\subsection{Implementación del AG Mono-objetivo en \texttt{pymoo}}
+\subsection{AG mono-objetivo en \texttt{pymoo}}% chktex 24
 \label{subsec:implementacion_ga}
-
-La implementación canónica de un AG mono-objetivo en \texttt{pymoo} se encuentra en la clase \texttt{\seqsplit{pymoo.algorithms.soo.nonconvex.ga.GA}}. La designación \texttt{\seqsplit{soo.nonconvex}} indica su adecuación para la Optimización con un Solo Objetivo, incluyendo funciones objetivo no convexas.
-
-### Parámetros Clave de Configuración (\texttt{GA} Constructor)
-
-La configuración del algoritmo se realiza a través de los siguientes parámetros del constructor \texttt{\seqsplit{GA(...)}}:
-
+La clase \texttt{pymoo.algorithms.soo.nonconvex.ga.GA} implementa un GA para \emph{Single-Objective Optimization} (incluye funciones no convexas).\ \textbf{Parámetros clave} de \texttt{GA~(\dots)}:
 \begin{itemize}
-    \item \texttt{\seqsplit{pop\_size}}: Tamaño de la población, crucial para el equilibrio entre exploración (población grande) y costo computacional/velocidad de convergencia (población pequeña).
-    \item \texttt{\seqsplit{sampling}}: Objeto que define el método de \textbf{inicialización} de la población (p. ej., \texttt{\seqsplit{RandomSampling}}).
-    \item \texttt{\seqsplit{crossover}}: Objeto que especifica el operador de \textbf{recombinación} (p. ej., \texttt{\seqsplit{SBX}} para variables continuas o \texttt{\seqsplit{SinglePointCrossover}} para binarias).
-    \item \texttt{\seqsplit{mutation}}: Objeto que define el operador de \textbf{mutación} (p. ej., \texttt{\seqsplit{PolynomialMutation}} para variables continuas o \texttt{\seqsplit{BitflipMutation}} para binarias).
-    \item \texttt{\seqsplit{eliminate\_duplicates}}: Booleano que previene la aparición de individuos idénticos en la población, manteniendo la diversidad genética a costa de un mayor costo computacional.
+  \item \texttt{pop\_size}: tamaño de población (exploración vs.\ costo).
+  \item \texttt{sampling}: inicialización (p.\,ej., \texttt{RandomSampling}).
+  \item \texttt{crossover}: recombinación (p.\,ej., \texttt{SBX}\footnote{SBX:\ \emph{Simulated Binary Crossover}; $\eta$ controla cercanía de descendientes a los padres.} para continuas; \texttt{SinglePointCrossover} para binarias).
+  \item \texttt{mutation}: perturbación (p.\,ej., \texttt{PolynomialMutation}\footnote{Mutación polinomial (PM): distribución controlada por $\eta$; $\eta$ alto $\Rightarrow$ pasos pequeños.} para continuas; \texttt{BitflipMutation} para binarias).
+  \item \texttt{eliminate\_duplicates}: evita individuos idénticos (más diversidad; mayor costo).
 \end{itemize}
 
-### El Flujo de Trabajo del Algoritmo
+\paragraph{Flujo de trabajo.}
+(1) Definir \texttt{Problem}; (2) instanciar \texttt{GA}; (3) ejecutar \texttt{minimize~(problem, algorithm, termination)}; (4) extraer \texttt{res.X} (mejor decisión) y \texttt{res.F} (mejor objetivo).
 
-El proceso general de optimización con \texttt{pymoo} sigue una secuencia estándar:
-
-\begin{enumerate}
-    \item \textbf{Definición:} Se instancia la subclase de \texttt{\seqsplit{Problem}} (\textit{e.g.}, \texttt{\seqsplit{MyProblem}}).
-    \item \textbf{Instanciación:} Se crea y configura la instancia del algoritmo (\textit{e.g.}, \texttt{\seqsplit{GA}}).
-    \item \textbf{Ejecución:} Se utiliza la función de alto nivel \texttt{\seqsplit{minimize()}} o \texttt{\seqsplit{solve()}}, la cual toma el objeto \texttt{\seqsplit{Problem}}, el algoritmo y un criterio de terminación (p. ej., \texttt{\seqsplit{"n\_gen", 100}}).
-    \item \textbf{Resultado:} La ejecución devuelve un objeto \texttt{\seqsplit{Result}}, del cual se extrae la mejor solución encontrada en el espacio de decisión (\texttt{\seqsplit{res.X}}) y el valor óptimo de la función objetivo (\texttt{\seqsplit{res.F}}).
-\end{enumerate}
-
-\subsection{Componentes Operacionales Clave en \texttt{pymoo}}
-
-Los operadores genéticos implementados en \texttt{pymoo} son esenciales para la fase de exploración y explotación del algoritmo:
-
-\begin{itemize}[label=\textbullet, leftmargin=*]
-    \item \textbf{Selección:} En los AGs simples de \texttt{pymoo}, el operador de selección determina los padres. Métodos comunes incluyen la \textbf{Selección por Torneo} (Tournament Selection) y la \textbf{Selección Proporcional a la Aptitud} (Roulette Wheel Selection). La Selección por Torneo es robusta y su tamaño controla la presión selectiva.
-    \item \textbf{Cruce (Crossover):} Define cómo se combinan los parámetros de los padres. El \textbf{Cruce Binario Simulado (SBX)} es estándar para variables continuas, simulando el cruce binario. El factor $\eta$ (eta) del SBX controla qué tan cerca de los padres se generan los descendientes.
-    \item \textbf{Mutación:} Introduce diversidad. La \textbf{Mutación Polinomial (PM)} es estándar para variables continuas, perturbando el valor en función de una distribución polinomial. El índice de distribución ($\eta$) controla la probabilidad de generar una gran o pequeña perturbación.
-    \item \textbf{Reemplazo (Elitismo):} Si bien el AG canónico reemplaza a toda la población, las implementaciones modernas de \texttt{pymoo} integran el \textbf{elitismo} (mantener la mejor solución de la generación anterior) en el flujo de trabajo para garantizar la preservación del progreso.
-    \item \textbf{Criterios de Terminación:} El proceso se detiene cuando se cumple un criterio del módulo \texttt{\seqsplit{pymoo.termination}}, siendo el más común el \textbf{Número Máximo de Generaciones}.
+\subsection{Operadores y terminación}
+\begin{itemize}
+  \item \textbf{Selección}: torneo (controla presión selectiva) o ruleta.
+  \item \textbf{Cruce}: \texttt{SBX} para continuas; combina y explora alrededor de padres.
+  \item \textbf{Mutación}: \texttt{PolynomialMutation} para mantener diversidad y escapar de óptimos locales.
+  \item \textbf{Reemplazo/elitismo}: preservar el mejor individuo entre generaciones.
+  \item \textbf{Criterios de parada}: generaciones, convergencia, tiempo, etc.
 \end{itemize}
 
-***
-
-\subsection{Implementación y Uso Práctico}
-
-A continuación, se ilustra el flujo de trabajo básico para resolver un problema simple de minimización (función esférica $f(\mathbf{x}) = \sum x_i^2$) utilizando la clase \texttt{\seqsplit{GA}} de \texttt{pymoo}.
-
-\begin{listing}[H]
-\begin{minted}[linenos, breaklines, breakanywhere]{python}
+\subsection{Ejemplo mínimo con \texttt{GA}}
+Minimizar $f(\mathbf{x})=\sum_i x_i^2$ con límites $[-5,5]$:
+\begin{listing}[htbp]
+\begin{minted}[linenos,breaklines,breakanywhere]{python}
 import numpy as np
 from pymoo.core.problem import Problem
 from pymoo.algorithms.soo.nonconvex.ga import GA
@@ -85,30 +51,33 @@ from pymoo.operators.crossover.sbx import SBX
 from pymoo.operators.mutation.pm import PolynomialMutation
 from pymoo.optimize import minimize
 
-# 1. Definir el problema de optimización
+# 1) Definir el problema
 class MyProblem(Problem):
     def __init__(self):
-        # 2 variables (n_var=2), 1 objetivo (n_obj=1), 0 restriciones, límites [-5, 5]
+        # 2 variables (n_var=2), 1 objetivo (n_obj=1), 0 restricciones; límites [-5, 5]
         super().__init__(n_var=2, n_obj=1, n_constr=0, xl=-5, xu=5)
 
     def _evaluate(self, x, out, *args, **kwargs):
-        # Función objetivo: suma de los cuadrados
         out["F"] = np.sum(x**2, axis=1)
 
-# 2. Crear una instancia del problema
 problem = MyProblem()
 
-# 3. Crear una instancia del algoritmo genético
-# Configuración: pop_size=20, RandomSampling, SBX (prob=0.9, eta=15), PM (prob=0.1, eta=20)
-algorithm = GA(pop_size=20, sampling=RandomSampling(), crossover=SBX(prob=0.9, eta=15), mutation=PolynomialMutation(prob=0.1, eta=20),eliminate_duplicates=True)
+# 2) Instanciar el algoritmo
+algorithm = GA(
+    pop_size=20,
+    sampling=RandomSampling(),
+    crossover=SBX(prob=0.9, eta=15),
+    mutation=PolynomialMutation(prob=0.1, eta=20),
+    eliminate_duplicates=True
+)
 
-# 4. Ejecutar el algoritmo de optimización (Criterio de Terminación: 100 generaciones)
-res = minimize(problem,algorithm, ("n_gen", 100), verbose=False)
+# 3) Ejecutar (100 generaciones)
+res = minimize(problem, algorithm, ("n_gen", 100), verbose=False)
 
-# 5. Análisis de resultados
-print("Mejor solución encontrada (X):", res.X)
-print("Valor de la función objetivo (F):", res.F)
+# 4) Resultado
+print("Mejor X:", res.X)
+print("Mejor F:", res.F)
 \end{minted}
-\caption{Ejemplo de código Pymoo para optimización mono-objetivo con AG}
+\caption{Optimización mono-objetivo con \texttt{pymoo::GA}. \emph{Nota}: \texttt{minted} requiere compilar con \texttt{-shell-escape}.}
 \label{lst:pymoo_example_revised}
 \end{listing}

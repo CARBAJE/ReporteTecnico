@@ -1,83 +1,66 @@
 \section{Problemas de Factibilidad y Optimización}
-\label{sec:main_fact_opt}
+\label{sec:main_fact_opt}%chktex 24
 
-Los problemas de factibilidad y optimización son pilares en la modelización de desafíos en ingeniería, ciencias computacionales e investigación operativa. Un \textbf{problema de optimización} busca seleccionar la "mejor" alternativa de un conjunto de opciones posibles, sujeta a ciertas limitaciones~\cite{BoydVandenberghe2004}. Un \textbf{problema de factibilidad} se centra únicamente en determinar si existe al menos una solución que satisfaga un conjunto dado de restricciones, sin considerar un criterio de optimalidad~\cite{BoydVandenberghe2004}.
+Los problemas de \textbf{optimización} y \textbf{factibilidad} son pilares en ingeniería, ciencias computacionales e investigación operativa. Un problema de optimización busca la “mejor” alternativa sujeta a restricciones; uno de factibilidad sólo determina si existe al menos una solución que cumpla dichas restricciones~\cite{BoydVandenberghe2004}.
 
-\subsection{Problemas de Optimización}
-\label{sec:opt_problems}
-
-Un \textbf{problema de optimización matemática} se formaliza como la selección de la mejor solución (cuantificada por una función objetivo) de un conjunto de alternativas factibles (definidas por las restricciones). Su forma estándar se expresa como~\cite{BoydVandenberghe2004}:
-
+\subsection{Formulación estándar de optimización}
+\label{sec:opt_problems}%chktex 24
+Sea $\mathbf{x}\in\mathbb{R}^n$ el \emph{vector de decisión}. La forma canónica es~\cite{BoydVandenberghe2004}:
 \begin{align}
-  \text{minimizar} \quad & f_0(\mathbf{x}) \label{eq:opt_obj} \\
-  \text{sujeto a} \quad & g_i(\mathbf{x}) \leq 0, \quad i = 1, \dots, m \label{eq:opt_ineq} \\
-                      & h_j(\mathbf{x}) = 0,    \quad j = 1, \dots, p \label{eq:opt_eq}
+  \min_{\mathbf{x}\in\mathbb{R}^n}\quad & f_0(\mathbf{x}) \label{eq:opt_obj}\\
+  \text{sujeto a}\quad & g_i(\mathbf{x}) \le 0,\quad i=1,\dots,m \label{eq:opt_ineq}\\
+                       & h_j(\mathbf{x}) = 0,\quad j=1,\dots,p \label{eq:opt_eq}
 \end{align}
 
-Donde $\mathbf{x} \in \mathbb{R}^n$ es el \textbf{vector de variables de optimización} (o variables de decisión); $f_0: \mathbb{R}^n \to \mathbb{R}$ es la \textbf{función objetivo} (el criterio de mérito a minimizar); $g_i(\mathbf{x})$ son las restricciones de desigualdad; y $h_j(\mathbf{x})$ son las restricciones de igualdad.
-
+\noindent Definiciones básicas:
 \begin{itemize}
-    \item \textbf{Dominio ($\mathcal{D}$):} El conjunto de valores de $\mathbf{x}$ para los cuales todas las funciones están definidas.
-    \item \textbf{Conjunto Factible ($\mathcal{X}$):} El subconjunto del dominio donde $\mathbf{x}$ satisface todas las restricciones ($\eqref{eq:opt_ineq}$ y $\eqref{eq:opt_eq}$). Si $\mathcal{X}$ es vacío, el problema es \textbf{infactible}.
-    \item \textbf{Valor Óptimo ($p^*$):} $p^* = \inf\{f_0(\mathbf{x}) \mid \mathbf{x} \in \mathcal{X}\}$.
-    \item \textbf{Punto Óptimo ($\mathbf{x}^*$):} Un punto $\mathbf{x}^* \in \mathcal{X}$ tal que $f_0(\mathbf{x}^*) = p^*$.
+  \item \textbf{Dominio} $\mathcal{D}$: valores de $\mathbf{x}$ donde todas las funciones están definidas.
+  \item \textbf{Conjunto factible} $\mathcal{X}$: puntos de $\mathcal{D}$ que satisfacen~\eqref{eq:opt_ineq}–\eqref{eq:opt_eq}. Si $\mathcal{X}=\varnothing$, el problema es \emph{infactible}.
+  \item \textbf{Valor óptimo} $p^\star=\inf\{f_0(\mathbf{x})\mid \mathbf{x}\in\mathcal{X}\}$ y \textbf{solución óptima} $\mathbf{x}^\star\in\mathcal{X}$ con $f_0(\mathbf{x}^\star)=p^\star$.
 \end{itemize}
 
-
-### Clasificación y Optimización Convexa
-
-Los problemas se clasifican según la forma de sus funciones:
+\subsection{Clasificación y optimización convexa}
+Los problemas se tipifican por la forma de $f_0,g_i,h_j$:
 \begin{itemize}
-    \item \textbf{Programación Lineal (LP):} $f_0$, $g_i$ y $h_j$ son todas funciones \textbf{afines} (lineales más una constante).
-    \item \textbf{Programación Cuadrática (QP):} $f_0$ es cuadrática convexa y las restricciones son afines.
-    \item \textbf{Optimización Convexa:} La función objetivo $f_0$ y todas las restricciones de desigualdad $g_i$ son \textbf{funciones convexas}, y las restricciones de igualdad $h_j$ son afines ($A\mathbf{x} = \mathbf{b}$)~\cite{BoydVandenberghe2004}.
+  \item \textbf{LP}: todas afines.
+  \item \textbf{QP}: $f_0$ cuadrática convexa; restricciones afines.
+  \item \textbf{Convexos}: $f_0$ y $g_i$ convexas; $h_j$ afines ($A\mathbf{x}=\mathbf{b}$)~\cite{BoydVandenberghe2004}.
 \end{itemize}
-La \textbf{optimización convexa} es fundamental porque garantiza que cualquier óptimo local es también un \textbf{óptimo global}, y existen algoritmos eficientes y confiables para su resolución. Una función $f$ es convexa si el segmento de línea que une dos puntos cualesquiera en su gráfica se encuentra por encima o sobre la gráfica de la función (Desigualdad de Jensen).
+En problemas \textbf{convexos}, todo óptimo local es \textbf{global}; existen algoritmos eficientes y fiables. Una $f$ es convexa si satisface la Desigualdad de Jensen. Aplicaciones: diseño de ingeniería, ajuste de datos (regresión), gestión de riesgos (carteras)~\cite{BoydVandenberghe2004}.
 
-Las aplicaciones típicas abarcan desde el diseño de ingeniería (e.g., estructuras), hasta el ajuste de datos (e.g., regresión) y la gestión de riesgos (e.g., optimización de carteras)~\cite{BoydVandenberghe2004}.
-
-\subsection{Problemas de Factibilidad}
-\label{sec:feas_problems}
-
-Un \textbf{problema de factibilidad} solo requiere encontrar un punto $\mathbf{x}$ que satisfaga un conjunto de restricciones, sin una función objetivo a minimizar o maximizar:
-
+\subsection{Problemas de factibilidad}
+\label{sec:feas_problems}%chktex 24
+El problema de factibilidad busca \emph{cualquier} $\mathbf{x}$ que cumpla las restricciones:
 \begin{align}
-  \text{encontrar} \quad & \mathbf{x} \\
-  \text{sujeto a} \quad  & g_i(\mathbf{x}) \leq 0, \quad i = 1, \dots, m \\
-                       & h_j(\mathbf{x}) = 0,    \quad j = 1, \dots, p
+  \text{encontrar}\quad & \mathbf{x}\in\mathbb{R}^n \\
+  \text{sujeto a}\quad  & g_i(\mathbf{x}) \le 0,\ i=1,\dots,m \\
+                        & h_j(\mathbf{x}) = 0,\ j=1,\dots,p
 \end{align}
+Hay solución si y sólo si $\mathcal{X}\neq\varnothing$.
 
-La solución existe si el conjunto factible $\mathcal{X}$ es \textbf{no vacío}. Cualquier $\mathbf{x} \in \mathcal{X}$ es una solución factible.
+\subsection{Enfoque algorítmico: oráculos y planos cortantes}
+En factibilidad convexa es común usar un \emph{oráculo de separación}\footnote{%
+Dado $\mathcal{C}$ convexo y un punto $\mathbf{x}$, el oráculo verifica si $\mathbf{x}\in\mathcal{C}$; en caso contrario devuelve un \emph{hiperplano separador} $a^\top z \le b$ que excluye $\mathbf{x}$ pero contiene $\mathcal{C}$.}
+junto con métodos de \emph{planos cortantes}\footnote{%
+\emph{Cutting-planes}: iterativamente refinan una región candidata añadiendo desigualdades que “cortan” puntos no factibles, hasta certificar factibilidad o infactibilidad.},
+reduciendo el espacio de búsqueda hasta certificar factibilidad o probar lo contrario~\cite{Sidford2020}.
 
-### Enfoque Algorítmico y Oráculos
-
-En un contexto algorítmico (particularmente para métodos de planos cortantes), el problema de factibilidad a menudo se aborda mediante un \textbf{oráculo de separación}~\cite{Sidford2020}. Dado un conjunto factible convexo $\mathcal{C}$, el oráculo, al consultarle con un punto $\mathbf{x}$:
-\begin{enumerate}
-    \item Confirma que $\mathbf{x} \in \mathcal{C}$ (si $\mathbf{x}$ es factible).
-    \item O bien, devuelve un \textbf{hiperplano separador} que prueba que $\mathbf{x} \notin \mathcal{C}$, eliminando así $\mathbf{x}$ del espacio de búsqueda.
-\end{enumerate}
-Este mecanismo es esencial para algoritmos que iterativamente refinan la región de búsqueda hasta encontrar una solución factible o demostrar la infactibilidad.
-
-\subsection{Relación y Contención: La Factibilidad como Prerrequisito}
+\subsection{Relación factibilidad–optimización y métodos de dos fases}%chktex 24
 \label{sec:relation_containment}
+La factibilidad es \textbf{prerrequisito} de la optimización: no hay óptimo sin conjunto factible. Además, la factibilidad es un caso particular de optimización tomando
+\[
+\min_{\mathbf{x}} \; f_0(\mathbf{x})=0.
+\]
+Si el problema es factible, cualquier $\mathbf{x}\in\mathcal{X}$ es óptimo y $p^\star=0$; si es infactible, $p^\star=+\infty$.
 
-La determinación de la factibilidad es un \textbf{prerrequisito lógico y algorítmico} para la optimización: no puede haber una solución óptima si no hay soluciones factibles.
+\paragraph{Dos fases (interior/punto barrera).}
+Muchos \emph{métodos de punto interior}\footnote{%
+\emph{Punto interior / barrera logarítmica}: optimización sobre el interior del conjunto factible penalizando la cercanía a las fronteras con una barrera (p.\,ej., suma de logaritmos). Requieren típicamente un punto estrictamente factible.}
+usan una \textbf{Fase I} para encontrar factibilidad: introducir $s\in\mathbb{R}$ y resolver
+\[
+\min_{\mathbf{x},\,s}\; s\quad \text{sujeto a}\quad g_i(\mathbf{x})\le s,\ i=1,\dots,m,\ \ h_j(\mathbf{x})=0.
+\]
+Si $s^\star\le 0$, se obtiene un punto estrictamente factible y se procede a la \textbf{Fase II} resolviendo~\eqref{eq:opt_obj}–\eqref{eq:opt_eq}. En caso contrario, se certifica infactibilidad.
 
-### Contención Formal
-
-Un \textbf{problema de factibilidad puede considerarse un caso especial de un problema de optimización} al establecer una función objetivo constante, por ejemplo:
-$$
-\text{minimizar} \quad f_0(\mathbf{x}) = 0
-$$
-Si el problema es factible, cualquier punto factible es un punto óptimo, y el valor óptimo es $p^* = 0$. Si el problema es infactible, el valor óptimo $p^* = \infty$.
-
-### Algoritmos de Dos Fases
-
-Esta relación se explota en algoritmos como los \textbf{métodos de punto interior} (e.g., métodos de barrera), que requieren un punto inicial estrictamente factible. Si este punto no se conoce, se usa un procedimiento de dos fases:
-
-\begin{itemize}
-    \item \textbf{Fase I (Factibilidad):} Se formula y resuelve un problema de optimización auxiliar (introduciendo una variable artificial $s$) cuyo objetivo es \textbf{minimizar $s$} sujeto a restricciones modificadas (e.g., $g_i(\mathbf{x}) \leq s$). El problema original es factible solo si el valor óptimo de esta Fase I es $p^* \leq 0$.
-    \item \textbf{Fase II (Optimalidad):} Si la Fase I tiene éxito, su solución factible se utiliza como punto de partida para resolver el problema de optimización original ($\eqref{eq:opt_obj}$-$\eqref{eq:opt_eq}$).
-\end{itemize}
-
-En resumen, un problema de optimización busca el punto ``mejor'' dentro del conjunto factible, mientras que un problema de factibilidad solo busca determinar si dicho conjunto existe, permitiendo que las potentes herramientas algorítmicas de la optimización se apliquen también a la resolución de la factibilidad.
+\medskip
+\noindent\textbf{Resumen.} La optimización busca el “mejor” punto dentro de $\mathcal{X}$; la factibilidad sólo decide si $\mathcal{X}$ existe. Esta relación permite reutilizar técnicas de optimización (p.\,ej., dos fases, planos cortantes) para resolver factibilidad con garantías teóricas y prácticas.
