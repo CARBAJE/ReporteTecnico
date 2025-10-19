@@ -1,0 +1,1008 @@
+% ===========================
+% capitulo_implementacion.tex
+% ===========================
+
+\section{Módulo de Simulación}% chktex 24
+\label{cap:bitacora-implementacion}
+
+\subsection{Introducción}
+Este capítulo documenta de forma técnica y reproducible el proceso de implementación del \emph{Módulo de Simulación} empleado para estudiar dinámicas gravitacionales de dos y tres cuerpos, así como la estimación del exponente de Lyapunov (LE) a partir de trayectorias numéricas. Se describe la arquitectura, el \emph{stack} tecnológico, y se ofrece una documentación por script (clases, funciones, parámetros, valores de retorno y ejemplos de uso).
+
+\subsection{Arquitectura de Alto Nivel}
+El módulo se divide en cuatro componentes principales:
+\begin{enumerate}
+    \item \textbf{Adaptador de dinámica gravitacional (\texttt{rebound\_adapter.py})}: encapsula la creación y propagación de simulaciones usando REBOUND, con saneamiento de entradas y extracción discreta de trayectorias.
+    \item \textbf{Dinámica determinista (\texttt{dynamics.py})}: ofrece el campo vectorial (RHS) y el Jacobiano del sistema de dos cuerpos en 2D (CPU), y el esqueleto para aceleración GPU.\
+    \item \textbf{Estimación de Lyapunov (\texttt{lyapunov.py})}: calcula el exponente máximo (mLCE) a partir de una simulación REBOUND (variacionales) o mediante un esquema discreto tipo Benettin con re-normalización periódica.
+    \item \textbf{Inicialización del paquete (\texttt{\_\_init\_\_.py})}: expone una API mínima y controlada para importar las clases principales.
+\end{enumerate}
+
+\subsection{Stack tecnológico}
+\begin{itemize}
+    \item \textbf{Python 3.x} como lenguaje principal.
+    \item \textbf{NumPy} para cálculo numérico denso.
+    \item \textbf{REBOUND} para integración N-cuerpos (integradores \texttt{WHFast}, \texttt{IAS15}, etc.).
+    \item \textbf{(Opcional) CuPy} para acelerar kernels en GPU (interfaz en \texttt{DynamicsGPU}).
+\end{itemize}
+
+% =========================================
+% DOCUMENTACIÓN POR SCRIPT
+% =========================================
+
+% ---------- rebound_adapter.py ----------
+\subsection{\texttt{rebound\_adapter.py} — Adaptador REBOUND}
+\paragraph{Descripción general}
+\texttt{ReboundSim} provee una interfaz ligera para: (i) crear una simulación a partir de masas, posiciones y velocidades iniciales; (ii) configurar integrador y sistema de unidades; (iii) integrar la dinámica y extraer una trayectoria discreta en forma de arreglo NumPy \([{\rm pasos}, {\rm cuerpos}, 6]\) con \((x,y,z,v_x,v_y,v_z)\).
+
+\subsubsection{\texttt{class ReboundSim}}
+\paragraph{Propósito} Gestionar la vida de una simulación REBOUND (creación, \emph{setup}, integración discreta).
+
+\subsubsection*{\texttt{\_\_init\_\_(G:\ float = 1.0, integrator: str = ``whfast'')}}
+\textbf{Propósito.} Inicializa constantes globales de la simulación (gravitación \(G\)) y el integrador numérico por defecto.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{ReboundSim.\_\_init\_\_}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{G} & \texttt{float} & Constante gravitacional (unidades consistentes con REBOUND). \\
+    \texttt{integrator} & \texttt{str} & Nombre del integrador (\texttt{whfast}, \texttt{ias15}, etc.). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{ReboundSim.\_\_init\_\_}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{None} & Constructor, no retorna valor. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{ReboundSim}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class ReboundSim:
+    def __init__(self, G: float = 1.0, integrator: str = "whfast") -> None:
+        self.G = G
+        self.integrator = integrator
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de inicialización de \texttt{ReboundSim}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from simulacion.rebound_adapter import ReboundSim
+sim_api = ReboundSim(G=1.0, integrator="whfast")
+\end{minted}
+\end{listing}
+
+\subsubsection*{\texttt{setup\_simulation~(masses, r0, v0, move\_to\_com=True) -> Any}}
+\textbf{Propósito.} Construir e inicializar \texttt{rebound.Simulation} con masas y estado inicial (posiciones y velocidades), con opción de mover el sistema al centro de masa.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{setup\_simulation}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{masses} & \texttt{Iterable[float]} & Masas por cuerpo (\(\ge 2\) y \(\le 3\) en la configuración base). \\
+    \texttt{r0} & \texttt{Iterable[Iterable[float]]} & Posiciones \((x,y,z)\) por cuerpo. \\
+    \texttt{v0} & \texttt{Iterable[Iterable[float]]} & Velocidades \((v_x,v_y,v_z)\) por cuerpo. \\
+    \texttt{move\_to\_com} & \texttt{bool} & Si \texttt{True}, traslada al centro de masa. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{setup\_simulation}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{rebound.Simulation} & Simulación con partículas agregadas y lista para integrar. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{setup\_simulation}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+    def setup_simulation(
+        self,
+        masses: Iterable[float],
+        r0: Iterable[Iterable[float]],
+        v0: Iterable[Iterable[float]],
+        move_to_com: bool = True,
+    ) -> Any:
+        try:
+            import rebound  # type: ignore
+        except Exception as e:
+            raise ImportError(
+                "rebound is required for ReboundSim. Use --install-hint for help."
+            ) from e
+
+        mass_tuple = tuple(float(m) for m in masses)
+        n_bodies = len(mass_tuple)
+        if n_bodies < 2 or n_bodies > 3:
+            raise ValueError("ReboundSim soporta entre 2 y 3 cuerpos en la configuracion base.")
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de \texttt{setup\_simulation}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+masses = (1.0, 1.0)
+r0 = ((-1.0, 0.0, 0.0), (1.0, 0.0, 0.0))
+v0 = ((0.0, -0.5, 0.0), (0.0, 0.5, 0.0))
+sim = sim_api.setup_simulation(masses, r0, v0, move_to_com=True)
+\end{minted}
+\end{listing}
+
+\subsubsection*{\texttt{integrate~(sim, t\_end: float, dt: float) -> Any}}
+\textbf{Propósito.} Avanzar la simulación y extraer una trayectoria discreta de estados \((x,y,z,v_x,v_y,v_z)\) por cuerpo y paso temporal.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{integrate}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{sim} & \texttt{rebound.Simulation} & Contexto REBOUND válido. \\
+    \texttt{t\_end} & \texttt{float} & Tiempo total a integrar. \\
+    \texttt{dt} & \texttt{float} & Paso de integración (discretización de salida). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{integrate}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{numpy.ndarray} & Arreglo \([\text{pasos}, \text{cuerpos}, 6]\) con posiciones y velocidades. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{integrate}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+    def integrate(self, sim: Any, t_end: float, dt: float) -> Any:
+        """Integra el sistema y devuelve la trayectoria como arreglo numpy [pasos, cuerpos, 6]."""
+        import numpy as _np
+
+        if not hasattr(sim, "particles"):
+            raise ValueError("Se esperaba una instancia de rebound.Simulation.")
+
+        sim.dt = dt
+        steps = max(1, int(_np.floor(t_end / dt)))
+        n_bodies = len(sim.particles)
+        traj = _np.zeros((steps, n_bodies, 6), dtype=float)
+        base_t = sim.t if hasattr(sim, "t") else 0.0
+        for i in range(steps):
+            t_target = base_t + (i + 1) * dt
+            sim.integrate(t_target)
+            for j, p in enumerate(sim.particles):
+                traj[i, j, 0] = float(p.x)
+                traj[i, j, 1] = float(p.y)
+                traj[i, j, 2] = float(p.z)
+                traj[i, j, 3] = float(p.vx)
+                traj[i, j, 4] = float(p.vy)
+                traj[i, j, 5] = float(p.vz)
+        return traj
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de integración y extracción de trayectoria}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+traj = sim_api.integrate(sim, t_end=10.0, dt=0.5)  # shape: [steps, bodies, 6]
+print(traj.shape)
+\end{minted}
+\end{listing}
+
+% ---------- dynamics.py ----------
+\subsection{\texttt{dynamics.py} — Dinámica (CPU/GPU)}
+\paragraph{Descripción general}
+Define la dinámica del problema de dos cuerpos en 2D (\texttt{DynamicsCPU}) y un esqueleto para aceleración en GPU (\texttt{DynamicsGPU}). El estado se ordena como
+\[
+x = (x_1, y_1, v_{x1}, v_{y1},\; x_2, y_2, v_{x2}, v_{y2}).
+\]
+
+\subsubsection{\texttt{class DynamicsCPU}}
+\paragraph{Propósito} Proveer el RHS \( \dot{x} = f(x,t) \) y el Jacobiano \(J=\partial f/\partial x\) en 2D.
+
+\subsubsection*{\texttt{f~(x, t, m1, m2, G) -> Any}}
+\textbf{Propósito.} Evaluar el campo vectorial (posiciones y aceleraciones Newtonianas suavizadas por \(\varepsilon\) numérico) para dos cuerpos.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{DynamicsCPU.f}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{x} & \texttt{array-like (8,)} & Estado \((x_1,y_1,v_{x1},v_{y1},x_2,y_2,v_{x2},v_{y2})\). \\
+    \texttt{t} & \texttt{float} & Tiempo de evaluación (no autónomo opcional). \\
+    \texttt{m1, m2} & \texttt{float} & Masas de los cuerpos. \\
+    \texttt{G} & \texttt{float} & Constante gravitacional. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{DynamicsCPU.f}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{numpy.ndarray} & Vector de dimensión 8 con \((\dot{x}_1,\dot{y}_1,\dot{v}_{x1},\dot{v}_{y1},\dot{x}_2,\dot{y}_2,\dot{v}_{x2},\dot{v}_{y2})\). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{DynamicsCPU.f}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class DynamicsCPU:
+    """Calcula el RHS y jacobiano del sistema de dos cuerpos en 2D."""
+
+    def f(self, x: Any, t: float, m1: float, m2: float, G: float) -> Any:
+        import numpy as _np
+
+        eps = 1e-12
+        x1, y1, vx1, vy1, x2, y2, vx2, vy2 = x
+        dx = x2 - x1
+        dy = y2 - y1
+        r2 = dx * dx + dy * dy + eps
+        r = _np.sqrt(r2)
+        r3 = r2 * r
+
+        ax1 = G * m2 * dx / r3
+        ay1 = G * m2 * dy / r3
+        ax2 = -G * m1 * dx / r3
+        ay2 = -G * m1 * dy / r3
+
+        return _np.array([vx1, vy1, ax1, ay1, vx2, vy2, ax2, ay2], dtype=float)
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de uso de \texttt{DynamicsCPU.f}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import numpy as np
+from simulacion.dynamics import DynamicsCPU
+
+dyn = DynamicsCPU()
+state = np.array([-1.0, 0.0, 0.0, -0.5, 1.0, 0.0, 0.0, 0.5], dtype=float)
+rhs = dyn.f(state, t=0.0, m1=1.0, m2=1.0, G=1.0)
+\end{minted}
+\end{listing}
+
+\subsubsection*{\texttt{jac~(x, t, m1, m2, G) -> Any}}
+\textbf{Propósito.} Calcular la matriz Jacobiana \(8\times8\) del sistema 2D de dos cuerpos.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{DynamicsCPU.jac}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{x} & \texttt{array-like (8,)} & Estado en el que se evalúa el Jacobiano. \\
+    \texttt{t} & \texttt{float} & Tiempo de evaluación. \\
+    \texttt{m1, m2} & \texttt{float} & Masas de los cuerpos. \\
+    \texttt{G} & \texttt{float} & Constante gravitacional. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{DynamicsCPU.jac}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{numpy.ndarray} & Matriz \(8\times8\) con derivadas parciales \(\partial f/\partial x\). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{DynamicsCPU.jac}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class DynamicsCPU:
+    """Calcula el RHS y jacobiano del sistema de dos cuerpos en 2D."""
+        def jac(self, x: Any, t: float, m1: float, m2: float, G: float) -> Any:
+        import numpy as _np
+
+        eps = 1e-12
+        x1, y1, vx1, vy1, x2, y2, vx2, vy2 = x
+        dx = x2 - x1
+        dy = y2 - y1
+        r2 = dx * dx + dy * dy + eps
+        r = _np.sqrt(r2)
+        r3 = r2 * r
+        r5 = r3 * r2
+
+        dfx_dx1 = G * (m2 * (3.0 * dx * dx / r5 - 1.0 / r3))
+        dfx_dy1 = G * (m2 * (3.0 * dx * dy / r5))
+        dfx_dx2 = -dfx_dx1
+        dfx_dy2 = -dfx_dy1
+
+        dfy_dx1 = G * (m2 * (3.0 * dx * dy / r5))
+        dfy_dy1 = G * (m2 * (3.0 * dy * dy / r5 - 1.0 / r3))
+        dfy_dx2 = -dfy_dx1
+        dfy_dy2 = -dfy_dy1
+
+        g2x_dx1 = G * (m1 * (3.0 * dx * dx / r5 - 1.0 / r3))
+        g2x_dy1 = G * (m1 * (3.0 * dx * dy / r5))
+        g2x_dx2 = -g2x_dx1
+        g2x_dy2 = -g2x_dy1
+
+        g2y_dx1 = G * (m1 * (3.0 * dx * dy / r5))
+        g2y_dy1 = G * (m1 * (3.0 * dy * dy / r5 - 1.0 / r3))
+        g2y_dx2 = -g2y_dx1
+        g2y_dy2 = -g2y_dy1
+
+        J = _np.zeros((8, 8), dtype=float)
+        J[0, 2] = 1.0
+        J[1, 3] = 1.0
+        J[4, 6] = 1.0
+        J[5, 7] = 1.0
+
+        J[2, 0] = -dfx_dx1
+        J[2, 1] = -dfx_dy1
+        J[2, 4] = dfx_dx2
+        J[2, 5] = dfx_dy2
+
+        J[3, 0] = -dfy_dx1
+        J[3, 1] = -dfy_dy1
+        J[3, 4] = dfy_dx2
+        J[3, 5] = dfy_dy2
+
+        J[6, 0] = g2x_dx1
+        J[6, 1] = g2x_dy1
+        J[6, 4] = g2x_dx2
+        J[6, 5] = g2x_dy2
+
+        J[7, 0] = g2y_dx1
+        J[7, 1] = g2y_dy1
+        J[7, 4] = g2y_dx2
+        J[7, 5] = g2y_dy2
+
+        return J
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de uso de \texttt{DynamicsCPU.jac}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+J = dyn.jac(state, t=0.0, m1=1.0, m2=1.0, G=1.0)  # shape: (8, 8)
+\end{minted}
+\end{listing}
+
+\subsubsection{\texttt{class DynamicsGPU}}
+\paragraph{Propósito}
+Implementación acelerada en GPU del RHS \( \dot{x}=f(x,t) \) y del Jacobiano \(J=\partial f/\partial x\) para el problema de dos cuerpos en 2D usando \textbf{CuPy}. Detecta disponibilidad en \texttt{\_\_init\_\_}, y exige GPU vía \texttt{\_require\_gpu~()}. El estado sigue el mismo orden que en CPU:\
+\[
+x = (x_1, y_1, v_{x1}, v_{y1},\; x_2, y_2, v_{x2}, v_{y2}).
+\]
+Se usa un suavizado numérico \(\varepsilon = 10^{-12}\) para evitar divisiones por cero en \(r^{-3}\) y \(r^{-5}\).
+
+\begin{table}[H]
+  \centering
+  \caption{\texttt{DynamicsGPU}: interfaz}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Miembro} & \textbf{Tipo/Firma} & \textbf{Descripción} \\
+    \midrule
+    \texttt{available} & \texttt{bool} & \texttt{True} si \texttt{cupy} está disponible en el entorno. \\
+    \texttt{\_require\_gpu} & \texttt{\_require\_gpu~() -> None} & Lanza \texttt{RuntimeError} si no hay GPU/CuPy. \\
+    \texttt{f} & \texttt{f~(x, t, m1, m2, G) -> cp.ndarray} & Campo vectorial (dim. 8). \\
+    \texttt{jac} & \texttt{jac~(x, t, m1, m2, G) -> cp.ndarray} & Jacobiano (matriz \(8\times 8\)). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsubsection*{\texttt{f~(x, t, m1, m2, G) -> cp.ndarray}}
+\textbf{Propósito.} Evaluar el RHS en GPU para dos cuerpos en 2D, devolviendo \((\dot{x}_1,\dot{y}_1,\dot{v}_{x1},\dot{v}_{y1},\dot{x}_2,\dot{y}_2,\dot{v}_{x2},\dot{v}_{y2})\).
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{DynamicsGPU.f}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{x} & \texttt{array-like (8,)} & Estado: \((x_1,y_1,v_{x1},v_{y1},x_2,y_2,v_{x2},v_{y2})\). \\
+    \texttt{t} & \texttt{float} & Tiempo de evaluación (no autónomo opcional). \\
+    \texttt{m1, m2} & \texttt{float} & Masas de los cuerpos. \\
+    \texttt{G} & \texttt{float} & Constante gravitacional. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{DynamicsGPU.f}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{cupy.ndarray (8,)} & Derivadas del estado, \texttt{float64}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de código de \texttt{DynamicsGPU.f}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class DynamicsGPU:
+    """Implementación del RHS y jacobiano en GPU usando CuPy."""
+
+    def __init__(self) -> None:
+        self.available = False
+        try:
+            import cupy as _cp  # noqa: F401
+            self.available = True
+        except Exception:
+            self.available = False
+
+    def _require_gpu(self) -> None:
+        if not self.available:
+            raise RuntimeError(
+                "CuPy no está disponible. Instálalo o usa DynamicsCPU."
+            )
+
+    def f(self, x: Any, t: float, m1: float, m2: float, G: float) -> Any:
+        self._require_gpu()
+        import cupy as cp
+
+        eps = cp.float64(1e-12)
+        state = cp.asarray(x, dtype=cp.float64)
+
+        x1, y1, vx1, vy1, x2, y2, vx2, vy2 = state
+        dx = x2 - x1
+        dy = y2 - y1
+        r2 = dx * dx + dy * dy + eps
+        r = cp.sqrt(r2)
+        r3 = r2 * r
+
+        ax1 = G * m2 * dx / r3
+        ay1 = G * m2 * dy / r3
+        ax2 = -G * m1 * dx / r3
+        ay2 = -G * m1 * dy / r3
+
+        return cp.array([vx1, vy1, ax1, ay1, vx2, vy2, ax2, ay2], dtype=cp.float64)
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de uso de \texttt{DynamicsGPU.f} con retroceso a CPU}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import numpy as np
+from simulacion.dynamics import DynamicsGPU, DynamicsCPU
+
+state = np.array([-1.0, 0.0, 0.0, -0.5, 1.0, 0.0, 0.0, 0.5], dtype=float)
+m1 = m2 = G = 1.0
+t = 0.0
+
+dyn_gpu = DynamicsGPU()
+try:
+    rhs_gpu = dyn_gpu.f(state, t=t, m1=m1, m2=m2, G=G)  # cupy.ndarray
+    print(rhs_gpu.shape)
+except RuntimeError:
+    # Fallback si no hay CuPy
+    dyn_cpu = DynamicsCPU()
+    rhs_cpu = dyn_cpu.f(state, t=t, m1=m1, m2=m2, G=G)
+    print(rhs_cpu.shape)
+\end{minted}
+\end{listing}
+
+\subsubsection*{\texttt{jac~(x, t, m1, m2, G) -> cp.ndarray}}
+\textbf{Propósito.} Calcular en GPU la matriz Jacobiana \(8\times 8\), incluyendo derivadas cruzadas \((x_1,y_1)\)–\((x_2,y_2)\) según las expresiones analíticas de \(\partial (a_{x}, a_{y})/\partial (x,y)\) para potencial newtoniano en 2D.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{DynamicsGPU.jac}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{x} & \texttt{array-like (8,)} & Estado donde se evalúa el Jacobiano. \\
+    \texttt{t} & \texttt{float} & Tiempo de evaluación. \\
+    \texttt{m1, m2} & \texttt{float} & Masas de los cuerpos. \\
+    \texttt{G} & \texttt{float} & Constante gravitacional. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{DynamicsGPU.jac}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{cupy.ndarray (8, 8)} & Jacobiano del sistema, \texttt{float64}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{DynamicsGPU.jac}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class DynamicsGPU:
+    """Implementación del RHS y jacobiano en GPU usando CuPy."""
+    def jac(self, x: Any, t: float, m1: float, m2: float, G: float) -> Any:
+        self._require_gpu()
+        import cupy as cp
+
+        eps = cp.float64(1e-12)
+        state = cp.asarray(x, dtype=cp.float64)
+
+        x1, y1, vx1, vy1, x2, y2, vx2, vy2 = state
+        dx = x2 - x1
+        dy = y2 - y1
+        r2 = dx * dx + dy * dy + eps
+        r = cp.sqrt(r2)
+        r3 = r2 * r
+        r5 = r3 * r2
+
+        dfx_dx1 = G * (m2 * (3.0 * dx * dx / r5 - 1.0 / r3))
+        dfx_dy1 = G * (m2 * (3.0 * dx * dy / r5))
+        dfx_dx2 = -dfx_dx1
+        dfx_dy2 = -dfx_dy1
+
+        dfy_dx1 = G * (m2 * (3.0 * dx * dy / r5))
+        dfy_dy1 = G * (m2 * (3.0 * dy * dy / r5 - 1.0 / r3))
+        dfy_dx2 = -dfy_dx1
+        dfy_dy2 = -dfy_dy1
+
+        g2x_dx1 = G * (m1 * (3.0 * dx * dx / r5 - 1.0 / r3))
+        g2x_dy1 = G * (m1 * (3.0 * dx * dy / r5))
+        g2x_dx2 = -g2x_dx1
+        g2x_dy2 = -g2x_dy1
+
+        g2y_dx1 = G * (m1 * (3.0 * dx * dy / r5))
+        g2y_dy1 = G * (m1 * (3.0 * dy * dy / r5 - 1.0 / r3))
+        g2y_dx2 = -g2y_dx1
+        g2y_dy2 = -g2y_dy1
+
+        J = cp.zeros((8, 8), dtype=cp.float64)
+        J[0, 2] = 1.0
+        J[1, 3] = 1.0
+        J[4, 6] = 1.0
+        J[5, 7] = 1.0
+
+        J[2, 0] = -dfx_dx1
+        J[2, 1] = -dfx_dy1
+        J[2, 4] = dfx_dx2
+        J[2, 5] = dfx_dy2
+
+        J[3, 0] = -dfy_dx1
+        J[3, 1] = -dfy_dy1
+        J[3, 4] = dfy_dx2
+        J[3, 5] = dfy_dy2
+
+        J[6, 0] = g2x_dx1
+        J[6, 1] = g2x_dy1
+        J[6, 4] = g2x_dx2
+        J[6, 5] = g2x_dy2
+
+        J[7, 0] = g2y_dx1
+        J[7, 1] = g2y_dy1
+        J[7, 4] = g2y_dx2
+        J[7, 5] = g2y_dy2
+
+        return J
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de uso de \texttt{DynamicsGPU.jac}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import numpy as np
+from simulacion.dynamics import DynamicsGPU
+
+x = np.array([-1.0, 0.0, 0.0, -0.5, 1.0, 0.0, 0.0, 0.5], dtype=float)
+J = DynamicsGPU().jac(x, t=0.0, m1=1.0, m2=1.0, G=1.0)  # cupy.ndarray (8, 8)
+\end{minted}
+\end{listing}
+
+% ---------- lyapunov.py ----------
+\subsection{\texttt{lyapunov.py} — Estimación de Exponente de Lyapunov}
+\paragraph{Descripción general}
+\texttt{LyapunovEstimator} expone dos rutas de cálculo del mLCE:\ una corta (\texttt{mLCE\_short}) y una larga (\texttt{mLCE\_long}), ambas soportadas por un método interno que intenta, primero, la API variacional de REBOUND y, en su defecto, un esquema discreto de Benettin con re-normalización.
+
+\subsubsection{\texttt{class LyapunovEstimator}}
+\paragraph{Propósito} Estimar el exponente de Lyapunov máximo (mLCE) a partir de un contexto de simulación REBOUND o de una trayectoria discreta.
+
+\subsubsection*{\texttt{mLCE\_short~(trajectory=None, x0=None, window=100.0) -> dict}}
+\textbf{Propósito.} Estimar mLCE sobre una ventana temporal corta.
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros de \texttt{mLCE\_short}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{trajectory} & \texttt{Any} & Simulación REBOUND o contexto discreto. \\
+    \texttt{x0} & \texttt{Iterable[float] | None} & (Reservado) Semilla/estado inicial, si aplica. \\
+    \texttt{window} & \texttt{float} & Horizonte temporal (unidades de la simulación). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{mLCE\_short}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{dict} & \{\texttt{``lambda''}, \texttt{``series''}, \texttt{``meta''}\} con detalles de cómputo. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{mLCE\_short}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class LyapunovEstimator:
+    def __init__(self) -> None:
+        self._cpu_dyn = DynamicsCPU()
+
+    def mLCE_short(
+        self,
+        trajectory: Any = None,
+        x0: Optional[Iterable[float]] = None,
+        window: float = 100.0,
+    ) -> Dict[str, Any]:
+        try:
+            lam, series, meta = self._mlce_with_context(trajectory, window)
+            return {"lambda": lam, "series": series, "meta": meta}
+        except Exception as e:
+            return {"lambda": float("inf"), "series": None, "meta": {"impl": "error", "err": str(e)}}
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de uso de \texttt{mLCE\_short}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from simulacion.rebound_adapter import ReboundSim
+from simulacion.lyapunov import LyapunovEstimator
+
+sim_api = ReboundSim(G=1.0, integrator="whfast")
+sim = sim_api.setup_simulation(
+    masses=(1.0, 1.0),
+    r0=(( -1.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+    v0=((  0.0,-0.5, 0.0), (0.0, 0.5, 0.0)),
+)
+est = LyapunovEstimator()
+res = est.mLCE_short(trajectory=sim, window=100.0)
+print(res["lambda"], res["meta"])
+\end{minted}
+\end{listing}
+
+\subsubsection*{\texttt{mLCE\_long~(trajectory=None, x0=None, window=1000.0) -> dict}}
+\textbf{Propósito.} Estimar mLCE sobre una ventana temporal mayor (muestras más estables para diagnóstico).
+
+\begin{table}[H]
+  \centering
+  \caption{Parámetros y retorno de \texttt{mLCE\_long}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{trajectory} & \texttt{Any} & Simulación REBOUND o contexto discreto. \\
+    \texttt{x0} & \texttt{Iterable[float] | None} & (Reservado) Semilla/estado inicial, si aplica. \\
+    \texttt{window} & \texttt{float} & Horizonte temporal (unidades de la simulación). \\
+    \bottomrule
+  \end{tabularx}
+
+  \vspace{0.5em}
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo de retorno} & \textbf{Descripción} \\
+    \midrule
+    \texttt{dict} & \{\texttt{``lambda''}, \texttt{``series''}, \texttt{``meta''}\}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{mLCE\_long}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class LyapunovEstimator:
+
+    def mLCE_long(
+        self,
+        trajectory: Any = None,
+        x0: Optional[Iterable[float]] = None,
+        window: float = 1000.0,
+    ) -> Dict[str, Any]:
+        try:
+            lam, series, meta = self._mlce_with_context(trajectory, window)
+            return {"lambda": lam, "series": series, "meta": meta}
+        except Exception as e:
+            return {"lambda": float("inf"), "series": None, "meta": {"impl": "error", "err": str(e)}}
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de uso de \texttt{mLCE\_long}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+res_long = est.mLCE_long(trajectory=sim, window=1000.0)
+print(res_long["lambda"])
+\end{minted}
+\end{listing}
+
+\subsubsection*{Notas sobre la implementación interna}
+Cuando la API variacional de REBOUND está disponible, se añade al simulador un sistema variacional y se integra hasta completar el horizonte \texttt{window}, extrayendo el LE.\ Si la API no existe o falla, se replica el sistema para un par \emph{referencia/perturbado}, se aplica una perturbación pequeña \(\varepsilon\) al estado y, tras cada paso, se re-normaliza la separación para acumular el promedio logarítmico \(\lambda\).
+
+\begin{listing}[H]
+\caption{Bloque de Código de métodos auxiliares I}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class LyapunovEstimator:
+
+    def _mlce_with_context(self, ctx: Any, window: float) -> Tuple[float, Optional[Any], Dict[str, Any]]:
+        import numpy as _np
+
+        try:
+            import rebound  # noqa: F401
+        except Exception:
+            raise
+
+        if ctx is None:
+            raise ValueError("Se requiere una simulacion o contexto discreto para estimar Lyapunov")
+
+        if isinstance(ctx, dict) and "sim" in ctx:
+            sim = ctx["sim"]
+            dt = float(ctx.get("dt", 0.5))
+            t_end = float(ctx.get("t_end", window))
+            masses_ctx = ctx.get("masses")
+        else:
+            sim = ctx
+            dt = 0.5
+            t_end = window
+            masses_ctx = None
+
+        if masses_ctx is not None:
+            masses = tuple(float(m) for m in masses_ctx)
+        else:
+            masses, _, _ = self._extract_rebound_state(sim)
+
+        if dt <= 0.0:
+            raise ValueError("dt debe ser positivo para el Lyapunov discreto")
+
+        steps = max(1, math.ceil(t_end / dt)) if t_end is not None else 1
+
+        try:
+            lam = self._mlce_rebound_variational(sim, dt=dt, steps=steps)
+            meta = {"impl": "rebound_variational_discrete", "steps": steps, "dt": dt, "n_bodies": len(masses), "masses": masses}
+            return lam, None, meta
+        except Exception:
+            lam, series = self._mlce_benettin(sim, masses, dt=dt, steps=steps)
+            meta = {"impl": "benettin_discrete", "steps": steps, "dt": dt, "n_bodies": len(masses), "masses": masses}
+            return lam, series, meta
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Bloque de Código de métodos auxiliares II}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class LyapunovEstimator:
+
+    @staticmethod
+    def _extract_rebound_state(
+        sim: Any,
+    ) -> Tuple[Tuple[float, ...], Tuple[Tuple[float, float, float], ...], Tuple[Tuple[float, float, float], ...]]:
+        if not hasattr(sim, "particles"):
+            raise ValueError("La simulacion proporcionada no contiene particulas.")
+        masses: list[float] = []
+        positions: list[Tuple[float, float, float]] = []
+        velocities: list[Tuple[float, float, float]] = []
+        for p in sim.particles:
+            masses.append(float(getattr(p, "m", 0.0)))
+            positions.append((float(p.x), float(p.y), float(p.z)))
+            velocities.append((float(p.vx), float(p.vy), float(p.vz)))
+        return tuple(masses), tuple(positions), tuple(velocities)
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Bloque de Código de métodos auxiliares III}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class LyapunovEstimator:
+
+    def _mlce_rebound_variational(self, sim: Any, dt: float, steps: int) -> float:
+        if not hasattr(sim, "particles"):
+            raise RuntimeError("Invalid REBOUND Simulation provided")
+        try:
+            if hasattr(sim, "add_variationals"):
+                sim.add_variationals(1)
+            elif hasattr(sim, "add_variational"):
+                sim.add_variational()
+            else:
+                raise AttributeError("REBOUND variational API not found")
+
+            sim.dt = dt
+            steps = max(1, int(steps))
+            if hasattr(sim, "calculate_lyapunov"):
+                t = sim.t if hasattr(sim, "t") else 0.0
+                sim.integrate(t + steps * dt)
+                val = sim.calculate_lyapunov()
+                return float(val) * dt
+            lam_sum = 0.0
+            d0 = None
+            base_t = sim.t if hasattr(sim, "t") else 0.0
+            for i in range(steps):
+                sim.integrate(base_t + (i + 1) * dt)
+                if hasattr(sim, "variationals") and len(sim.variationals) > 0:
+                    try:
+                        import numpy as _np
+
+                        vv = _np.asarray(list(sim.variationals[0]))
+                        d = float(_np.linalg.norm(vv))
+                    except Exception:
+                        raise AttributeError("Unsupported variational vector structure")
+                else:
+                    raise AttributeError("variationals not accessible")
+                if d0 is None:
+                    d0 = max(d, 1e-30)
+                lam_sum += _np.log(max(d, 1e-30) / d0)
+            return lam_sum / float(steps)
+        except Exception as e:
+            raise RuntimeError(f"REBOUND variational path failed: {e}")
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Bloque de Código de métodos auxiliares IV}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class LyapunovEstimator:
+
+    def _mlce_benettin(self, sim: Any, masses: Tuple[float, ...], dt: float, steps: int) -> Tuple[float, Any]:
+        import numpy as _np
+
+        masses = tuple(float(m) for m in masses)
+        if len(masses) < 2:
+            raise ValueError("Se requieren al menos dos masas para estimar el Lyapunov discreto.")
+
+        try:
+            sim_ref = sim.copy()
+            sim_pert = sim.copy()
+        except Exception:
+            extracted = self._extract_rebound_state(sim)
+            masses_extracted, r0_init, v0_init = extracted
+            rbs = ReboundSim(G=getattr(sim, "G", 1.0), integrator=getattr(sim, "integrator", "whfast"))
+            sim_ref = rbs.setup_simulation(masses_extracted, r0_init, v0_init, move_to_com=False)
+            sim_pert = rbs.setup_simulation(masses_extracted, r0_init, v0_init, move_to_com=False)
+
+        eps = 1e-9
+        sim_ref.dt = dt
+        sim_pert.dt = dt
+        sim_pert.particles[0].x += eps
+
+        def state_vector(S: Any) -> _np.ndarray:
+            data = []
+            for p in S.particles:
+                data.extend([p.x, p.y, p.z, p.vx, p.vy, p.vz])
+            return _np.array(data, dtype=float)
+
+        def set_state(S: Any, vec: _np.ndarray) -> None:
+            for idx, p in enumerate(S.particles):
+                base = idx * 6
+                p.x = float(vec[base])
+                p.y = float(vec[base + 1])
+                p.z = float(vec[base + 2])
+                p.vx = float(vec[base + 3])
+                p.vy = float(vec[base + 4])
+                p.vz = float(vec[base + 5])
+
+        x_ref0 = state_vector(sim_ref)
+        x_pert0 = state_vector(sim_pert)
+        d0 = float(_np.linalg.norm(x_pert0 - x_ref0))
+        d0 = max(d0, 1e-30)
+
+        steps = max(1, int(steps))
+        lam_sum = 0.0
+        series = _np.zeros(steps, dtype=float)
+
+        base_t = getattr(sim_ref, "t", 0.0)
+
+        for i in range(steps):
+            t_target = base_t + (i + 1) * dt
+            sim_ref.integrate(t_target)
+            sim_pert.integrate(t_target)
+
+            xr = state_vector(sim_ref)
+            xp = state_vector(sim_pert)
+            diff = xp - xr
+            d = float(_np.linalg.norm(diff))
+            d = max(d, 1e-30)
+            lam_sum += _np.log(d / d0)
+            series[i] = lam_sum / float(i + 1)
+
+            alpha = d0 / d
+            new_xp = xr + alpha * diff
+            set_state(sim_pert, new_xp)
+
+        lam = lam_sum / float(steps)
+        return lam, series
+            return {"lambda": float("inf"), "series": None, "meta": {"impl": "error", "err": str(e)}}
+\end{minted}
+\end{listing}
+% ---------- __init__.py ----------
+\subsection{\texttt{\_\_init\_\_.py} — API del Paquete}
+\paragraph{Descripción general}
+Expone una interfaz pública compacta para importar las clases principales del módulo:
+\begin{itemize}
+    \item \texttt{DynamicsCPU}, \texttt{DynamicsGPU}
+    \item \texttt{ReboundSim}
+    \item \texttt{LyapunovEstimator}
+\end{itemize}
+
+\begin{listing}[H]
+\caption{Bloque de Código de \texttt{mLCE\_long}}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+"""
+Capa de simulacion que encapsula REBOUND y el calculo del exponente de Lyapunov.
+"""
+
+from .dynamics import DynamicsCPU, DynamicsGPU  # noqa: F401
+from .rebound_adapter import ReboundSim  # noqa: F401
+from .lyapunov import LyapunovEstimator  # noqa: F401
+
+__all__ = ["DynamicsCPU", "DynamicsGPU", "ReboundSim", "LyapunovEstimator"]
+
+
+if __name__ == "__main__":
+    dyn = DynamicsCPU()
+    print("Norma del Jacobiano con masas=1:", dyn.jac([1, 0, 0, 0, -1, 0, 0, 0], 0, 1.0, 1.0, 1.0))
+
+\end{minted}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de importación desde el paquete}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from simulacion import DynamicsCPU, ReboundSim, LyapunovEstimator
+\end{minted}
+\end{listing}
+% --- Fin de capítulo ---
