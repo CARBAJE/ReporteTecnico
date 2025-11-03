@@ -8,6 +8,18 @@
 \usepackage{bookmark}
 \usepackage{hyperref}
 \usepackage{minted}
+\usepackage{fvextra}
+% --- minted: saltos de línea y tamaño (respetar si ya existe setminted) ---
+\setminted{
+    breaklines=true,
+    breakanywhere=true,
+    breaksymbolleft=\,
+    breaksymbolright=\,
+    fontsize=\footnotesize
+}
+% 1) Fuerza modo vertical antes y después de minted:
+\BeforeBeginEnvironment{minted}{\par\smallskip}
+\AfterEndEnvironment{minted}{\par\smallskip}
 % \usepackage{cite}
 
 \usepackage{tikz, lipsum, lmodern}
@@ -22,6 +34,7 @@
 \usepackage{longtable}
 \usepackage{booktabs}% For professional looking tables (\toprule, \midrule, \bottomrule)
 \usepackage{adjustbox}
+\usepackage{setspace}
 \usepackage{enumitem}
 \usepackage{pgffor}
 \usepackage{enumitem}
@@ -39,6 +52,7 @@
 
 % enlistar con mayor profundidad
 \setlist[itemize,1]{label=\textbullet,ref={}}
+\setlist[description]{style=nextline}
 \setlist[enumerate,1]{label=\arabic*.}
 \setlistdepth{15}
 
@@ -107,7 +121,7 @@
     \appendix
         %\include{Appendices/appendixA}
         %\include{Appendices/appendixB}
-        \include{Appendices/bitacora}
+        %\include{Appendices/bitacora}
 
 
 \backmatter%

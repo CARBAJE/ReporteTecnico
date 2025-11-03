@@ -1,0 +1,152 @@
+% ===========================
+% modulo_core.tex
+% ===========================
+
+\section{Módulo Core}% chktex 24
+\label{sec:modulo-core}
+
+\subsection{Introducción}
+El \emph{Módulo Core} concentra la infraestructura compartida por el resto del proyecto. Proporciona objetos de configuración reproducible, cachés jerárquicos para las evaluaciones del optimizador y utilidades de telemetría que alimentan los reportes de ejecución. Su objetivo es reducir duplicidad de código y garantizar puntos de extensión bien definidos para nuevos experimentos.
+
+\subsection{Arquitectura de Alto Nivel}
+El módulo se organiza en tres componentes principales:
+\begin{enumerate}
+    \item \textbf{Configuración (\texttt{config.py})}: define el \texttt{dataclass} \texttt{Config} con todos los hiperparámetros de simulación, GA y recursos, además de una rutina \texttt{set\_global\_seeds}.
+    \item \textbf{Caché (\texttt{cache.py})}: implementa un cache LRU mínimo y un cache jerárquico (aproximado/exacto) reutilizado por el evaluador de \emph{fitness}.
+    \item \textbf{Telemetría (\texttt{telemetry.py})}: expone \texttt{setup\_logger}, \texttt{MetricsLogger} y \texttt{Reporter} para persistir métricas, resultados y configuraciones en disco.
+\end{enumerate}
+
+\subsection{Stack tecnológico}
+\begin{itemize}
+    \item \textbf{Python 3.10+} con tipado estático opcional.
+    \item \textbf{dataclasses}, \textbf{OrderedDict} y utilidades estándar para persistencia (\texttt{json}, \texttt{pathlib}).
+    \item Dependencias opcionales: \textbf{NumPy} (para \texttt{set\_global\_seeds}) y bibliotecas estándar de \texttt{logging}.
+\end{itemize}
+
+% =========================================
+% DOCUMENTACIÓN POR SCRIPT
+% =========================================
+
+% ---------- config.py ----------
+\subsection{\texttt{config.py} \- Configuración global}
+\paragraph{Descripción general}
+\texttt{config.py} consolida los parámetros que gobiernan simulaciones, algoritmo genético y persistencia. El uso de \texttt{dataclass} permite serialización directa vía \texttt{asdict} y facilita el versionamiento de experimentos.
+
+\subsubsection{\texttt{class Config}}
+\paragraph{Propósito} Representar en un único objeto todos los hiperparámetros del sistema, manteniendo valores por defecto reproducibles.
+
+\begin{listing}[H]
+\caption{Fragmento principal de \texttt{Config}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+@dataclass
+class Config:
+    """Parametros de simulacion y busqueda evolutiva."""
+    # Simulación
+    t_end_short: float = 100.0
+    t_end_long: float = 1000.0
+    dt: float = 0.5
+    integrator: str = "whfast"
+    periodicity_weight: float = 0.0
+    # ...
+    pop_size: int = 64
+    n_gen_step: int = 3
+    crossover: float = 0.9
+    mutation: float = 0.2
+    seed: int = 42
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{\texttt{set\_global\_seeds(seed) -> None}}
+\textbf{Propósito.} Inicializar los generadores pseudoaleatorios de \texttt{random} y \texttt{numpy.random} cuando NumPy está disponible, garantizando reproducibilidad en ejecuciones distribuidas y pruebas automatizadas.
+
+% ---------- cache.py ----------
+\subsection{\texttt{cache.py} \- Almacenamiento Jerárquico}
+\paragraph{Descripción general}
+La infraestructura de caché permite reutilizar evaluaciones costosas del optimizador. Un nivel aproximado amortigua consultas de similitud, mientras que el nivel exacto guarda resultados canónicos. Ambos se materializan con un cache LRU ligero.
+
+\subsubsection{\texttt{class LRUCache}}
+\paragraph{Propósito} Ofrecer una política de reemplazo \emph{Least Recently Used} con estadísticas de aciertos/fallos.
+
+\begin{listing}[H]
+\caption{Métodos clave de \texttt{LRUCache}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class LRUCache:
+    def __init__(self, capacity: int = 1024) -> None:
+        self.capacity = max(1, int(capacity))
+        self.store: "OrderedDict[Any, Any]" = OrderedDict()
+        self.hits = 0
+        self.misses = 0
+
+    def get(self, key: Any) -> Any:
+        if key in self.store:
+            self.store.move_to_end(key)
+            self.hits += 1
+            return self.store[key]
+        self.misses += 1
+        return None
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection{\texttt{class HierarchicalCache}}
+\paragraph{Propósito} Combinar dos instancias de \texttt{LRUCache} (aproximado/exacto) y exponer utilidades de compactación y métricas agregadas (\texttt{hit\_rate}, aciertos por nivel).
+
+% ---------- telemetry.py ----------
+\subsection{\texttt{telemetry.py} \- Telemetría y Reportes}
+\paragraph{Descripción general}
+La telemetría centraliza el registro de métricas y la persistencia de artefactos. El módulo abstrae la configuración de loggers, la captura de métricas por época y la serialización en JSON de resultados y configuraciones.
+
+\subsubsection{\texttt{setup\_logger(level) -> logging.Logger}}
+\textbf{Propósito.} Crear un \texttt{Logger} compartido con formato uniforme, asegurando que múltiples invocaciones reusen el mismo manejador.
+
+\subsubsection{\texttt{class MetricsLogger}}
+\paragraph{Propósito} Acumular contadores (evaluaciones, reseeds), series por época y estadísticas de caché para alimentar dashboards posteriores.
+
+\begin{listing}[H]
+\caption{Registro de métricas por época}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class MetricsLogger:
+    def record_epoch(self, payload: Dict[str, Any]) -> None:
+        """Almacena el resumen de una época de optimización."""
+        self.epoch_history.append(payload)
+
+    def to_dict(self) -> Dict[str, Any]:
+        total = max(time.time() - self.start_time, 1e-9)
+        hit_rate = (
+            (self.cache_hits_exact + self.cache_hits_approx)
+            / max(
+                1,
+                self.cache_hits_exact
+                + self.cache_hits_approx
+                + self.cache_misses_exact
+                + self.cache_misses_approx,
+            )
+        )
+        return {
+            "wall_time_s": total,
+            "phases": self.phases,
+            "eval_count": self.eval_count,
+            "hit_rate": hit_rate,
+            "epoch_history": self.epoch_history,
+        }
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection{\texttt{class Reporter}}
+\paragraph{Propósito} Gestionar artefactos (configuraciones, métricas, checkpoints) en disco usando JSON. El método \texttt{bootstrap} persiste la configuración y registra un mensaje en el \texttt{Logger} compartido, facilitando auditorías posteriores.
+
+% ---------- __init__.py ----------
+\subsection{\texttt{\_\_init\_\_.py} \- API Pública}
+\paragraph{Descripción general}
+El archivo de inicialización reexporta \texttt{Config}, \texttt{set\_global\_seeds}, \texttt{HierarchicalCache} y \texttt{MetricsLogger}/\texttt{Reporter}. Esto permite dependencias limpias en el resto del paquete mediante \texttt{from two\_body.core import Config, HierarchicalCache}.

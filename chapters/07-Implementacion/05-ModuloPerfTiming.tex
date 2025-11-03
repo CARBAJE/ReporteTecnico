@@ -1,0 +1,119 @@
+% ===========================
+% modulo_perf_timing.tex
+% ===========================
+
+\section{Módulo de Mediciones de Desempeño}% chktex 24
+\label{sec:modulo-perf-timing}
+
+\subsection{Introducción}
+El \emph{Módulo de Mediciones de Desempeño} encapsula las utilidades necesarias para instrumentar el resto del sistema con mediciones temporales. Incluye un registrador buffered (CSV/JSONL), decoradores/contextos para marcar secciones críticas y utilidades de entrada/salida para analizar los archivos generados. Todas las piezas están diseñadas para ser opcionales: si la variable de entorno \texttt{PERF\_TIMINGS\_ENABLED} está desactivada, la instrumentación incurre en costo cero.
+
+\subsection{Arquitectura de Alto Nivel}
+\begin{enumerate}
+    \item \textbf{Logger (\texttt{logger.py})}: escribe registros temporales en CSV (y opcionalmente JSONL) con búfer configurable.
+    \item \textbf{Decoradores/Contextos (\texttt{timers.py})}: ofrece \texttt{time\_block} y \texttt{time\_section} para medir secciones de código.
+    \item \textbf{Utilidades IO (\texttt{io\_utils.py})}: facilita listar, leer y filtrar archivos de timing para postprocesos o dashboards.
+\end{enumerate}
+
+\subsection{Stack tecnológico}
+\begin{itemize}
+    \item \textbf{Python estándar}: módulos \texttt{time}, \texttt{csv}, \texttt{json}, \texttt{pathlib}, \texttt{threading}.
+    \item \textbf{Decoradores/context managers} vía \texttt{contextlib} y \texttt{functools}.
+\end{itemize}
+
+% =========================================
+% DOCUMENTACIÓN POR SCRIPT
+% =========================================
+
+% ---------- logger.py ----------
+\subsection{\texttt{logger.py} \- Registro buffered}
+\paragraph{Descripción general}
+\texttt{TimingLogger} mantiene un búfer de registros que se flushea a disco cuando alcanza un tamaño configurado o al cerrar la aplicación. Soporta formatos CSV y JSONL, creando automáticamente la carpeta \texttt{data/timings}.
+
+\subsubsection{\texttt{class TimingRecord}}
+\paragraph{Propósito} Agrupar los campos esenciales de cada medición (identificadores, marca de tiempo, duración y metadatos serializados).
+
+\begin{listing}[H]
+\caption{Conversión de un \texttt{TimingRecord} a filas CSV}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+@dataclass(frozen=True)
+class TimingRecord:
+    run_id: str
+    epoch: int
+    batch_id: int
+    individual_id: int
+    section: str
+    start_ns: int
+    end_ns: int
+    duration_us: int
+    extra: str
+
+    def as_row(self) -> list[Any]:
+        return [
+            self.run_id,
+            str(self.epoch),
+            str(self.batch_id),
+            str(self.individual_id),
+            self.section,
+            str(self.start_ns),
+            str(self.end_ns),
+            str(self.duration_us),
+            self.extra,
+        ]
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\paragraph{Flujo de trabajo}
+El método \texttt{TimingLogger.record(...)} normaliza los tiempos de inicio/fin, calcula la duración en microsegundos y añade el registro al búfer. Cuando el búfer alcanza \texttt{buffer\_size}, se fuerza un \emph{flush} protegido por \texttt{threading.Lock}. El cierre (vía \texttt{close}) se registra con \texttt{atexit} para seguridad.
+
+% ---------- timers.py ----------
+\subsection{\texttt{timers.py} \- Decoradores y contextos}
+\paragraph{Descripción general}
+Este archivo ofrece dos primitivas de instrumentación: \texttt{time\_block} para marcar bloques ad-hoc y \texttt{time\_section} para envolver funciones. Ambos respetan la bandera global \texttt{PERF\_TIMINGS\_ENABLED}, evitando costos innecesarios cuando la medición está deshabilitada.
+
+\begin{listing}[H]
+\caption{\texttt{time\_block} y \texttt{time\_section}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+def time_block(section: str, **metadata: Any) -> _TimingBlock:
+    """Context manager para cronometrar secciones concretas."""
+    return _TimingBlock(section, **metadata)
+
+def time_section(section: str, **metadata: Any) -> Callable[[F], F]:
+    """Decorador que reutiliza time_block para medir funciones."""
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if not PERF_TIMINGS_ENABLED:
+                return func(*args, **kwargs)
+            with time_block(section, **metadata):
+                return func(*args, **kwargs)
+        return wrapper  # type: ignore[return-value]
+    return decorator
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\paragraph{Resolución dinámica de metadatos}
+Los decoradores aceptan \texttt{callables} para campos como \texttt{epoch} o \texttt{extra}. Las funciones auxiliares (\texttt{\_resolve\_value}, \texttt{\_to\_int}) evalúan dinámicamente estos valores usando los argumentos originales de la función envuelta.
+
+% ---------- io_utils.py ----------
+\subsection{\texttt{io\_utils.py} \- Utilidades de análisis}
+\paragraph{Descripción general}
+Las rutinas de \texttt{io\_utils} simplifican la inspección de resultados: listan archivos \texttt{timings\_*.csv}, validan cabeceras, convierten tipos a enteros y generan estructuras listas para consumo por analíticas o notebooks.
+
+\paragraph{Casos de uso}
+\begin{itemize}
+    \item \texttt{latest\_timing\_csv()} devuelve el archivo más reciente generado por el logger.
+    \item \texttt{filter\_rows(...)} permite filtrar por \texttt{run\_id}, \texttt{epoch}, \texttt{batch\_id} o \texttt{section}, facilitando dashboards de un subconjunto de métricas.
+\end{itemize}
+
+% ---------- Cobertura opcional ----------
+\subsection{Cobertura y omisiones}
+Para conservar el documento conciso se omiten bloques completos de \texttt{logger.py} (gestión de archivos) y \texttt{io\_utils.py} (parsers), ya que siguen patrones estándar de la biblioteca estándar. Las secciones anteriores documentan los puntos de extensión más relevantes para desarrolladores que deseen instrumentar tiempos adicionales o procesar mediciones existentes.

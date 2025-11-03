@@ -1,0 +1,1112 @@
+% ===========================
+% capitulo_implementacion_logico.tex
+% ===========================
+
+\section{Módulo Lógico}% chktex 24
+\label{cap:implementacion-modulo-logico}
+
+\subsection{Introducción}
+Este capítulo documenta la implementación del \emph{Módulo Lógico}, responsable de orquestar la optimización evolutiva de las masas y la evaluación de estabilidad dinámica del sistema de dos/tres cuerpos. El diseño actual concentra la coordinación de flujos, el motor genético en modo \emph{streaming}, la evaluación de fitness basada en Lyapunov y la lógica auxiliar de \emph{re-seeding}, todo ello instrumentado con \texttt{time\_block}/\texttt{time\_section} para alimentar la telemetría global.
+
+\subsection{Arquitectura de Alto Nivel}
+El módulo se compone de cuatro bloques principales:
+\begin{enumerate}
+    \item \textbf{Controlador continuo (\texttt{controller.py})}: coordina las iteraciones del GA, respeta presupuestos de tiempo/evaluaciones, consulta horizontes corto/largo y registra métricas por época.
+    \item \textbf{Motor genético (\texttt{ga.py})}: implementa un GA incremental basado en \texttt{pymoo} con degradación a un sampler interno; soporta distribuciones Beta para masas y reseeds locales.
+    \item \textbf{Evaluador de fitness (\texttt{fitness.py})}: evalúa candidatos con el estimador de Lyapunov, realiza caching jerárquico y aplica penalizaciones de cuasi-periodicidad.
+    \item \textbf{Modificador de parámetros (\texttt{parameters.py})}: encapsula reglas de re-seeding durante el estancamiento. El archivo \texttt{\_\_init\_\_.py} re-exporta la API pública.
+\end{enumerate}
+
+\subsection{Stack tecnológico}
+\begin{itemize}
+    \item \textbf{Python 3.10+} como lenguaje principal, con tipado estático opcional.
+    \item \textbf{NumPy} para operaciones numéricas y manejo vectorial en el GA y el evaluador de fitness.
+    \item \textbf{pymoo} (opcional) para algoritmos evolutivos; el código se degrada con un sampler propio si la librería no está disponible.
+    \item \textbf{Infraestructura interna}: \texttt{Config}, \texttt{HierarchicalCache}, \texttt{MetricsLogger}, \texttt{perf\_timings.timers} y el módulo de simulación (\texttt{ReboundSim}, \texttt{LyapunovEstimator}).
+\end{itemize}
+
+% =========================================
+% DOCUMENTACIóN POR SCRIPT
+% =========================================
+
+% ---------- controller.py ----------
+\subsection{\texttt{controller.py}\-- Controlador de Optimización Continua}
+\paragraph{Descripción general}
+\texttt{ContinuousOptimizationController} es la puerta de entrada del módulo. Instancia \texttt{StreamingGA}, \texttt{FitnessEvaluator}, \texttt{HierarchicalCache} y \texttt{MetricsLogger}; coordina las evaluaciones a horizonte corto/largo, aplica penalizaciones por falta de periodicidad y captura telemetría detallada por época.
+
+\subsubsection{\texttt{class ContinuousOptimizationController}}
+\paragraph{Propósito} Coordinar el ciclo de optimización evolutiva, generando candidatos, evaluando su fitness, reseedeando la población cuando hay estancamiento y devolviendo el mejor resultado junto con un resumen métrico completo.
+
+\subsubsection*{\texttt{\_\_init\_\_(cfg:\ Config, logger:\ Optional[Any] = None) -> None}}
+
+\begin{table}[H]
+  \centering
+  \caption{Parómetros de \texttt{ContinuousOptimizationController.\_\_init\_\_}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parómetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{cfg} & \texttt{Config} & Configuración global (presupuestos, radios, masas iniciales, etc.). \\
+    \texttt{logger} & \texttt{Any | None} & Registrador opcional; si es \texttt{None}, se usa \texttt{logging.getLogger}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{ContinuousOptimizationController.\_\_init\_\_}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{None} & Constructor; inicializa métricas y modificadores auxiliares. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de código de \texttt{ContinuousOptimizationController.\_\_init\_\_}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class ContinuousOptimizationController:
+    def __init__(self, cfg: Config, logger: Optional[Any] = None) -> None:
+        import logging
+
+        self.cfg = cfg
+        self.logger = logger or logging.getLogger("master_two_body_opt")
+        self.metrics = MetricsLogger()
+        self._modifier = ParameterModifier(cfg)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{\texttt{run~() -> Dict[str, Any]}}
+\textbf{Propósito.} Ejecutar la optimización completa respetando presupuestos (\texttt{time\_budget\_s}, \texttt{eval\_budget}, \texttt{max\_epochs}), intercalando evaluaciones a horizonte corto/largo, registrando métricas por época y devolviendo el mejor candidato encontrado con sus estadísticas.
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{ContinuousOptimizationController.run}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{Dict[str, Any]} & \{\texttt{``status''}, \texttt{``best''}, \texttt{``evals''}, \texttt{``epochs''}\}; \texttt{best} incluye masas, \texttt{lambda} y \texttt{fitness}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Fragmento principal de \texttt{ContinuousOptimizationController.run}}
+\begin{adjustbox}{max width=0.85\textwidth}
+\begin{minipage}{\linewidth}
+{\setstretch{0.95}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\scriptsize, breaklines, breakanywhere]{python}
+    def run(self) -> Dict[str, Any]:
+        start = time.time()
+        cache = HierarchicalCache(
+            approx_max=self.cfg.cache_approx_max, exact_max=self.cfg.cache_exact_max
+        )
+        evaluator = FitnessEvaluator(cache, self.cfg, logger=self.logger)
+        ga = StreamingGA(self.cfg, logger=self.logger)
+
+        best: Optional[Tuple[float, ...]] = None
+        best_fit = -float("inf")
+        best_lambda_value: Optional[float] = None
+        stagnation_counter = 0
+        radius = self.cfg.local_radius
+        epoch = 0
+        run_start = time.time()
+        if self.logger:
+            self.logger.info(
+                "Starting optimization | pop=%d | dims=%d | time_budget=%.1fs | eval_budget=%d",
+                self.cfg.pop_size,
+                len(getattr(self.cfg, "mass_bounds", tuple())),
+                self.cfg.time_budget_s,
+                self.cfg.eval_budget,
+            )
+
+        while True:
+            epoch_start = time.time()
+            now = time.time()
+            if now - start > self.cfg.time_budget_s or self.metrics.eval_count >= self.cfg.eval_budget:
+                break
+            if epoch >= self.cfg.max_epochs:
+                break
+
+            X = ga.current_population()
+            fits, short_details = evaluator.evaluate_batch(
+                X, horizon="short", epoch=epoch, return_details=True
+            )
+            self.metrics.eval_count += len(X)
+            short_evals = len(X)
+            long_evals = 0
+            epoch_best_lambda_short: Optional[float] = None
+            epoch_best_fitness_short: Optional[float] = None
+            epoch_best_lambda_global: Optional[float] = best_lambda_value
+            epoch_best_fitness_global: Optional[float] = (
+                float(best_fit) if best is not None and best_fit != -float("inf") else None
+            )
+            epoch_source = None
+            epoch_candidate_short: Optional[Tuple[float, ...]] = None
+
+            if len(fits) > 0:
+                idx = int(max(range(len(fits)), key=lambda i: fits[i]))
+                epoch_best_fit = float(fits[idx])
+                epoch_best = X[idx]
+                detail_short: Dict[str, Any] = short_details[idx] if idx < len(short_details) else {}
+                lambda_short_val = detail_short.get("lambda") if isinstance(detail_short, dict) else None
+                if lambda_short_val is None:
+                    lambda_short_val = -epoch_best_fit
+                penalty_short_val = (
+                    detail_short.get("penalty") if isinstance(detail_short, dict) else None
+                )
+                epoch_best_lambda_short = float(lambda_short_val)
+                epoch_best_fitness_short = epoch_best_fit
+                epoch_candidate_short = tuple(epoch_best)
+                if epoch_best_fit > best_fit:
+                    best_fit = epoch_best_fit
+                    best = epoch_best
+                    best_lambda_value = float(lambda_short_val)
+                    stagnation_counter = 0
+                    epoch_source = "short"
+                    epoch_best_lambda_global = best_lambda_value
+                    epoch_best_fitness_global = best_fit
+                    if self.logger:
+                        penalty_suffix = (
+                            f" | penalty={penalty_short_val:.6f}"
+                            if penalty_short_val is not None
+                            else ""
+                        )
+                        self.logger.info(
+                            "Epoch %d | new global best (short) lambda=%.6f | fitness=%.6f%s | masses=%s",
+                            epoch,
+                            best_lambda_value,
+                            best_fit,
+                            penalty_suffix,
+                            tuple(round(float(v), 6) for v in epoch_best),
+                        )
+                else:
+                    stagnation_counter += 1
+
+            try:
+                import numpy as _np
+
+                ga._last_F = _np.array(fits, dtype=float).reshape(-1, 1)
+            except Exception:
+                ga._last_F = None
+            ga.step(generations=max(1, self.cfg.n_gen_step), epoch=epoch)
+
+            if len(fits) > 0 and self.cfg.top_k_long > 0:
+                k = min(self.cfg.top_k_long, len(fits))
+                idxs = sorted(range(len(fits)), key=lambda i: fits[i], reverse=True)[:k]
+                topX = [X[i] for i in idxs]
+                long_fits, long_details = evaluator.evaluate_batch(
+                    topX, horizon="long", epoch=epoch, return_details=True
+                )
+                self.metrics.eval_count += len(topX)
+                long_evals = len(topX)
+                for xi, f_long, detail_long in zip(topX, long_fits, long_details):
+                    if f_long > best_fit:
+                        lambda_long_val = (
+                            detail_long.get("lambda") if isinstance(detail_long, dict) else None
+                        )
+                        if lambda_long_val is None:
+                            lambda_long_val = -float(f_long)
+                        penalty_long_val = (
+                            detail_long.get("penalty") if isinstance(detail_long, dict) else None
+                        )
+                        best_fit = float(f_long)
+                        best = xi
+                        best_lambda_value = float(lambda_long_val)
+                        epoch_source = "long"
+                        stagnation_counter = 0
+                        epoch_best_lambda_global = best_lambda_value
+                        epoch_best_fitness_global = best_fit
+                        if self.logger:
+                            penalty_suffix = (
+                                f" | penalty={penalty_long_val:.6f}"
+                                if penalty_long_val is not None
+                                else ""
+                            )
+                            self.logger.info(
+                                "Epoch %d | new global best (long) lambda=%.6f | fitness=%.6f%s | masses=%s",
+                                epoch,
+                                best_lambda_value,
+                                best_fit,
+                                penalty_suffix,
+                                tuple(round(float(v), 6) for v in xi),
+                            )
+
+            if stagnation_counter >= self.cfg.stagnation_window:
+                if self.logger:
+                    self.logger.info("Stagnation detected; reseeding around best candidate.")
+                radius = self._modifier.on_stagnation(ga, best, radius)
+                self.metrics.reseeds += 1
+                stagnation_counter = 0
+
+            self.metrics.record_epoch(
+                {
+                    "epoch": epoch,
+                    "best_lambda_short": epoch_best_lambda_short,
+                    "best_fitness_short": epoch_best_fitness_short,
+                    "best_candidate_short": list(epoch_candidate_short) if epoch_candidate_short else None,
+                    "best_lambda_global": epoch_best_lambda_global,
+                    "best_fitness_global": epoch_best_fitness_global,
+                    "best_candidate_global": list(best) if best else None,
+                    "evaluations": {
+                        "short": short_evals,
+                        "long": long_evals,
+                        "total": self.metrics.eval_count,
+                    },
+                    "stagnation_counter": stagnation_counter,
+                    "radius": radius,
+                    "epoch_time_s": time.time() - epoch_start,
+                    "source": epoch_source,
+                    "timestamp": time.time(),
+                }
+            )
+
+            epoch += 1
+            self.metrics.epochs = epoch
+
+        self.metrics.mark_phase("completed")
+        if best is not None:
+            final_lambda = (
+                float(best_lambda_value) if best_lambda_value is not None else -float(best_fit)
+            )
+        else:
+            final_lambda = None
+        if self.logger:
+            self.logger.info(
+                "Optimization completed | epochs=%d | evals=%d | best lambda=%s | wall=%.1fs",
+                epoch,
+                self.metrics.eval_count,
+                f"{final_lambda:.6f}" if final_lambda is not None else "N/A",
+                time.time() - run_start,
+            )
+
+        best_payload: Dict[str, Any] = {
+            "masses": list(best) if best else None,
+            "lambda": final_lambda,
+            "fitness": float(best_fit) if best is not None else None,
+        }
+        if best:
+            if len(best) > 0:
+                best_payload["m1"] = float(best[0])
+            if len(best) > 1:
+                best_payload["m2"] = float(best[1])
+            if len(best) > 2:
+                best_payload["m3"] = float(best[2])
+
+        return {
+            "status": "completed",
+            "best": best_payload,
+            "evals": self.metrics.eval_count,
+            "epochs": epoch,
+        }
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+
+
+}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+Durante cada época el controlador actualiza el \texttt{MetricsLogger} con lambdas corto/largo, penalizaciones, conteo de reseeds y tiempos, habilitando la generación de reportes de convergencia sin re-ejecutar simulaciones.
+
+
+
+\begin{listing}[H]
+\caption{Ejemplo de uso de \texttt{ContinuousOptimizationController}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.core.config import Config
+from two_body.core.telemetry import setup_logger
+from two_body.logic.controller import ContinuousOptimizationController
+
+cfg = Config(max_epochs=1, time_budget_s=1.0, eval_budget=10)
+logger = setup_logger()
+controller = ContinuousOptimizationController(cfg, logger=logger)
+result = controller.run()
+print("Resultado parcial:", result)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+% ---------- ga.py ----------
+\subsection{\texttt{ga.py} \- Motor Genótico en Streaming}
+\paragraph{Descripción general}
+\texttt{StreamingGA} envuelve la configuración del algoritmo genético de \texttt{pymoo} (\texttt{GA}) para el caso unidimensional de minimización (mLCE negativo). Expone una interfaz incremental (\texttt{ask}/\texttt{tell}) y se degrada a un sampler aleatorio con recombinación propia if \texttt{pymoo} no estó instalado o falla el \emph{setup}.
+
+\subsubsection{\texttt{class StreamingGA}}
+\paragraph{Propósito} Generar poblaciones candidato, recibir evaluaciones y evolucionar la exploración según los hiperparámetros definidos en \texttt{Config} (población, operadores, distribución de masas, elitismo), manteniendo soporte para reseeds locales y degradación controlada.
+
+\subsubsection*{\texttt{\_\_init\_\_(cfg:\ Config, logger:\ Optional[Any] = None) -> None}}
+
+\begin{table}[H]
+  \centering
+  \caption{Parómetros de \texttt{StreamingGA.\_\_init\_\_}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parómetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{cfg} & \texttt{Config} & Proporciona límites de masas, semillas, tasas de cruce/mutación y tamaño poblacional. \\
+    \texttt{logger} & \texttt{Any | None} & Registrador opcional para mensajes informativos o de degradación. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de código de \texttt{StreamingGA.\_\_init\_\_}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{0.85\textwidth}
+\begin{minted}[fontsize=\scriptsize, breaklines, breakanywhere]{python}
+class StreamingGA:
+    def __init__(self, cfg: Config, logger: Optional[Any] = None) -> None:
+        import logging
+
+        self.cfg = cfg
+        self.logger = logger or logging.getLogger("master_two_body_opt")
+        self._asked_pop = None
+        self._asked_X: Optional[Any] = None
+        self._last_F: Optional[Any] = None
+        self._rng = random.Random(cfg.seed)
+        self._reseed_center: Optional[Tuple[float, ...]] = None
+        self._reseed_radius: float = cfg.local_radius
+        self._bounds = [tuple(map(float, b)) for b in cfg.mass_bounds]
+        self._dim = len(self._bounds)
+        self._mass_distribution = getattr(cfg, "mass_distribution", "uniform").lower()
+        if self._mass_distribution not in {"uniform", "beta"}:
+            if self.logger:
+                self.logger.warning(
+                    "Mass distribution '%s' no soportada; se usara uniforme.",
+                    self._mass_distribution,
+                )
+            self._mass_distribution = "uniform"
+        self._beta_alpha = self._normalize_beta_param(
+            getattr(cfg, "mass_beta_alpha", 1.0),
+            "mass_beta_alpha",
+        )
+        self._beta_beta = self._normalize_beta_param(
+            getattr(cfg, "mass_beta_beta", 1.0),
+            "mass_beta_beta",
+        )
+
+        try:
+            from pymoo.algorithms.soo.nonconvex.ga import GA
+            from pymoo.core.problem import Problem
+            from pymoo.core.sampling import Sampling
+            from pymoo.operators.crossover.sbx import SBX
+            from pymoo.operators.mutation.pm import PolynomialMutation
+            from pymoo.operators.selection.tournament import TournamentSelection
+
+            class _TimedSBX(SBX):
+                def do(self, *args, **kwargs):
+                    with time_block("crossover", extra={"impl": "SBX"}):
+                        return super().do(*args, **kwargs)
+
+            class _TimedPolynomialMutation(PolynomialMutation):
+                def do(self, *args, **kwargs):
+                    with time_block("mutation", extra={"impl": "PolynomialMutation"}):
+                        return super().do(*args, **kwargs)
+
+            class _TimedTournamentSelection(TournamentSelection):
+                def do(self, *args, **kwargs):
+                    with time_block("selection_tournament", extra={"impl": "pymoo"}):
+                        return super().do(*args, **kwargs)
+
+            class _MassProblem(Problem):
+                def __init__(self, lows: Sequence[float], highs: Sequence[float]):
+                    import numpy as _np
+
+                    super().__init__(
+                        n_var=len(lows),
+                        n_obj=1,
+                        n_constr=0,
+                        xl=_np.array(lows, dtype=float),
+                        xu=_np.array(highs, dtype=float),
+                    )
+
+                def _evaluate(self, X, out, *args, **kwargs):
+                    import numpy as _np
+
+                    out["F"] = _np.zeros((len(X), 1), dtype=float)
+
+            class _BetaSampling(Sampling):
+                def __init__(
+                    self,
+                    lows: Sequence[float],
+                    highs: Sequence[float],
+                    alpha: Sequence[float],
+                    beta: Sequence[float],
+                    rng: random.Random,
+                ) -> None:
+                    super().__init__()
+                    self._lows = tuple(float(v) for v in lows)
+                    self._highs = tuple(float(v) for v in highs)
+                    self._alpha = tuple(float(v) for v in alpha)
+                    self._beta = tuple(float(v) for v in beta)
+                    self._rng = rng
+
+                def _do(self, problem, n_samples, **kwargs):
+                    import numpy as _np
+
+                    n_dim = len(self._lows)
+                    X = _np.empty((n_samples, n_dim), dtype=float)
+                    for i in range(n_samples):
+                        for j in range(n_dim):
+                            alpha = self._alpha[j % len(self._alpha)]
+                            beta = self._beta[j % len(self._beta)]
+                            beta_val = self._rng.betavariate(alpha, beta)
+                            X[i, j] = self._lows[j] + beta_val * (
+                                self._highs[j] - self._lows[j]
+                            )
+                    return X
+
+            lows = [b[0] for b in self._bounds]
+            highs = [b[1] for b in self._bounds]
+            self._problem = _MassProblem(lows, highs)
+            crossover = _TimedSBX(prob=max(0.0, min(1.0, float(cfg.crossover))))
+            mutation = _TimedPolynomialMutation(eta=cfg.mutation_eta, prob=cfg.mutation_prob)
+            selection = _TimedTournamentSelection(func_comp=lambda a, b: a.F[0] >= b.F[0])
+            sampling = _BetaSampling(lows, highs, self._beta_alpha, self._beta_beta, self._rng)
+            ga_kwargs = {
+                "pop_size": cfg.pop_size,
+                "sampling": sampling if self._mass_distribution == "beta" else None,
+                "crossover": crossover,
+                "mutation": mutation,
+                "selection": selection,
+                "eliminate_duplicates": False,
+            }
+            self._algorithm = GA(**ga_kwargs)
+            if cfg.selection != "tournament" and self.logger:
+                self.logger.warning(
+                    "Selection '%s' not supported explicitly; pymoo default will be used.",
+                    cfg.selection,
+                )
+            self._algorithm.setup(self._problem, termination=None, seed=cfg.seed)
+        except Exception as e:
+            self._problem = None
+            self._algorithm = None
+            if self.logger:
+                self.logger.warning(
+                    "pymoo unavailable or setup failed: %s. Using internal sampler.", e
+                )
+            self._pop = self._init_random_population()
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{\texttt{current\_population~() -> List[Tuple[float, \dots]]}}
+\textbf{Propósito.} Devolver la población actual. Con backend \texttt{pymoo} usa \texttt{ask()} y aplica reseeds locales; en modo degradado genera candidatos con \texttt{\_sample\_gene} (distribución uniforme/Beta) respetando los límites configurados.
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{current\_population}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{List[Tuple[float, \dots]]} & Secuencia de candidatos, cada uno con tantas masas como dimensiones configuradas. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de código de \texttt{current\_population}}
+\begin{adjustbox}{max width=0.65\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+    def current_population(self) -> List[Tuple[float, ...]]:
+        import numpy as _np
+
+        if self._algorithm is None:
+            if getattr(self, "_pop", None) is None:
+                bounds = self._bounds
+                center = self._reseed_center
+                radius = self._reseed_radius
+                self._pop = [
+                    tuple(
+                        min(
+                            max(
+                                (
+                                    center[idx]
+                                    if center
+                                    else self._sample_gene(idx, bounds)
+                                )
+                                + (self._rng.uniform(-radius, radius) if center else 0.0),
+                                bounds[idx][0],
+                            ),
+                            bounds[idx][1],
+                        )
+                        for idx in range(self._dim)
+                    )
+                    for _ in range(self.cfg.pop_size)
+                ]
+            return list(self._pop)
+
+        if self._asked_pop is not None and self._asked_X is not None:
+            X = self._asked_X
+        else:
+            pop = self._algorithm.ask()
+            X = pop.get("X")
+            if self._reseed_center is not None and self._reseed_radius > 0:
+                bounds = self._bounds
+                center = self._reseed_center
+                rad = self._reseed_radius
+                for i in range(len(X)):
+                    for j in range(self._dim):
+                        X[i, j] = float(
+                            _np.clip(
+                                center[j] + self._rng.uniform(-rad, rad),
+                                bounds[j][0],
+                                bounds[j][1],
+                            )
+                        )
+            pop.set("X", X)
+            self._asked_pop = pop
+            self._asked_X = X
+
+        return [tuple(float(x[j]) for j in range(self._dim)) for x in X]
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{\texttt{step~(generations:\ float = 1.0) -> None}}
+\vfill
+\textbf{Propósito.} Avanzar el GA con las evaluaciones acumuladas en \texttt{\_last\_F}, instrumentando el backend (\texttt{pymoo} o degradado) y aplicando elitismo/reseed cuando corresponde.
+
+\begin{listing}[H]
+\caption{Fragmento de \texttt{StreamingGA.step}}
+\begin{adjustbox}{max width=0.65\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\scriptsize, breaklines, breakanywhere]{python}
+    @time_section(
+        "ga_main",
+        epoch=lambda self, generations=1.0, epoch=-1: epoch,
+        extra=lambda self, generations=1.0, epoch=-1: {
+            "generations": generations,
+            "backend": "pymoo" if self._algorithm is not None else "fallback",
+        },
+    )
+    def step(self, generations: float = 1.0, *, epoch: int = -1) -> None:
+        if self._algorithm is None:
+            if getattr(self, "_pop", None) is None:
+                self._pop = self._init_random_population()
+            bounds = self._bounds
+            center = self._reseed_center
+            radius = self._reseed_radius
+            elites: List[Tuple[float, ...]] = []
+            if (
+                self.cfg.elitism > 0
+                and self._last_F is not None
+                and getattr(self, "_pop", None) is not None
+            ):
+                with time_block(
+                    "selection_tournament",
+                    extra={
+                        "impl": "fallback",
+                        "candidates": len(self._pop) if getattr(self, "_pop", None) else 0,
+                    },
+                ):
+                    try:
+                        scores = [float(val[0]) for val in list(self._last_F)]
+                    except Exception:
+                        scores = []
+                    if scores:
+                        ranked = sorted(
+                            range(len(self._pop)),
+                            key=lambda i: scores[i],
+                            reverse=True,
+                        )
+                        for idx in ranked[: min(self.cfg.elitism, len(self._pop))]:
+                            elites.append(self._pop[idx])
+            new_pop: List[Tuple[float, ...]] = list(elites)
+            while len(new_pop) < self.cfg.pop_size:
+                if center is not None:
+                    genes = [
+                        min(
+                            max(
+                                center[idx] + self._rng.uniform(-radius, radius),
+                                bounds[idx][0],
+                            ),
+                            bounds[idx][1],
+                        )
+                        for idx in range(self._dim)
+                    ]
+                else:
+                    genes = self._sample_offspring(bounds)
+                new_pop.append(tuple(genes))
+            self._pop = new_pop
+            self._asked_pop = None
+            self._asked_X = None
+            self._last_F = None
+            return
+
+        if self._asked_pop is None or self._asked_X is None:
+            _ = self.current_population()
+        if self._last_F is None:
+            if self.logger:
+                self.logger.debug("No fitness to tell; skipping GA step.")
+            return
+        try:
+            self._asked_pop.set("F", self._last_F)
+            self._algorithm.tell(infills=self._asked_pop)
+            for _ in range(max(1, int(generations))):
+                self._algorithm.next()
+        finally:
+            self._asked_pop = None
+            self._asked_X = None
+            self._last_F = None
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de inicialización de \texttt{StreamingGA}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.core.config import Config
+from two_body.logic.ga import StreamingGA
+
+ga = StreamingGA(Config())
+population = ga.current_population()
+print("Población inicial (primeros 3 individuos):", population[:3])
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+% ---------- fitness.py ----------
+\subsection{\texttt{fitness.py}\-- Evaluación de Fitness}
+\paragraph{Descripción general}
+\texttt{FitnessEvaluator} calcula el fitness de cada candidato negando el exponente de Lyapunov reportado por \texttt{LyapunovEstimator}. Instrumenta cada evaluación con \texttt{time\_block}, utiliza un \texttt{HierarchicalCache} exacto (masas, horizonte, peso de periodicidad) y aplica penalizaciones por pérdida de cuasi-periodicidad cuando se solicita.
+
+\subsubsection{\texttt{class FitnessEvaluator}}
+\paragraph{Propósito} Proveer una función de costo escalable para el GA, reutilizando simulaciones cuando es posible, validando dominios y devolviendo metadatos (fitness, lambda, penalización, estado) cuando se solicitan detalles.
+
+\subsubsection*{\texttt{evaluate\_batch~(candidates, horizon = ``short'') -> List[float]}}
+\textbf{Propósito.} Evaluar un conjunto de candidatos devolviendo el fitness (mayor es mejor), reutilizando caché exacta, validando dominios y aplicando penalizaciones/telemetría según el horizonte solicitado.
+
+\begin{table}[H]
+  \centering
+  \caption{Parómetros de \texttt{evaluate\_batch}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parómetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{candidates} & \texttt{List[Tuple[float, \dots]]} & Masas propuestos por el GA.\\
+    \texttt{horizon} & \texttt{str} & Horizonte temporal (\texttt{``short''} o \texttt{``long''}).\\
+    \texttt{epoch} & \texttt{int} & Identificador de época para telemetría; por defecto \texttt{-1}.\\
+    \texttt{return\_details} & \texttt{bool} & Devuelve metadatos adicionales cuando es \texttt{True}.\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{evaluate\_batch}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{List[float] | Tuple[List[float], List[Dict[str, Any]]]} & Fitness por candidato (y opcionalmente detalles por individuo).\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de código de \texttt{evaluate\_batch}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\linewidth}
+{\setstretch{0.95}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\scriptsize, breaklines, breakanywhere]{python}
+    def evaluate_batch(
+        self,
+        candidates: List[Tuple[float, ...]],
+        horizon: str = "short",
+        *,
+        epoch: int = -1,
+        return_details: bool = False,
+    ) -> Union[List[float], Tuple[List[float], List[Dict[str, Any]]]]:
+        import numpy as _np
+
+        if len(candidates) == 0:
+            return ([], []) if return_details else []
+
+        t_end = self.cfg.t_end_short if horizon == "short" else self.cfg.t_end_long
+        dt = self.cfg.dt
+        sim_builder = ReboundSim(G=self.cfg.G, integrator=self.cfg.integrator)
+        estimator = LyapunovEstimator()
+        bounds = self.cfg.mass_bounds
+        periodicity_weight = float(getattr(self.cfg, "periodicity_weight", 0.0) or 0.0)
+        try:
+            base_r0 = tuple(
+                tuple(float(coord) for coord in vec) for vec in self.cfg.r0  # type: ignore[arg-type]
+            )
+            base_v0 = tuple(
+                tuple(float(coord) for coord in vec) for vec in self.cfg.v0  # type: ignore[arg-type]
+            )
+        except Exception as exc:
+            raise ValueError(
+                "Config.r0 y Config.v0 deben contener vectores iterables numericos de longitud 3."
+            ) from exc
+        for name, base_vecs in (("r0", base_r0), ("v0", base_v0)):
+            for idx, vec in enumerate(base_vecs):
+                if len(vec) != 3:
+                    raise ValueError(f"Config.{name}[{idx}] debe contener exactamente 3 componentes.")
+
+        batch_id = self._next_batch_id()
+        results: List[float] = []
+        details: List[Dict[str, Any]] = []
+        with time_block(
+            "batch_eval",
+            epoch=epoch,
+            batch_id=batch_id,
+            extra={"size": len(candidates), "horizon": horizon},
+        ):
+            for individual_id, masses_raw in enumerate(candidates):
+                masses_tuple = tuple(float(m) for m in masses_raw)
+                key_exact = (
+                    tuple(round(m, 12) for m in masses_tuple)
+                    + (horizon, round(periodicity_weight, 12))
+                )
+                timing_meta = {
+                    "epoch": epoch,
+                    "batch_id": batch_id,
+                    "individual_id": individual_id,
+                }
+                with time_block(
+                    "fitness_eval",
+                    epoch=epoch,
+                    batch_id=batch_id,
+                    individual_id=individual_id,
+                    extra={"horizon": horizon},
+                ):
+                    cached_payload = self.cache.get_exact(key_exact)
+                    lam_val: Optional[float] = None
+                    penalty_val: Optional[float] = None
+                    status = "cache" if cached_payload is not None else "ok"
+                    if cached_payload is not None:
+                        if isinstance(cached_payload, dict):
+                            fit = float(cached_payload.get("fitness", -float("inf")))
+                            raw_lambda = cached_payload.get("lambda")
+                            lam_val = float(raw_lambda) if raw_lambda is not None else None
+                            raw_penalty = cached_payload.get("penalty")
+                            penalty_val = float(raw_penalty) if raw_penalty is not None else None
+                            status = str(cached_payload.get("status", status))
+                        else:
+                            fit = float(cached_payload)
+                    else:
+                        try:
+                            masses = masses_tuple
+                            if len(masses) != len(bounds):
+                                raise ValueError(
+                                    f"Cantidad de masas ({len(masses)}) no coincide con mass_bounds ({len(bounds)})."
+                                )
+                            for idx, m in enumerate(masses):
+                                lo, hi = bounds[idx]
+                                if m < lo or m > hi:
+                                    raise ValueError(f"Masa[{idx}]={m} fuera de [{lo}, {hi}].")
+                            if len(base_r0) < len(masses) or len(base_v0) < len(masses):
+                                raise ValueError(
+                                    "Config.r0 y Config.v0 deben definir al menos tantas entradas como masas."
+                                )
+                            r0 = base_r0[: len(masses)]
+                            v0 = base_v0[: len(masses)]
+                            sim = sim_builder.setup_simulation(masses=masses, r0=r0, v0=v0)
+                            initial_r: Optional[_np.ndarray] = None
+                            initial_v: Optional[_np.ndarray] = None
+                            if periodicity_weight != 0.0:
+                                initial_coords = []
+                                initial_vels = []
+                                for idx, particle in enumerate(sim.particles):
+                                    if idx >= len(masses):
+                                        break
+                                    initial_coords.append(
+                                        [float(particle.x), float(particle.y), float(particle.z)]
+                                    )
+                                    initial_vels.append(
+                                        [float(particle.vx), float(particle.vy), float(particle.vz)]
+                                    )
+                                if initial_coords:
+                                    initial_r = _np.asarray(initial_coords, dtype=float)
+                                if initial_vels:
+                                    initial_v = _np.asarray(initial_vels, dtype=float)
+                            ctx = {
+                                "sim": sim,
+                                "dt": dt,
+                                "t_end": t_end,
+                                "masses": masses,
+                                "timing_meta": timing_meta,
+                            }
+                            if len(masses) > 0:
+                                ctx["m1"] = masses[0]
+                            if len(masses) > 1:
+                                ctx["m2"] = masses[1]
+                            if len(masses) > 2:
+                                ctx["m3"] = masses[2]
+                            ret = estimator.mLCE(ctx, window=t_end, timing_meta=timing_meta)
+                            lam = float(ret.get("lambda", _np.inf))
+                            lam_val = lam
+                            if not _np.isfinite(lam):
+                                status = "nonfinite_lambda"
+                                self.logger.debug(
+                                    "Lyapunov no finito para %s (horizon=%s): %s",
+                                    masses_tuple,
+                                    horizon,
+                                    lam,
+                                )
+                                fit = -float("inf")
+                            else:
+                                penalty = 0.0
+                                if (
+                                    periodicity_weight != 0.0
+                                    and initial_r is not None
+                                    and initial_v is not None
+                                ):
+                                    try:
+                                        rf_list: list[list[float]] = []
+                                        vf_list: list[list[float]] = []
+                                        for idx, particle in enumerate(sim.particles):
+                                            if idx >= len(masses):
+                                                break
+                                            rf_list.append(
+                                                [float(particle.x), float(particle.y), float(particle.z)]
+                                            )
+                                            vf_list.append(
+                                                [float(particle.vx), float(particle.vy), float(particle.vz)]
+                                            )
+                                        rf_arr = _np.asarray(rf_list, dtype=float)
+                                        vf_arr = _np.asarray(vf_list, dtype=float)
+                                        if rf_arr.shape == initial_r.shape and vf_arr.shape == initial_v.shape:
+                                            delta_r = _np.linalg.norm(rf_arr - initial_r, axis=1).sum()
+                                            delta_v = _np.linalg.norm(vf_arr - initial_v, axis=1).sum()
+                                            penalty = float(delta_r + delta_v)
+                                        if not _np.isfinite(penalty):
+                                            self.logger.debug(
+                                                "Penalizacion no finita: delta_r=%.3e, delta_v=%.3e",
+                                                delta_r,
+                                                delta_v,
+                                            )
+                                            penalty = float("inf")
+                                        else:
+                                            self.logger.debug(
+                                                "delta_r=%.6f, delta_v=%.6f, penalty=%.6f",
+                                                delta_r,
+                                                delta_v,
+                                                penalty,
+                                            )
+                                            penalty = min(penalty, 1e6)
+                                    except Exception:
+                                        penalty = 0.0
+                                penalty_val = penalty
+                                fit = -lam - periodicity_weight * penalty
+                        except Exception as exc:
+                            status = "error"
+                            self.logger.debug(
+                                "Fallo evaluando candidato %s (horizon=%s): %s",
+                                masses_tuple,
+                                horizon,
+                                exc,
+                                exc_info=True,
+                            )
+                            fit = -float("inf")
+                            lam_val = lam_val if lam_val is not None else None
+                        cache_payload = {
+                            "fitness": float(fit),
+                            "lambda": float(lam_val) if lam_val is not None else None,
+                            "penalty": float(penalty_val) if penalty_val is not None else None,
+                            "status": status,
+                        }
+                        self.cache.set_exact(key_exact, cache_payload)
+
+                results.append(float(fit))
+                details.append(
+                    {
+                        "masses": masses_tuple,
+                        "fitness": float(fit),
+                        "lambda": float(lam_val) if lam_val is not None else None,
+                        "penalty": float(penalty_val) if penalty_val is not None else None,
+                        "cached": cached_payload is not None,
+                        "status": status,
+                        "horizon": horizon,
+                    }
+                )
+
+        if return_details:
+            return results, details
+        return results
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+
+
+}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+
+
+\begin{listing}[H]
+\caption{Ejemplo de evaluación en lote}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.core.cache import HierarchicalCache
+from two_body.core.config import Config
+from two_body.logic.fitness import FitnessEvaluator
+
+cfg = Config()
+cache = HierarchicalCache()
+evaluator = FitnessEvaluator(cache, cfg)
+scores, details = evaluator.evaluate_batch(
+    [(1.0, 1.0)],
+    horizon="short",
+    epoch=0,
+    return_details=True,
+)
+print("Fitness:", scores, "Detalles:", details)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+% ---------- parameters.py ----------
+\subsection{\texttt{parameters.py} \-- Modificación de Parómetros}
+\paragraph{Descripción general}
+\texttt{ParameterModifier} encapsula la estrategia de re-seeding cuando el GA se estanca. Centraliza la lógica que antes residóa en el controlador monolítico y permite ajustar la exploración local (radio).
+
+\subsubsection{\texttt{class ParameterModifier}}
+\paragraph{Propósito} Ajustar el radio de exploración y reposicionar al GA alrededor del mejor candidato conocido tras periodos de estancamiento.
+
+\subsubsection*{\texttt{on\_stagnation~(ga, best, radius) -> float}}
+\textbf{Propósito.} Reseedear el GA alrededor del mejor candidato y devolver el nuevo radio de exploración escalado por \texttt{radius\_decay}.
+
+\begin{table}[H]
+  \centering
+  \caption{Parómetros de \texttt{on\_stagnation}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.27\textwidth}p{0.33\textwidth}X@{}}
+    \toprule
+    \textbf{Parómetro} & \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{ga} & \texttt{StreamingGA} & Instancia del GA a la que se le aplicaró el reseed. \\
+    \texttt{best} & \texttt{Tuple[float, \dots] | None} & Mejor candidato conocido; if es \texttt{None}, no se aplica reseed. \\
+    \texttt{radius} & \texttt{float} & Radio actual de exploración local. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{Valor de retorno de \texttt{on\_stagnation}}
+  \small
+  \begin{tabularx}{\textwidth}{@{}p{0.35\textwidth}X@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Descripción} \\
+    \midrule
+    \texttt{float} & Nuevo radio recomendado tras aplicar \texttt{cfg.radius\_decay}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{listing}[H]
+\caption{Bloque de código de \texttt{on\_stagnation}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class ParameterModifier:
+    def on_stagnation(
+        self,
+        ga: StreamingGA,
+        best: Optional[Tuple[float, ...]],
+        radius: float,
+    ) -> float:
+        if best is None:
+            return radius
+        ga.reseed_around(best, radius)
+        return radius * self.cfg.radius_decay
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de reseed tras estancamiento}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.core.config import Config
+from two_body.logic.ga import StreamingGA
+from two_body.logic.parameters import ParameterModifier
+
+cfg = Config()
+ga = StreamingGA(cfg)
+modifier = ParameterModifier(cfg)
+new_radius = modifier.on_stagnation(ga, (1.0, 1.0), cfg.local_radius)
+print("Nuevo radio:", new_radius)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+% ---------- __init__.py ----------
+\subsection{\texttt{\_\_init\_\_.py} \-- API del Módulo}
+\paragraph{Descripción general}
+El archivo \texttt{\_\_init\_\_.py} re-exporta las clases principales para facilitar la importación desde \texttt{two\_body.logic}. Asó, los consumidores pueden escribir \texttt{from two\_body.logic import StreamingGA} sin exponer detalles internos.
+
+\begin{listing}[H]
+\caption{Bloque de código de \texttt{logic.\_\_init\_\_.py}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+"""
+Capa logica: motor de optimizacion y adaptacion de parametros.
+"""
+
+from .fitness import FitnessEvaluator  # noqa: F401
+from .ga import StreamingGA  # noqa: F401
+from .parameters import ParameterModifier  # noqa: F401
+from .controller import ContinuousOptimizationController  # noqa: F401
+
+__all__ = ["FitnessEvaluator", "StreamingGA", "ParameterModifier", "ContinuousOptimizationController"]
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\begin{listing}[H]
+\caption{Ejemplo de importación desde la API póblica}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.logic import ContinuousOptimizationController, StreamingGA
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+% --- Fin de capítulo ---

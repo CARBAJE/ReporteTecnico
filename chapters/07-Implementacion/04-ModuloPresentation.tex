@@ -1,0 +1,138 @@
+% ===========================
+% modulo_presentation.tex
+% ===========================
+
+\section{Módulo de Presentación}% chktex 24
+\label{sec:modulo-presentacion}
+
+\subsection{Introducción}
+El \emph{Módulo de Presentación} agrupa las utilidades de visualización y las interfaces de usuario empleadas para inspeccionar resultados del optimizador. Aunque muchas dependencias son opcionales (Matplotlib, PyQt5), se proveen implementaciones defensivas que degradan con mensajes claros cuando los paquetes no están disponibles.
+
+\subsection{Arquitectura de Alto Nivel}
+\begin{enumerate}
+    \item \textbf{Visualizer 2D (\texttt{visualization.py})}: renderiza trayectorias proyectadas en planos XY/XZ/YZ usando Matplotlib.
+    \item \textbf{Visualizer 3D (\texttt{triDTry.py})}: extiende la visualización con animaciones tridimensionales y comparaciones de masas.
+    \item \textbf{UI Qt (\texttt{ui.py})}: expone un \emph{launcher} minimal basado en PyQt5.
+    \item \textbf{API pública (\texttt{\_\_init\_\_.py})}: reexporta las clases y funciones relevantes.
+\end{enumerate}
+
+\subsection{Stack tecnológico}
+\begin{itemize}
+    \item \textbf{Matplotlib \& NumPy} para renderizados 2D/3D (opcional, con detección a tiempo de ejecución).
+    \item \textbf{PyQt5} para la ventana de previsualización (opcional).
+    \item \textbf{Python 3.10+} con tipado estático opcional.
+\end{itemize}
+
+% =========================================
+% DOCUMENTACIÓN POR SCRIPT
+% =========================================
+
+% ---------- visualization.py ----------
+\subsection{\texttt{visualization.py} \- Visualización planar}
+\paragraph{Descripción general}
+La clase \texttt{Visualizer} encapsula un flujo simple para graficar trayectorias discretizadas en tres paneles (XY, XZ, YZ). Gestiona entornos sin GUI mediante el flag \texttt{headless}.
+
+\subsubsection{\texttt{class Visualizer}}
+\paragraph{Propósito} Proveer vistas rápidas de trayectorias simuladas, agregando leyendas y manejando la ausencia de datos.
+
+\begin{listing}[H]
+\caption{Método \texttt{quick\_view} con degradación a modo headless}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class Visualizer:
+    def quick_view(
+        self,
+        trajectories: Optional[Iterable[Any]] = None,
+        title: str = "Visualizacion de trayectoria",
+    ) -> None:
+        try:
+            import matplotlib.pyplot as plt
+            import numpy as np
+        except Exception as exc:
+            print("Matplotlib no disponible, se omite la visualizacion:", exc)
+            return
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharex=False, sharey=False)
+        # ... configura paneles y traza cada trayectoria válida ...
+        if self.headless:
+            plt.close(fig)
+        else:
+            plt.show()
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+% ---------- triDTry.py ----------
+\subsection{\texttt{triDTry.py} \- Animación 3D}
+\paragraph{Descripción general}
+El visualizador 3D hereda de \texttt{Visualizer} e introduce animaciones de trayectorias espaciales y comparaciones de masas optimizadas. Se protege contra la falta de Matplotlib/NumPy y ofrece estructuras auxiliares para análisis.
+
+\subsubsection{\texttt{class Visualizer(Visualizer)}}
+\paragraph{Propósito} Extender la visualización planar con animaciones 3D y gráficas comparativas.
+
+\begin{listing}[H]
+\caption{Inicialización del visualizador 3D}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+class Visualizer(_PlanarVisualizer):
+    def __init__(
+        self,
+        headless: bool = True,
+        cfg: Config | None = None,
+        sim_builder: ReboundSim | None = None,
+    ) -> None:
+        super().__init__(headless=headless)
+        self.cfg = cfg or Config()
+        self._sim_builder = sim_builder or ReboundSim(
+            G=self.cfg.G, integrator=self.cfg.integrator
+        )
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{\texttt{animate\_3d(trajectories, ...)}}
+\textbf{Propósito.} Generar animaciones de orbitas 3D mediante \texttt{matplotlib.animation.FuncAnimation}, con límites de eje calculados dinámicamente y soporte para modo \texttt{headless}.
+
+\subsubsection*{\texttt{plot\_mass\_distance\_evolution(...)}}
+\textbf{Propósito.} Visualizar en 2D la evolución de distancias entre trayectorias original/optima, reutilizando datos precomputados para evitar simulaciones redundantes.
+
+% ---------- ui.py ----------
+\subsection{\texttt{ui.py} \- Interfaz Qt opcional}
+\paragraph{Descripción general}
+La rutina \texttt{launch\_preview\_window} levanta un \texttt{QWidget} minimal para previsualizar resultados. Si PyQt5 no está disponible, se degrada con un mensaje informativo sin abortar la ejecución.
+
+\begin{listing}[H]
+\caption{Lanzador de la ventana Qt}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+def launch_preview_window() -> None:
+    try:
+        from PyQt5 import QtWidgets
+    except Exception as exc:
+        print("PyQt5 no disponible. Instale PyQt5 para usar la interfaz.", exc)
+        return
+    app = QtWidgets.QApplication([])
+    window = QtWidgets.QWidget()
+    window.setWindowTitle("Sistema Visualizador del Modelo")
+    layout = QtWidgets.QVBoxLayout(window)
+    layout.addWidget(QtWidgets.QLabel("Placeholder de UI Qt para la visualizacion del modelo."))
+    window.show()
+    app.exec_()
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+% ---------- __init__.py ----------
+\subsection{\texttt{\_\_init\_\_.py} \- API pública}
+\paragraph{Descripción general}
+El archivo de inicialización expone \texttt{Visualizer} (2D), \texttt{Visualizer3D} (triDTry) y \texttt{launch\_preview\_window}, permitiendo importaciones simples como:
+\begin{itemize}
+    \item \texttt{from two\_body.presentation import Visualizer}
+    \item \texttt{from two\_body.presentation import ui}
+\end{itemize}
+Con ello, otros módulos consumen las capacidades de visualización sin depender de la estructura interna del paquete.
