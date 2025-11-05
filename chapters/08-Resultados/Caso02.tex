@@ -1,0 +1,751 @@
+\subsection{Caso de Prueba 2 — Problema de Sitnikov}
+
+El Problema de Sitnikov es un caso particular del problema restringido de tres cuerpos que fue propuesto por el matemático ruso Kirill Alekseevich Sitnikov en 1960. Este modelo describe el movimiento de una partícula de masa despreciable bajo la influencia gravitacional de dos cuerpos de masas iguales que orbitan entre sí en una trayectoria elíptica dentro de un mismo plano. La particularidad del problema radica en que el tercer cuerpo se mueve exclusivamente a lo largo del eje perpendicular al plano orbital de los dos cuerpos principales, lo que introduce una dinámica no trivial a pesar de su aparente simplicidad geométrica.
+
+A pesar de su formulación reducida, el Problema de Sitnikov posee un comportamiento extremadamente complejo y es uno de los ejemplos más famosos de caos determinista en sistemas gravitacionales. Dependiendo de las condiciones iniciales y de la excentricidad de la órbita de los cuerpos principales, el movimiento del tercer cuerpo puede ser periódico, cuasiperiódico o caótico, mostrando oscilaciones irregulares alrededor del plano central e incluso escapes gravitacionales.
+
+\paragraph{A. Propósito}
+Estudiar la variante \emph{Sitnikov modificado con control de periodicidad}, donde dos estrellas de masas similares orbitan en el plano XY y un tercer cuerpo ligero oscila sobre el eje Z. El notebook cuantifica cómo la optimización (GA + refinamiento continuo) reduce el exponente de Lyapunov y mejora la periodicidad del tercer cuerpo, contrastando el estado base con la solución optimizada.
+
+\paragraph{B. Parámetros críticos del experimento}
+El diccionario \texttt{case} (Listing~\ref{lst:c02_case}) define horizontes, condiciones iniciales y configuración del optimizador. Se trabaja en UA, años y masas solares.
+
+\begin{listing}[H]
+\caption{Declaración del diccionario \texttt{case} en el notebook Caso02}
+\label{lst:c02_case} %chktex 24
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+case = {
+    # Integración (UA, años, masas solares)
+    "t_end_short": 0.5,
+    "t_end_long": 4.0,
+    "dt": 2.0e-4,
+    "integrator": "ias15",
+
+    # Condiciones iniciales (Sitnikov físico)
+    "r0": ((-0.5, 0.0, 0.0), (0.5, 0.0, 0.0), (0.0, 0.0, 0.04)),
+    "v0": ((0.0, -4.442882938, 0.0),
+           (0.0, 4.442882938, 0.0),
+           (0.0, 0.0, 0.90)),
+
+    # Parámetros físicos
+    "mass_bounds": ((0.8, 1.2), (0.8, 1.2), (2.5e-6, 5.0e-6)),
+    "G": 39.47841760435743,
+    "periodicity_weight": 0.05,
+
+    # GA / búsqueda continua
+    "pop_size": 180,
+    "n_gen_step": 5,
+    "crossover": 0.85,
+    "mutation": 0.2,
+    "elitism": 2,
+    "seed": 1234,
+
+    "max_epochs": 50,
+    "top_k_long": 12,
+    "stagnation_window": 5,
+    "stagnation_tol": 1.25e-4,
+    "local_radius": 0.04,
+    "radius_decay": 0.85,
+    "time_budget_s": 1800.0,
+    "eval_budget": 16000,
+
+    # Artefactos / salida
+    "artifacts_dir": "artifacts/sitnikov_real",
+    "save_plots": True,
+    "headless": False,
+}
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\begin{table}[H]
+\centering
+\caption{Resumen de parámetros críticos del Caso 02}
+\label{tab:c02_params} %chktex 24
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Componente} & \textbf{Descripción} \\
+\midrule
+Horizontes & $t_{\text{short}} = 0.5$ años, $t_{\text{long}} = 4.0$ años, paso $\Delta t = 2\times10^{-4}$ años con integrador \texttt{IAS15}. \\
+Estado inicial & Estrellas en $\pm0.5$ UA, tercer cuerpo en $(0,0,0.04)$ con velocidad en $z$ de $0.90$ UA/año. \\
+Rangos de masa & Estrellas $[0.8,1.2]$ M$_\odot$; cuerpo ligero $[2.5,5.0]\times10^{-6}$ M$_\odot$. \\
+Penalización & \texttt{periodicity\_weight} $=0.05$ favorece trayectorias casi periódicas (minimiza $\Delta r + \Delta v$). \\
+GA & Población 180, cruce 0.85, mutación 0.2, elitismo 2, semilla 1234. \\
+Optimización continua & 50 épocas máximo, 12 candidatos a horizonte largo, radio local 0.04 con decaimiento 0.85. \\
+Artefactos & Resultados en \texttt{artifacts/sitnikov\_real}, modo gráfico activado (\texttt{headless} = False). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{C. Desglose detallado de celdas de código}
+A continuación se describe cada celda de código del cuaderno, incluyendo el fragmento correspondiente y la salida esperada. Las celdas de markdown proveen el contexto narrativo citado en las descripciones.
+
+\subsubsection*{Celda 3 — Preparación de rutas}
+\paragraph{Descripción} Localiza la raíz del repositorio \texttt{two\_body}, la inserta en \texttt{sys.path} y aborta si no la encuentra.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 3: detección de la raíz del proyecto}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import sys
+from pathlib import Path
+PROJECT_ROOT = Path.cwd().resolve()
+while PROJECT_ROOT.name != 'two_body' and PROJECT_ROOT.parent != PROJECT_ROOT:
+    PROJECT_ROOT = PROJECT_ROOT.parent
+if PROJECT_ROOT.name != 'two_body':
+    raise RuntimeError('No se encontró la carpeta two_body')
+PARENT = PROJECT_ROOT.parent
+if str(PARENT) not in sys.path:
+    sys.path.insert(0, str(PARENT))
+print('PYTHONPATH += ', PARENT)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Mensaje impreso: \texttt{PYTHONPATH += /ruta/al/directorio/padre}.
+
+\subsubsection*{Celda 5 — Importaciones principales}
+\paragraph{Descripción} Carga configuraciones, controlador, visualizadores y Rebound, junto con NumPy.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 5: importación de componentes}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body import Config, set_global_seeds
+from two_body.core.telemetry import setup_logger
+from two_body.logic.controller import ContinuousOptimizationController
+from two_body.presentation.visualization import Visualizer as PlanarVisualizer
+from two_body.presentation.triDTry import Visualizer as Visualizer3D
+from two_body.simulation.rebound_adapter import ReboundSim
+import numpy as np
+from pathlib import Path
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida; cualquier excepción indicaría dependencias faltantes.
+
+\subsubsection*{Celda 7 — Instrumentación de desempeño}
+\paragraph{Descripción} Habilita el registro de timings y expone utilidades para leer los CSV generados.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 7: configuración de \texttt{perf\_timings}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import os
+os.environ['PERF_TIMINGS_ENABLED'] = '1'
+os.environ.setdefault('PERF_TIMINGS_JSONL', '0')
+from two_body.perf_timings.timers import time_block
+from two_body.perf_timings import latest_timing_csv, read_timings_csv, parse_sections_arg, filter_rows
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida.
+
+\subsubsection*{Celda 9 — Handler de logging para Jupyter}
+\paragraph{Descripción} Define un \texttt{logging.Handler} que imprime los mensajes del controlador en la celda.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 9: configuración de logs interactivos}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import logging
+from IPython.display import display, Markdown
+
+class NotebookHandler(logging.Handler):
+
+    def __init__(self):
+        super().__init__()
+        self.lines = []
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.lines.append(msg)
+        print(msg)
+handler = NotebookHandler()
+handler.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s - %(message)s'))
+logger = setup_logger(level='DEBUG')
+logger.handlers.clear()
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida inmediata; los logs aparecerán en las celdas posteriores.
+
+\subsubsection*{Celda 11 — Declaración del escenario}
+\paragraph{Descripción} Define el diccionario \texttt{case}; véase Listing~\ref{lst:c02_case}.
+\paragraph{Salida esperada} Sin salida.
+
+\subsubsection*{Celda 12 — Instanciación de \texttt{Config}}
+\paragraph{Descripción} Construye \texttt{cfg = Config(**case)} y recupera un logger base. %chktex 36
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 12: creación de la configuración de trabajo}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.logic.controller import ContinuousOptimizationController
+from two_body.core.config import Config
+from two_body.core.telemetry import setup_logger
+from two_body.core.cache import HierarchicalCache
+cfg = Config(**case)
+logger = setup_logger()
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida.
+
+\subsubsection*{Celda 14 — Adaptador Sitnikov personalizado}
+\paragraph{Descripción} Define \texttt{SitnikovReboundSim}, que fija la partícula ligera al eje Z (forzando $x = vx = 0$ tras cada paso) y monkeypatches \texttt{ReboundSim} para que el evaluador de fitness use este adaptador.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 14: monkeypatch del adaptador REBOUND}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import rebound
+
+class SitnikovReboundSim(ReboundSim):
+
+    def setup_simulation(self, *args, **kwargs):
+        sim = super().setup_simulation(*args, **kwargs)
+
+        def clamp(_sim_ptr=None):
+            if len(sim.particles) > 2:
+                particle = sim.particles[2]
+                particle.x = 0.0
+                particle.vx = 0.0
+        sim.post_timestep_modifications = clamp
+        return sim
+from two_body.simulation import rebound_adapter
+rebound_adapter.ReboundSim = SitnikovReboundSim
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida; a partir de esta celda todas las instancias de ReboundSim aplican la restricción Sitnikov.
+
+\subsubsection*{Celda 15 — Chequeo rápido}
+\paragraph{Descripción} Imprime los rangos de masa, el máximo de épocas y el presupuesto de evaluaciones para confirmar la configuración.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 15: verificación de hiperparámetros}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+print(cfg.mass_bounds, cfg.max_epochs, cfg.eval_budget)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Línea con los valores impresos.
+
+\begin{listing}[htbp]
+\caption{Ejemplo Salida}
+\begin{adjustbox}{max width=0.7\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{bash}
+((0.8, 1.2), (0.8, 1.2), (2.5e-06, 5e-06)) 50 16000
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{Celda 17 — Ejecución del controlador}
+\paragraph{Descripción} Ejecuta el controlador evolutivo dentro de \texttt{time\_block(``notebook\_run'')}; los logs aparecen en la celda. (Nota: el campo \texttt{source} usa la cadena ``Caso01.ipynb'' por reutilización del notebook.)
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 17: lanzamiento del proceso de optimización}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+with time_block('notebook_run', extra={'source': 'Caso01.ipynb'}):
+    controller = ContinuousOptimizationController(cfg, logger=logger)
+    results = controller.run()
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Flujo de logs por época y registro del bloque \texttt{notebook\_run} en el CSV de timings.
+
+\begin{listing}[htbp]
+\caption{Ejemplo Salida}
+\begin{adjustbox}{max width=0.7\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{bash}
+[2025-11-02 18:03:22,252] INFO - Starting optimization | pop=180 | dims=3 | time_budget=1800.0s | eval_budget=16000
+[2025-11-02 18:03:35,304] INFO - Epoch 0 | new global best (short) lambda=-12.329815 | fitness=11.034798 | penalty=25.900326 | masses=(0.910586, 1.120749, 5e-06)
+...
+[2025-11-02 18:03:42,734] INFO - Epoch 0 complete | lambda_short=-12.329815 | fitness_short=11.034798 | lambda_best=-12.329815 |
+[2025-11-02 18:18:12,935] INFO - Epoch 40 | new global best (short) lambda=-15.714886 | fitness=14.292219 | penalty=28.453351 | masses=(0.819164, 1.2, 3e-06)
+...
+[2025-11-02 18:21:39,102] INFO - Epoch 49 complete | lambda_short=-15.033943 | fitness_short=13.611259 | lambda_best=-15.714886 | fitness_best=14.292219 | evals short/long=180/12 | total evals=9600 | radius=0.0151
+[2025-11-02 18:21:39,102] INFO - Optimization completed | epochs=50 | evals=9600 | best lambda=-15.714886 | wall=1096.8s
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{Celda 19 — Métricas y resultados}
+\paragraph{Descripción} Recupera \texttt{metrics} y evalúa \texttt{results}; al final de la celda se muestra el diccionario con la mejor solución.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 19: almacenamiento de métricas y snapshot de resultados}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+metrics = controller.metrics
+results
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Diccionario con claves \texttt{status}, \texttt{best}, \texttt{evals}, \texttt{epochs}.
+
+\begin{listing}[htbp]
+\caption{Ejemplo Salida}
+\begin{adjustbox}{max width=0.7\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{bash}
+{'status': 'completed',
+ 'best': {'masses': [0.8191638121070504, 1.2, 2.5e-06],
+  'lambda': -15.714886129963242,
+  'fitness': 14.292218582279823,
+  'm1': 0.8191638121070504,
+  'm2': 1.2,
+  'm3': 2.5e-06},
+ 'evals': 9600,
+ 'epochs': 50}
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{Celda 21 — Comparación de $\lambda$}
+\paragraph{Descripción} Evalúa \texttt{original\_masses} (estado base) y compara su lambda con el lambda del individuo óptimo.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 21: comparación de exponente de Lyapunov}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.core.cache import HierarchicalCache
+from two_body.logic.fitness import FitnessEvaluator
+cache = HierarchicalCache()
+evaluator = FitnessEvaluator(cache, cfg)
+original_masses = (0.8, 1.2, 2.5e-06)
+center = original_masses
+baseline_fits, baseline_details = evaluator.evaluate_batch([center], horizon='long', return_details=True)
+baseline_fit = baseline_fits[0]
+baseline_lambda = baseline_details[0].get('lambda')
+if baseline_lambda is None or not np.isfinite(baseline_lambda):
+    baseline_lambda = -baseline_fit
+best_payload = results.get('best', {})
+best_fit = best_payload.get('fitness')
+best_lambda = best_payload.get('lambda')
+if best_lambda is None and best_fit is not None:
+    best_lambda = -best_fit
+print(f'lambda inicial = {baseline_lambda:.6f}, lambda optimo = {(best_lambda if best_lambda is not None else 'N/A')}')
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Línea con ambos valores de $\lambda$.
+
+\begin{listing}[htbp]
+\caption{Ejemplo Salida}
+\begin{adjustbox}{max width=0.7\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{bash}
+lambda inicial = -0.984161,
+lambda optimo = -15.714886129963242
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{Celda 22 — Integración con masas optimizadas}
+\paragraph{Descripción} Integra la dinámica con las masas ganadoras, imprime información básica y extrae \texttt{xyz\_tracks}.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 22: integración prolongada con masas óptimas}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+sim_builder = ReboundSim(G=cfg.G, integrator=cfg.integrator)
+best_masses = tuple(results['best']['masses'])
+
+def _slice_vectors(vectors, count):
+    if len(vectors) < count:
+        raise ValueError('Config no tiene suficientes vectores iniciales')
+    return tuple((tuple((float(coord) for coord in vectors[i])) for i in range(count)))
+r0 = _slice_vectors(cfg.r0, len(best_masses))
+v0 = _slice_vectors(cfg.v0, len(best_masses))
+sim = sim_builder.setup_simulation(best_masses, r0, v0)
+traj = sim_builder.integrate(sim, t_end=cfg.t_end_long, dt=cfg.dt)
+print('Trayectoria calculada con masas óptimas.')
+print(traj.shape)
+print(traj[-1])
+xyz_tracks = [traj[:, i, :3] for i in range(traj.shape[1])]
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Mensaje de confirmación, forma del tensor y última fila (valores numéricos dependen de la ejecución).
+
+\begin{listing}[htbp]
+\caption{Ejemplo Salida}
+\begin{adjustbox}{max width=0.7\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{bash}
+{'status': 'completed',
+ 'best': {'masses': [0.8191638121070504, 1.2, 2.5e-06],
+  'lambda': -15.714886129963242,
+  'fitness': 14.292218582279823,
+  'm1': 0.8191638121070504,
+  'm2': 1.2,
+  'm3': 2.5e-06},
+ 'evals': 9600,
+ 'epochs': 50}
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{Celda 23 — Resumen físico}
+\paragraph{Descripción} Calcula métricas energéticas y orbitales con utilidades auxiliares, registrando los resultados vía \texttt{logger}.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 23: resumen físico de la trayectoria}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from two_body.scripts.demo_tierra import summarize_trajectory, compute_total_energy, estimate_orbital_period
+summarize_trajectory(logger=logger, traj=traj, masses=best_masses, cfg=cfg)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Logs con energía total, periodos estimados, etc.~(placeholder textual).
+
+\begin{listing}[htbp]
+\caption{Ejemplo Salida}
+\begin{adjustbox}{max width=0.7\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{bash}
+[2025-11-02 18:21:42,150] INFO - Resumen de simulacion
+[2025-11-02 18:21:42,150] INFO -   pasos=20000 | dt=0.000200 anios | duracion total=4.000 anios
+[2025-11-02 18:21:42,150] INFO -   masas=(0.8191638121070504, 1.2, 2.5e-06) (M_sun) | G=39.478418
+[2025-11-02 18:21:42,152] INFO -   centro de masa: desplazamiento maximo = 1.932e-15 UA
+[2025-11-02 18:21:42,173] INFO -   cuerpo 0 -> radio[min, max]=[0.5831, 0.5943] UA | radio sigma=3.9460e-03 | velocidad media=5.3325 UA/anio
+[2025-11-02 18:21:42,186] INFO -   cuerpo 1 -> radio[min, max]=[0.3981, 0.4057] UA | radio sigma=2.6938e-03 | velocidad media=3.6402 UA/anio
+[2025-11-02 18:21:42,193] INFO -   cuerpo 2 -> radio[min, max]=[0.0185, 0.8236] UA | radio sigma=2.3487e-01 | velocidad media=11.4824 UA/anio
+[2025-11-02 18:21:42,234] INFO -   energia total (media)=-1.958813e+01 | variacion relativa=1.632e-15
+[2025-11-02 18:21:42,249] INFO -   periodo orbital estimado para la Tierra ~= 0.693836 anios
+[2025-11-02 18:21:42,249] INFO -   error relativo vs 1 anio ~= 3.062e-01
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+
+\subsubsection*{Celda 24 — Evolución de $\lambda$}
+\paragraph{Descripción} Genera la gráfica del historial de $\lambda$; el título aún menciona ``Caso 01'' por reutilización, pero el contenido corresponde al Caso 02.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 24: gráfico de $\lambda$ por época}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+viz_3d = Visualizer3D(headless=cfg.headless)
+_ = viz_3d.plot_lambda_evolution(lambda_history=metrics.best_lambda_per_epoch, epoch_history=metrics.epoch_history, title='Evolución del exponente lambda – Caso 01', moving_average_window=5)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Figura (placeholder: \texttt{img/resultados/caso02\_lambda.png}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso02-evolucion_exponente.png}
+\caption{Evolución del exponente de Lyapunov por época.}
+\label{fig:c02_lambda} %chktex 24 %chktex 24
+\end{figure}
+
+
+\subsubsection*{Celda 25 — Regeneración defensiva de trayectorias}
+\paragraph{Descripción} Repite la integración con las masas óptimas para obtener \texttt{xyz\_tracks} si se reinicia el kernel.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 25: regeneración de datos de trayectoria}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+sim_builder = ReboundSim(G=cfg.G, integrator=cfg.integrator)
+best_masses = tuple(results['best']['masses'])
+
+def _slice_vectors(vectors, count):
+    if len(vectors) < count:
+        raise ValueError('Config no tiene suficientes vectores iniciales')
+    return tuple((tuple((float(coord) for coord in vectors[i])) for i in range(count)))
+r0 = _slice_vectors(cfg.r0, len(best_masses))
+v0 = _slice_vectors(cfg.v0, len(best_masses))
+sim = sim_builder.setup_simulation(best_masses, r0, v0)
+traj = sim_builder.integrate(sim, t_end=cfg.t_end_long, dt=cfg.dt)
+xyz_tracks = [traj[:, i, :3] for i in range(traj.shape[1])]
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida adicional.
+
+\subsubsection*{Celda 26 — Visualización planar}
+\paragraph{Descripción} Muestra proyecciones XY/XZ/ YZ del conjunto optimizado.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 26: vista planar}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+viz_planar = PlanarVisualizer(headless=cfg.headless)
+_ = viz_planar.quick_view(xyz_tracks)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Figura.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso02-vistas_trayectoria.png}
+\caption{Proyecciones 2D de las trayectorias optimizadas.}
+\label{fig:c02_planar} %chktex 24 %chktex 24
+\end{figure}
+
+\subsubsection*{Celda 27 — Parámetros de animación}
+\paragraph{Descripción} Amplía el límite de tamaño para animaciones embebidas.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 27: configuración de Matplotlib}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from IPython.display import HTML
+import matplotlib as mpl
+mpl.rcParams['animation.embed_limit'] = 1024
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida.
+
+\subsubsection*{Celda 28 — Animación 3D}
+\paragraph{Descripción} Construye el objeto \texttt{FuncAnimation} con las trayectorias optimizadas.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 28: creación de la animación 3D}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+viz_3d = Visualizer3D(headless=False)
+anim = viz_3d.animate_3d(trajectories=xyz_tracks, interval_ms=50, title=f'Trayectorias 3D m1={best_masses[0]:.3f}, m2={best_masses[1]:.3f}', total_frames=len(xyz_tracks[0]))
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Objeto \texttt{anim} en memoria (placeholder visual: \texttt{img/resultados/caso02\_trayectoria3d.png}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso02-trayectoria_3d.png}
+\caption{Fotograma representativo de la animación 3D generada.}
+\label{fig:c02_trayectoria3d} %chktex 24 %chktex 24
+\end{figure}
+
+\subsubsection*{Celda 30 — Exportación de la animación principal}
+\paragraph{Descripción} Guarda la animación 3D en MP4 dentro de \texttt{artifacts/caso02}.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 30: exportación de \texttt{trayectoria\_optima.mp4}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+from matplotlib.animation import FFMpegWriter
+writer = FFMpegWriter(fps=1000 // 50, bitrate=2400)
+output_path = Path('artifacts/caso02')
+output_path.mkdir(parents=True, exist_ok=True)
+anim.save(output_path / 'trayectoria_optima.mp4', writer=writer)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Archivo \texttt{trayectoria\_optima.mp4} guardado en disco.
+
+\subsubsection*{Celda 31 — Trayectoria baseline}
+\paragraph{Descripción} Integra el sistema con las masas originales para comparación directa.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 31: trayectoria con masas originales}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+sim_orig = sim_builder.setup_simulation(center, r0, v0)
+traj_original = sim_builder.integrate(sim_orig, t_end=cfg.t_end_long, dt=cfg.dt)
+traj_opt = traj
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Sin salida visible; produce \texttt{traj\_original} y \texttt{traj\_opt}.
+
+\subsubsection*{Celda 32 — Comparativa de trayectorias}
+\paragraph{Descripción} Genera una animación comparativa y, si procede, grafica la distancia entre trayectorias.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 32: comparativa original vs optimizado}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+orig_tracks = [traj_original[:, i, :3] for i in range(traj_original.shape[1])]
+opt_tracks = [traj_opt[:, i, :3] for i in range(traj_opt.shape[1])]
+anim_mass = viz_3d.plot_mass_comparison(original_tracks=orig_tracks, optimized_tracks=opt_tracks, original_masses=center, optimized_masses=best_masses, body_labels=[f'Cuerpo {i + 1}' for i in range(len(opt_tracks))], dt=cfg.dt, title='Comparativa de masas (Caso 01)')
+if anim_mass is not None:
+    dist_fig = viz_3d.plot_mass_distance_evolution(comparison_data=anim_mass.mass_comparison_data, title='||R_2 - R|| vs tiempo')
+    if dist_fig is not None:
+        display(dist_fig)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Animación/figura comparativa (placeholders: \texttt{img/resultados/caso02\_masas.png}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso02-comparativa_trayectoria.png}
+\caption{Comparativa gráfica entre trayectorias originales y optimizadas.}
+\label{fig:c01_masas} %chktex 24 %chktex 24
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso02-comparativa_posicion.png}
+\caption{Comparativa gráfica entre posiciones originales y optimizadas.}
+\label{fig:c01_masas} %chktex 24 %chktex 24
+\end{figure}
+
+\subsubsection*{Celda 33 — Exportación de la comparativa}
+\paragraph{Descripción} Guarda la animación de comparación en MP4.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 33: exportación de \texttt{comparativa\_masas.mp4}}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+anim_mass.save(output_path / 'comparativa_masas.mp4', writer=writer)
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Archivo MP4 en \texttt{artifacts/caso02/}.
+
+\subsubsection*{Celda 35 — Inspección de timings}
+\paragraph{Descripción} Carga el CSV más reciente de timings y muestra estadísticas agregadas.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 35: inspección del CSV de timings}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import pandas as pd
+csv_path = latest_timing_csv()
+display(f'Usando CSV: {csv_path}')
+rows = read_timings_csv(csv_path)
+df = pd.DataFrame(rows)
+display(df.head(10))
+section_stats = df.groupby('section')['duration_us'].agg(['count', 'mean', 'sum']).sort_values('sum', ascending=False)
+section_stats
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Texto con el CSV usado y tablas renderizadas (placeholder: \texttt{img/resultados/caso02\_timings.png}).
+
+\subsubsection*{Celda 36 — Ejecución de \texttt{plot\_timings.py}}
+\paragraph{Descripción} Ejecuta el script de visualización de timings y verifica que no haya errores.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 36: generación de gráficas de timings}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+import os
+import subprocess
+from pathlib import Path
+from IPython.display import Image, display
+PROJECT_ROOT = Path.cwd()
+while PROJECT_ROOT.name != 'two_body' and PROJECT_ROOT.parent != PROJECT_ROOT:
+    PROJECT_ROOT = PROJECT_ROOT.parent
+env = os.environ.copy()
+env['PYTHONPATH'] = str(PROJECT_ROOT)
+run_id = df['run_id'].iloc[0]
+cmd = [sys.executable, 'scripts/plot_timings.py', '--run-id', str(run_id), '--top-n', '5']
+print('Ejecutando:', ' '.join(cmd))
+result = subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, text=True, capture_output=True)
+print(result.stdout)
+print(result.stderr)
+result.check_returncode()
+reports_dir = PROJECT_ROOT / 'reports'
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Mensajes del comando ejecutado; en caso de error, se mostrarían trazas.
+
+
+\subsubsection*{Celda 37 — Despliegue de gráficos}
+\paragraph{Descripción} Muestra las imágenes de tiempos generadas por el script anterior.
+\paragraph{Código}
+\begin{listing}[H]
+\caption{Celda 37: despliegue de gráficos de timings}
+\begin{adjustbox}{max width=\textwidth}
+\begin{minipage}{\textwidth}
+\begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
+display(Image(filename=str(reports_dir / f'timeline_by_individual_{run_id}.png')), Image(filename=str(reports_dir / f'timeline_by_batch_{run_id}.png')), Image(filename=str(reports_dir / f'timeline_simulation_{run_id}.png')), Image(filename=str(reports_dir / f'pie_sections_{run_id}.png')))
+\end{minted}
+\end{minipage}
+\end{adjustbox}
+\end{listing}
+\paragraph{Salida esperada} Cuatro imágenes (placeholders: \texttt{img/resultados/timeline\_caso02\_*.png}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso02-metricasTiempo.png}
+\caption{Resumen visual del CSV de timings.}
+\label{fig:c01_timings} %chktex 24 %chktex 24
+\end{figure}
+
+\paragraph{D. Resultados y artefactos}
+\begin{itemize}
+    \item Diccionario \texttt{results} con masas, fitness y $\lambda$ optimizados para el problema de Sitnikov.
+    \item Series \texttt{metrics.best\_lambda\_per\_epoch} y \texttt{metrics.best\_fitness\_per\_epoch} para análisis comparativo.
+    \item Trayectorias \texttt{traj\_original}, \texttt{traj\_opt} y \texttt{xyz\_tracks} para visualizaciones.
+    \item Animaciones MP4 en \texttt{artifacts/caso02} y gráficas de timings en \texttt{reports/}.
+\end{itemize}
+
+\paragraph{E. Conclusiones del caso}
+\begin{itemize}
+    \item El adaptador \texttt{SitnikovReboundSim} garantiza la restricción geométrica del tercer cuerpo, permitiendo que el optimizador enfoque la búsqueda en masas/periodicidad.
+    \item El lambda optimizado es menor que el baseline, evidenciando una dinámica más estable en el eje Z.
+    \item Las animaciones 2D/3D confirman que el tercer cuerpo mantiene oscilaciones controladas, coherentes con los objetivos de periodicidad.
+    \item Las estadísticas de timing ayudan a identificar dónde invierte tiempo el pipeline (evaluación de fitness, integración, etc.).
+\end{itemize}
