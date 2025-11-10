@@ -1,6 +1,6 @@
-\subsection{Caso de Prueba 3 — \texttt{collision\_of\_two\_bodies/two\_body/test/Caso03.ipynb}}
+\subsection{Caso de Prueba 3 — \textit{Kicked Kepler}}
 
-El experimento “Kicked Kepler” analiza un sistema Kepleriano perturbado: una estrella central y un planeta ligero sometidos a impulsos periódicos en su velocidad orbital. El notebook busca ajustar las masas dentro de rangos restringidos para reducir la respuesta caótica del sistema, medida mediante el exponente de Lyapunov, al tiempo que preserva la periodicidad inducida por los impulsos.
+El experimento “Kicked Kepler” analiza un sistema Kepleriano perturbado: una estrella central y un planeta ligero sometidos a impulsos periódicos en su velocidad orbital. El caso busca ajustar las masas dentro de rangos restringidos para reducir la respuesta caótica del sistema, medida mediante el exponente de Lyapunov, al tiempo que preserva la periodicidad inducida por los impulsos.
 
 \paragraph{A. Propósito}
 Cuantificar cómo el pipeline híbrido (GA + refinamiento continuo) puede estabilizar una órbita Kepleriana sujeta a impulsos periódicos. Se contrasta el comportamiento del estado base con el de la solución óptima reportada por el notebook, considerando tanto el exponente de Lyapunov como la penalización de periodicidad aplicada tras cada ciclo de impulsos.
@@ -89,6 +89,7 @@ Se describe cada celda de código relevante, incluyendo el fragmento ejecutado y
 \subsubsection*{Celda 3 — Preparación de rutas}
 \paragraph{Descripción} Localiza la raíz del repositorio \texttt{two\_body}, la añade a \texttt{sys.path} y detiene la ejecución si no la encuentra.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 3: detección de la raíz del proyecto}
 \begin{adjustbox}{max width=\textwidth}
@@ -114,6 +115,7 @@ print('PYTHONPATH += ', PARENT)
 \subsubsection*{Celda 5 — Importaciones principales}
 \paragraph{Descripción} Importa configuraciones, controlador, visualizadores y Rebound, junto con NumPy.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 5: importación de componentes}
 \begin{adjustbox}{max width=\textwidth}
@@ -136,6 +138,7 @@ from pathlib import Path
 \subsubsection*{Celda 7 — Instrumentación de timings}
 \paragraph{Descripción} Activa \texttt{PERF\_TIMINGS\_ENABLED} y carga utilidades para manipular los CSV de tiempos.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 7: configuración de \texttt{perf\_timings}}
 \begin{adjustbox}{max width=\textwidth}
@@ -155,6 +158,7 @@ from two_body.perf_timings import latest_timing_csv, read_timings_csv, parse_sec
 \subsubsection*{Celda 9 — Handler de logging para Jupyter}
 \paragraph{Descripción} Define un \texttt{logging.Handler} personalizado para mostrar los mensajes del controlador en la celda.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 9: configuración de logs interactivos}
 \begin{adjustbox}{max width=\textwidth}
@@ -194,6 +198,7 @@ logger.setLevel(logging.INFO)
 \paragraph{Código}
 \begin{listing}[H]
 \caption{Celda 12: creación de la configuración de trabajo}
+\par\smallskip
 \begin{adjustbox}{max width=\textwidth}
 \begin{minipage}{\textwidth}
 \begin{minted}[fontsize=\small, breaklines, breakanywhere]{python}
@@ -212,6 +217,7 @@ logger = setup_logger()
 \subsubsection*{Celda 14 — Ajuste del adaptador REBOUND (impulsos)}
 \paragraph{Descripción} Define una subclase de \texttt{ReboundSim} que aplica los impulsos periódicos en la partícula ligera y reasigna \texttt{ReboundSim} en el módulo de simulación.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 14: monkeypatch del adaptador con “kicks” \texttt{kick\_periodic}}
 \begin{adjustbox}{max width=\textwidth}
@@ -243,6 +249,7 @@ rebound_adapter.ReboundSim = KickReboundSim
 \subsubsection*{Celda 15 — Chequeo de hiperparámetros}
 \paragraph{Descripción} Imprime los rangos de massa, máximo de épocas y presupuesto de evaluaciones.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 15: verificación rápida}
 \begin{adjustbox}{max width=\textwidth}
@@ -255,7 +262,7 @@ print(cfg.mass_bounds, cfg.max_epochs, cfg.eval_budget)
 \end{listing}
 \paragraph{Salida esperada} Línea con los valores impresos.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -269,6 +276,7 @@ print(cfg.mass_bounds, cfg.max_epochs, cfg.eval_budget)
 \subsubsection*{Celda 17 — Ejecución del controlador}
 \paragraph{Descripción} Lanza el controlador evolutivo dentro de \texttt{time\_block(``notebook\_run'')}; los logs de cada época aparecen en la celda. % chktex 36
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 17: lanzamiento de la optimización}
 \begin{adjustbox}{max width=\textwidth}
@@ -283,7 +291,7 @@ with time_block('notebook_run', extra={'source': 'Caso03.ipynb'}):
 \end{listing}
 \paragraph{Salida esperada} Serie de logs por época y registro del tiempo total del bloque \texttt{notebook\_run}.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -308,6 +316,7 @@ with time_block('notebook_run', extra={'source': 'Caso03.ipynb'}):
 \subsubsection*{Celda 19 — Métricas y resultados}
 \paragraph{Descripción} Captura \texttt{metrics} y muestra \texttt{results} para inspeccionar la mejor solución encontrada.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 19: inspección de resultados}
 \begin{adjustbox}{max width=\textwidth}
@@ -321,7 +330,7 @@ results
 \end{listing}
 \paragraph{Salida esperada} Diccionario con \texttt{status}, \texttt{best}, \texttt{evals}, \texttt{epochs}; los valores dependen de la corrida.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -342,6 +351,7 @@ results
 \subsubsection*{Celda 21 — Comparación de $\lambda$}
 \paragraph{Descripción} Evalúa el estado base y compara su $\lambda$ con el del mejor individuo para cuantificar la mejora obtenida.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 21: comparación de exponente de Lyapunov}
 \begin{adjustbox}{max width=\textwidth}
@@ -369,7 +379,7 @@ print(f'lambda inicial = {baseline_lambda:.6f}, lambda optimo = {(best_lambda if
 \end{listing}
 \paragraph{Salida esperada} Línea con ambos valores de $\lambda$.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -384,6 +394,7 @@ lambda optimizado (short) = -2.569736
 \subsubsection*{Celda 22 — Integración con masas optimizadas}
 \paragraph{Descripción} Reintegra la dinámica con las masas ganadoras y muestra información básica (forma del tensor y último estado) antes de extraer \texttt{xyz\_tracks}.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 22: integración prolongada con masas óptimas}
 \begin{adjustbox}{max width=\textwidth}
@@ -408,9 +419,9 @@ xyz_tracks = [traj[:, i, :3] for i in range(traj.shape[1])]
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Mensaje ``\texttt{Trayectoria calculada\dots}'', forma del tensor (p.\ ej.\ \texttt{(20000, 2, 6)}) y último estado (placeholder).
+\paragraph{Salida esperada} Mensaje ``\texttt{Trayectoria calculada\dots}'', forma del tensor (p.\ ej.\ \texttt{(20000, 2, 6)}) y último estado.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -429,6 +440,7 @@ Trayectoria calculada con masas óptimas.
 \subsubsection*{Celda 23 — Resumen físico}
 \paragraph{Descripción} Resume la trayectoria usando utilidades de \texttt{scripts.demo\_tierra}, incluyendo energía total y periodos aproximados.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 23: resumen físico de la órbita}
 \begin{adjustbox}{max width=\textwidth}
@@ -440,9 +452,9 @@ summarize_trajectory(logger=logger, traj=traj, masses=best_masses, cfg=cfg)
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Logs con energía total, periodos estimados, distancias extremas (placeholder textual).
+\paragraph{Salida esperada} Logs con energía total, periodos estimados, distancias extremas.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -464,6 +476,7 @@ summarize_trajectory(logger=logger, traj=traj, masses=best_masses, cfg=cfg)
 \subsubsection*{Celda 24 — Evolución de $\lambda$}
 \paragraph{Descripción} Genera el gráfico del exponente de Lyapunov por época (el título mantiene “Caso 01” por reutilización).
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 24: gráfico de $\lambda$ por época}
 \begin{adjustbox}{max width=\textwidth}
@@ -477,9 +490,9 @@ _ = viz_3d.plot_lambda_evolution(lambda_history=metrics.best_lambda_per_epoch, e
 \end{listing}
 \paragraph{Salida esperada} Figura.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{img/resultados/caso02-evolucion_exponente.png}
+\includegraphics[width=0.85\textwidth]{img/resultados/caso03-evolucion_exponente.png}
 \caption{Evolución del exponente de Lyapunov por época.}
 \label{fig:c02_lambda} %chktex 24 %chktex 24
 \end{figure}
@@ -487,6 +500,7 @@ _ = viz_3d.plot_lambda_evolution(lambda_history=metrics.best_lambda_per_epoch, e
 \subsubsection*{Celda 25 — Reintegración defensiva}
 \paragraph{Descripción} Repite la integración para reconstruir \texttt{xyz\_tracks} si el kernel se reinicia, reutilizando la lógica de la celda 22.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 25: regeneración de datos de trayectoria}
 \begin{adjustbox}{max width=\textwidth}
@@ -513,6 +527,7 @@ xyz_tracks = [traj[:, i, :3] for i in range(traj.shape[1])]
 \subsubsection*{Celda 26 — Visualización planar 2D}
 \paragraph{Descripción} Genera proyecciones (XY, XZ, YZ) de las trayectorias optimizadas.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 26: vista planar}
 \begin{adjustbox}{max width=\textwidth}
@@ -526,7 +541,7 @@ _ = viz_planar.quick_view(xyz_tracks)
 \end{listing}
 \paragraph{Salida esperada} Figura.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso01-vistas_trayectoria.png}
 \caption{Proyecciones 2D de las trayectorias optimizadas.}
@@ -536,6 +551,7 @@ _ = viz_planar.quick_view(xyz_tracks)
 \subsubsection*{Celda 27 — Configuración de animaciones embebidas}
 \paragraph{Descripción} Amplía el límite de tamaño permitido para animaciones en HTML.\
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 27: configuración de Matplotlib}
 \begin{adjustbox}{max width=\textwidth}
@@ -553,6 +569,7 @@ mpl.rcParams['animation.embed_limit'] = 1024
 \subsubsection*{Celda 28 — Animación 3D}
 \paragraph{Descripción} Construye el objeto \texttt{FuncAnimation} con las trayectorias optimizadas.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 28: creación de la animación 3D}
 \begin{adjustbox}{max width=\textwidth}
@@ -566,9 +583,9 @@ anim = viz_3d.animate_3d(trajectories=xyz_tracks, interval_ms=50, title=f'Trayec
 \end{listing}
 \paragraph{Salida esperada} Objeto \texttt{anim}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{img/resultados/caso02-trayectoria_3d.png}
+\includegraphics[width=0.85\textwidth]{img/resultados/caso03-trayectoria_3d.png}
 \caption{Fotograma representativo de la animación 3D generada.}
 \label{fig:c03_trayectoria3d} %chktex 24 %chktex 24
 \end{figure}
@@ -576,6 +593,7 @@ anim = viz_3d.animate_3d(trajectories=xyz_tracks, interval_ms=50, title=f'Trayec
 \subsubsection*{Celda 32 — Exportación de la animación principal}
 \paragraph{Descripción} Guarda la animación de la trayectoria optimizada en MP4 con ajustes de \texttt{ffmpeg}.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 32: exportación de \texttt{trayectoria\_optima.mp4}}
 \begin{adjustbox}{max width=\textwidth}
@@ -595,6 +613,7 @@ anim.save(output_path / 'trayectoria_optima.mp4', writer=writer)
 \subsubsection*{Celda 33 — Trayectoria baseline}
 \paragraph{Descripción} Integra el sistema con las masas originales para comparación directa.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 33: trayectoria con masas originales}
 \begin{adjustbox}{max width=\textwidth}
@@ -612,6 +631,7 @@ traj_opt = traj
 \subsubsection*{Celda 34 — Comparativa de trayectorias}
 \paragraph{Descripción} Genera una animación que compara la trayectoria original frente a la optimizada y, si procede, una figura con la evolución de la distancia entre ambas.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 34: comparativa original vs optimizado}
 \begin{adjustbox}{max width=\textwidth}
@@ -630,16 +650,16 @@ if anim_mass is not None:
 \end{listing}
 \paragraph{Salida esperada} Animación y figura comparativa.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{img/resultados/caso02-comparativa_trayectoria.png}
+\includegraphics[width=0.85\textwidth]{img/resultados/caso03-comparativa_trayectoria.png}
 \caption{Comparativa gráfica entre trayectorias originales y optimizadas.}
 \label{fig:c03_masas} %chktex 24 %chktex 24
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{img/resultados/caso02-comparativa_posicion.png}
+\includegraphics[width=0.85\textwidth]{img/resultados/caso03-comparativa_posicion.png}
 \caption{Comparativa gráfica entre posiciones originales y optimizadas.}
 \label{fig:c03_masas} %chktex 24 %chktex 24
 \end{figure}
@@ -647,6 +667,7 @@ if anim_mass is not None:
 \subsubsection*{Celda 35 — Exportación de la comparativa}
 \paragraph{Descripción} Guarda la animación de comparación en MP4.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 35: exportación de \texttt{comparativa\_masas.mp4}}
 \begin{adjustbox}{max width=\textwidth}
@@ -662,6 +683,7 @@ anim_mass.save(output_path / 'comparativa_masas.mp4', writer=writer)
 \subsubsection*{Celda 37 — Estadísticas rápidas de timings}
 \paragraph{Descripción} Carga el CSV más reciente, muestra una vista preliminar y calcula estadísticas agregadas por sección.
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 37: inspección del CSV de timings}
 \begin{adjustbox}{max width=\textwidth}
@@ -684,6 +706,7 @@ section_stats
 \subsubsection*{Celda 38 — Gráficas detalladas de timings}
 \paragraph{Descripción} Ejecuta \texttt{scripts/plot\_timings.py} y muestra las figuras resultantes (líneas de tiempo, pastel, etc.).
 \paragraph{Código}
+\par\smallskip
 \begin{listing}[H]
 \caption{Celda 38: generación y despliegue de gráficos de timings}
 \begin{adjustbox}{max width=\textwidth}
@@ -713,7 +736,7 @@ display(Image(filename=str(reports_dir / f'timeline_by_individual_{run_id}.png')
 \end{listing}
 \paragraph{Salida esperada} Mensajes de la ejecución y cuatro figuras.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso03-metricasTiempo.png}
 \caption{Resumen visual del CSV de timings.}

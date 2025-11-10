@@ -304,7 +304,7 @@ with time_block('notebook_run', extra={'source': 'Caso04.ipynb'}):
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Registro detallado de 50 épocas (placeholders de log: \texttt{img/resultados/caso04\_logs.txt}). Destaca mejoras sucesivas de $\lambda$ hasta alcanzar $\lambda_{\text{best}} \approx -5.885$ en la época 9 y una reducción adicional a $\lambda_{\text{best}} \approx -6.012$ al final. También reporta eventos de reseeding cuando el radio local decrece de $0.0400$ a $0.0289$.
+\paragraph{Salida} Registro detallado de 50 épocas . Destaca mejoras sucesivas de $\lambda$ hasta alcanzar $\lambda_{\text{best}} \approx -5.885$ en la época 9 y una reducción adicional a $\lambda_{\text{best}} \approx -6.012$ al final. También reporta eventos de reseeding cuando el radio local decrece de $0.0400$ a $0.0289$.
 
 \begin{listing}[H]
 \caption{Ejemplo Salida}
@@ -416,7 +416,7 @@ if RUN_LONG_CHECK and best_payload.get('masses'):
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Impresión: $\lambda_{\text{original}} = -2.805940$ y $\lambda_{\text{optimizado}} = -6.012074$, confirmando una reducción significativa de caos (placeholder textual).
+\paragraph{Salida} Impresión: $\lambda_{\text{original}} = -2.805940$ y $\lambda_{\text{optimizado}} = -6.012074$, confirmando una reducción significativa de caos.
 
 \begin{listing}[H]
 \caption{Ejemplo Salida}
@@ -445,9 +445,9 @@ _ = viz_3d.plot_lambda_evolution(lambda_history=metrics.best_lambda_per_epoch, e
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Figura interactiva (placeholder: \texttt{img/resultados/caso04\_lambda.png}) mostrando la convergencia hacia $\lambda \approx -6.0$ tras la época 9.
+\paragraph{Salida} Figura interactiva mostrando la convergencia hacia $\lambda \approx -6.0$ tras la época 9.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso04-evolucion_exponente.png}
 \caption{Evolución del exponente de Lyapunov para el Caso 04.}
@@ -468,9 +468,9 @@ _ = viz_3d.plot_fitness_evolution(fitness_history=metrics.best_fitness_per_epoch
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Segunda figura (placeholder: \texttt{img/resultados/caso04\_fitness.png}) donde se observa el incremento del fitness después de la reselección en la época 8.
+\paragraph{Salida} Segunda figura donde se observa el incremento del fitness después de la reselección en la época 8.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso04-evolucion_fitness.png}
 \caption{Historial del fitness máximo alcanzado en cada época.}
@@ -505,7 +505,7 @@ xyz_tracks = [traj[:, i, :3] for i in range(traj.shape[1])]
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Mensaje de confirmación, forma del tensor (\texttt{(17500, 3, 6)}) y última fila de la trayectoria (placeholder numérico para documentación). % chktex 36
+\paragraph{Salida} Mensaje de confirmación, forma del tensor (\texttt{(17500, 3, 6)}) y última fila de la trayectoria. % chktex 36
 
 \begin{listing}[H]
 \caption{Ejemplo Salida}
@@ -537,7 +537,7 @@ summarize_trajectory(logger=logger, traj=traj, masses=best_masses, cfg=cfg)
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Logs (placeholder: \texttt{img/resultados/caso04\_summary.txt}) con energía total, pasos, intervalo temporal y distancias máximas/mínimas entre cuerpos.
+\paragraph{Salida} Logs con energía total, pasos, intervalo temporal y distancias máximas/mínimas entre cuerpos.
 
 \begin{listing}[H]
 \caption{Ejemplo Salida}
@@ -569,9 +569,9 @@ _ = viz_planar.quick_view(xyz_tracks)
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Figura mostrada in situ (placeholder: \texttt{img/resultados/caso04\_planar.png}) con las órbitas proyectadas en el plano.
+\paragraph{Salida} Figura mostrada in situ con las órbitas proyectadas en el plano.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso04-vistas_trayectoria.png}
 \caption{Proyecciones 2D de las trayectorias optimizadas para el Caso 04.}
@@ -611,9 +611,9 @@ anim = viz_3d.animate_3d(trajectories=xyz_tracks, interval_ms=50, title=f'Trayec
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Objeto de animación renderizado en la célula (placeholder: \texttt{img/resultados/caso04\_anim3d.gif}) listo para exportarse a video.
+\paragraph{Salida} Objeto de animación renderizado en la célula listo para exportarse a video.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso04-trayectoria_3d.png}
 \caption{Fotograma de la animación tridimensional generada en el Caso 04.}
@@ -638,7 +638,7 @@ anim.save(output_path / 'trayectoria_optima.mp4', writer=writer)
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Archivo MP4 persistido (placeholder: \texttt{artifacts/caso04/trayectoria\_optima.mp4}), sin salida adicional.
+\paragraph{Salida} Archivo MP4 persistido, sin salida adicional.
 
 \subsubsection*{Celda 34 — Integración con masas iniciales}
 \paragraph{Descripción} Repite la integración para las masas de referencia con el fin de comparar contra la solución optimizada. Reutiliza la trayectoria optimizada (\texttt{traj\_opt}) calculada en la celda 27.
@@ -678,16 +678,16 @@ if anim_mass is not None:
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Tres figuras (placeholders: \texttt{img/resultados/caso04\_comparativa.png}, \texttt{img/resultados/caso04\_planos.png}, \texttt{img/resultados/caso04\_distancias.png}) y una animación secundaria si se renderiza con \texttt{HTML}.
+\paragraph{Salida} Tres figuras y una animación secundaria si se renderiza con \texttt{HTML}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso04-comparativa_trayectoria.png}
 \caption{Comparativa entre trayectorias originales y optimizadas.}
 \label{fig:c04_comparativa} %chktex 24
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso04-comparativa_posicion.png}
 \caption{Evolución de la distancia entre configuraciones original y optimizada.}
@@ -708,7 +708,7 @@ anim_mass.save(output_path / 'comparativa_masas.mp4', writer=writer)
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Archivo MP4 (placeholder: \texttt{artifacts/caso04/comparativa\_masas.mp4}); no imprime texto adicional.
+\paragraph{Salida} Archivo MP4; no imprime texto adicional.
 
 \subsubsection*{Celda 37 (markdown) — Reporte de tiempos}
 \paragraph{Descripción} Introduce el análisis de instrumentación. (No contiene código, pero contextualiza las próximas celdas).
@@ -734,7 +734,7 @@ section_stats
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Texto con la ruta del CSV, tabla de las primeras 10 filas y tabla agregada (placeholder: \texttt{img/resultados/caso04\_timings.png}) donde destaca que \texttt{notebook\_run}, \texttt{batch\_eval} y \texttt{fitness\_eval} concentran la mayor duración.
+\paragraph{Salida} Texto con la ruta del CSV, tabla de las primeras 10 filas y tabla agregada donde destaca que \texttt{notebook\_run}, \texttt{batch\_eval} y \texttt{fitness\_eval} concentran la mayor duración.
 
 \subsubsection*{Celda 39 — Generación de reportes visuales}
 \paragraph{Descripción} Ejecuta \texttt{scripts/plot\_timings.py} para producir gráficas de línea y pastel; posteriormente carga cuatro imágenes desde \texttt{reports/}.
@@ -767,9 +767,9 @@ display(Image(filename=str(reports_dir / f'timeline_by_individual_{run_id}.png')
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida} Mensajes del comando ejecutado y cuatro imágenes (placeholders: \texttt{img/resultados/timeline\_individual\_c04.png}, \texttt{img/resultados/timeline\_batch\_c04.png}, \texttt{img/resultados/timeline\_sim\_c04.png}, \texttt{img/resultados/pie\_sections\_c04.png}).
+\paragraph{Salida} Mensajes del comando ejecutado y cuatro imágenes.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso04-metricasTiempo.png}
 \caption{Resumen visual del CSV de timings del Caso 04.}

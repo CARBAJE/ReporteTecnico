@@ -103,7 +103,7 @@
 \AtBeginDocument{\justifying}
 
 \renewcommand{\@afterheading}{
-  \vskip-\parskip
+  % Respeta el espacio de \parskip tras encabezados; solo asegura indentación cero en el párrafo siguiente
   \everypar{\setlength{\parindent}{0pt}\everypar{}}%
 }
 

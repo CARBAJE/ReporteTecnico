@@ -1,0 +1,34 @@
+\chapter{Conclusiones}
+\label{chap:conclusiones}
+
+En este documento se diseñó, implementó y evaluó un módulo de simulación gravitatoria para sistemas de dos y tres cuerpos, instrumentado con métricas de desempeño y con una estrategia de optimización basada en el exponente máximo de Lyapunov (mLCE). A continuación se sintetizan los hallazgos principales a partir de los experimentos, se discuten los aportes de implementación, y se plantean limitaciones y líneas de trabajo futuro.
+
+\section{Síntesis general}
+El análisis comparativo entre trayectorias con masas originales y masas optimizadas sugiere que la optimización favorece dinámicas más regulares: menor sensibilidad a condiciones iniciales, mayor estabilidad temporal y prevalencia de comportamientos periódicos o cuasiperiódicos. Cuando el sistema tiende a perder periodicidad, la optimización amplía la ventana temporal de estabilidad o reconduce la órbita hacia configuraciones más favorables.
+
+\section{Conclusiones por caso}
+\textbf{Caso 01 (Hill, adaptado).} El sistema base es estable; no obstante, al optimizar con respecto al mLCE se reduce la variación inter‑período de la órbita del tercer cuerpo. Esto apunta a menor sensibilidad a perturbaciones y a una convergencia más consistente de la trayectoria entre periodos.
+
+\textbf{Caso 02 (Sitnikov).} Con masas originales el sistema es cuasiperiódico. Tras optimizar, persiste la cuasiperiodicidad, pero el tercer cuerpo completa menos vueltas alrededor del segundo conforme avanza el tiempo, lo que sugiere una búsqueda de órbitas más favorables y una mitigación del acoplamiento caótico con ambos cuerpos dominantes.
+
+\textbf{Caso 03 (Kepler pateado, adaptado).} La perturbación periódica desplaza el centro dinámico respecto de la estrella con masas originales. Con masas optimizadas, el centro se recentra en la estrella y la distancia orbital del planeta se vuelve más uniforme a lo largo de la trayectoria, recuperando una periodicidad más limpia pese a la perturbación.
+
+\textbf{Caso 04 (Binario + planeta errante).} Es el ejemplo más contundente: con masas originales el planeta no permanece ligado al binario; con masas optimizadas se mantiene orbitando al segundo cuerpo durante toda la simulación, pasando de ser un elemento temporal a un componente estable del sistema.
+
+\section{Aportes de implementación}
+La arquitectura propuesta simplifica la construcción de simulaciones con REBOUND y consolida un flujo reproducible para evaluar estabilidad:
+\begin{itemize}
+  \item \textbf{Adaptador REBOUND (\texttt{ReboundSim}).} Encapsula la creación de \texttt{rebound.Simulation}, valida dimensiones de entradas, permite recentrar en el centro de masa y expone una API clara para configurar integradores (p.\,ej., \texttt{WHFast}, \texttt{IAS15}).
+  \item \textbf{Estimación de estabilidad (Lyapunov/MEGNO).} Se integra el cálculo del mLCE a partir de rutinas de REBOUND, habilitando comparativas directas entre configuraciones de masa.
+  \item \textbf{Telemetría y trazabilidad.} Instrumentación con bloques temporales para asociar costo computacional a cada fase (configuración, integración, posprocesado), facilitando perfiles de desempeño.
+  \item \textbf{Documentación técnica.} Tablas de parámetros/retornos, fragmentos de código y guías de uso reúnen en un mismo capítulo los componentes clave del módulo.
+\end{itemize}
+
+\section{Limitaciones y amenazas a la validez}
+Los resultados deben leerse a la luz de varias consideraciones: (i) horizontes temporales finitos: extender la integración podría revelar cambios de régimen; (ii) dependencia del integrador y del paso temporal: variaciones en \(\Delta t\) o en el esquema numérico pueden afectar la energía y la estabilidad; (iii) espacio de búsqueda acotado: la optimización de masas no impone necesariamente restricciones astrofísicas (rangos plausibles), por lo que algunas soluciones pueden ser útiles como guías numéricas pero no como sistemas físicos realistas; (iv) la estimación del mLCE es sensible a ventanas y métodos de promediado.
+
+\section{Trabajo futuro}
+Se proponen varias extensiones: (a) explorar familias de razones de masa bajo restricciones físicas; (b) robustecer la estabilidad frente a perturbaciones en condiciones iniciales mediante muestreos Monte Carlo; (c) estudiar otros indicadores (energía y momento angular normalizados, superficies de sección, FLI/GALI); (d) evaluar la sensibilidad al integrador y calibrar \(\Delta t\) para controlar deriva energética; (e) ampliar a \(N>3\) cuerpos con heurísticas de búsqueda más ricas (p.\,ej., multi‑objetivo que combine mLCE, colisiones y conservación de invariantes).
+
+\section{Cierre}
+En conjunto, la implementación y los experimentos muestran que la optimización de masas, guiada por indicadores de estabilidad, puede mejorar de forma práctica el comportamiento orbital de sistemas gravitatorios simples. Además de aportar una base técnica sólida y reproducible, el módulo permite iterar con rapidez sobre configuraciones y sentar las bases para estudios más ambiciosos de diseño de sistemas estables.

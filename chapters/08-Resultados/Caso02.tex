@@ -251,7 +251,7 @@ print(cfg.mass_bounds, cfg.max_epochs, cfg.eval_budget)
 \end{listing}
 \paragraph{Salida esperada} Línea con los valores impresos.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -279,7 +279,7 @@ with time_block('notebook_run', extra={'source': 'Caso01.ipynb'}):
 \end{listing}
 \paragraph{Salida esperada} Flujo de logs por época y registro del bloque \texttt{notebook\_run} en el CSV de timings.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -313,7 +313,7 @@ results
 \end{listing}
 \paragraph{Salida esperada} Diccionario con claves \texttt{status}, \texttt{best}, \texttt{evals}, \texttt{epochs}.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -363,7 +363,7 @@ print(f'lambda inicial = {baseline_lambda:.6f}, lambda optimo = {(best_lambda if
 \end{listing}
 \paragraph{Salida esperada} Línea con ambos valores de $\lambda$.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -404,7 +404,7 @@ xyz_tracks = [traj[:, i, :3] for i in range(traj.shape[1])]
 \end{listing}
 \paragraph{Salida esperada} Mensaje de confirmación, forma del tensor y última fila (valores numéricos dependen de la ejecución).
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -437,9 +437,9 @@ summarize_trajectory(logger=logger, traj=traj, masses=best_masses, cfg=cfg)
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Logs con energía total, periodos estimados, etc.~(placeholder textual).
+\paragraph{Salida esperada} Logs con energía total, periodos estimados, etc.
 
-\begin{listing}[htbp]
+\begin{listing}[H]
 \caption{Ejemplo Salida}
 \begin{adjustbox}{max width=0.7\textwidth}
 \begin{minipage}{\textwidth}
@@ -473,9 +473,9 @@ _ = viz_3d.plot_lambda_evolution(lambda_history=metrics.best_lambda_per_epoch, e
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Figura (placeholder: \texttt{img/resultados/caso02\_lambda.png}).
+\paragraph{Salida esperada} Figura.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso02-evolucion_exponente.png}
 \caption{Evolución del exponente de Lyapunov por época.}
@@ -525,7 +525,7 @@ _ = viz_planar.quick_view(xyz_tracks)
 \end{listing}
 \paragraph{Salida esperada} Figura.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso02-vistas_trayectoria.png}
 \caption{Proyecciones 2D de las trayectorias optimizadas.}
@@ -563,9 +563,9 @@ anim = viz_3d.animate_3d(trajectories=xyz_tracks, interval_ms=50, title=f'Trayec
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Objeto \texttt{anim} en memoria (placeholder visual: \texttt{img/resultados/caso02\_trayectoria3d.png}).
+\paragraph{Salida esperada} Objeto \texttt{anim} en memoria.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso02-trayectoria_3d.png}
 \caption{Fotograma representativo de la animación 3D generada.}
@@ -627,16 +627,16 @@ if anim_mass is not None:
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Animación/figura comparativa (placeholders: \texttt{img/resultados/caso02\_masas.png}).
+\paragraph{Salida esperada} Animación/figura comparativa.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso02-comparativa_trayectoria.png}
 \caption{Comparativa gráfica entre trayectorias originales y optimizadas.}
 \label{fig:c01_masas} %chktex 24 %chktex 24
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso02-comparativa_posicion.png}
 \caption{Comparativa gráfica entre posiciones originales y optimizadas.}
@@ -678,7 +678,7 @@ section_stats
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Texto con el CSV usado y tablas renderizadas (placeholder: \texttt{img/resultados/caso02\_timings.png}).
+\paragraph{Salida esperada} Texto con el CSV usado y tablas renderizadas.
 
 \subsubsection*{Celda 36 — Ejecución de \texttt{plot\_timings.py}}
 \paragraph{Descripción} Ejecuta el script de visualización de timings y verifica que no haya errores.
@@ -725,9 +725,9 @@ display(Image(filename=str(reports_dir / f'timeline_by_individual_{run_id}.png')
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-\paragraph{Salida esperada} Cuatro imágenes (placeholders: \texttt{img/resultados/timeline\_caso02\_*.png}).
+\paragraph{Salida esperada} Cuatro imágenes.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{img/resultados/caso02-metricasTiempo.png}
 \caption{Resumen visual del CSV de timings.}

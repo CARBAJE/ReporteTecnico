@@ -347,7 +347,7 @@ print("Resultado parcial:", result)
 % ---------- ga.py ----------
 \subsection{\texttt{ga.py} \- Motor Genótico en Streaming}
 \paragraph{Descripción general}
-\texttt{StreamingGA} envuelve la configuración del algoritmo genético de \texttt{pymoo} (\texttt{GA}) para el caso unidimensional de minimización (mLCE negativo). Expone una interfaz incremental (\texttt{ask}/\texttt{tell}) y se degrada a un sampler aleatorio con recombinación propia if \texttt{pymoo} no estó instalado o falla el \emph{setup}.
+\texttt{StreamingGA} envuelve la configuración del algoritmo genético de \texttt{pymoo} (\texttt{GA}) para el caso unidimensional de minimización (mLCE negativo). Expone una interfaz incremental (\texttt{ask}/\texttt{tell}) y se degrada a un sampler aleatorio con recombinación propia si \texttt{pymoo} no estó instalado o falla el \emph{setup}.
 
 \subsubsection{\texttt{class StreamingGA}}
 \paragraph{Propósito} Generar poblaciones candidato, recibir evaluaciones y evolucionar la exploración según los hiperparámetros definidos en \texttt{Config} (población, operadores, distribución de masas, elitismo), manteniendo soporte para reseeds locales y degradación controlada.

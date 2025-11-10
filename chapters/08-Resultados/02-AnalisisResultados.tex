@@ -1,0 +1,46 @@
+\section{Discusión y Análisis de Resultados}
+
+Se analizaron cuatro casos de optimización en sistemas de dos y tres cuerpos. En términos generales, los resultados muestran que la optimización de masas tiende a favorecer dinámicas orbitales más estables y menos sensibles a las condiciones iniciales. En particular, cuando aparece comportamiento no periódico o inestable, la optimización suele ampliar las ventanas temporales de periodicidad o quasi‑periodicidad. Esta tendencia es más marcada en el Caso 04.
+
+\subsection{Caso 01: Adaptación del problema de Hill}
+El sistema base es estable. No obstante, al optimizar con respecto al exponente de Lyapunov, el sistema se vuelve menos sensible a las condiciones iniciales. Esto se refleja en la órbita del tercer cuerpo (azul celeste) con relación a los otros dos (azul verdoso y marrón): entre periodos consecutivos, la variación de la trayectoria disminuye cuando se emplean masas optimizadas, mientras que con las masas originales se observan desviaciones mayores.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso01-comparativa_trayectoria.png}
+\caption{Comparativa gráfica entre trayectorias originales y optimizadas.}
+\label{fig:c01_masas} %chktex 24
+\end{figure}
+
+\subsection{Caso 02: Problema de Sitnikov}
+El problema de Sitnikov es un caso clásico de caos determinista. Con las masas iniciales, el sistema exhibe un comportamiento cuasiperiódico. Tras optimizar, se conserva la cuasiperiodicidad, pero el tercer cuerpo (azul aqua) completa menos vueltas alrededor del segundo (marrón) conforme avanza el tiempo. Esto sugiere que, para horizontes de simulación más largos, el sistema con masas optimizadas podría converger hacia órbitas más favorables, reduciendo la influencia simultánea de ambos cuerpos y mitigando la sensibilidad caótica.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso02-comparativa_trayectoria.png}
+\caption{Comparativa gráfica entre trayectorias originales y optimizadas.}
+\label{fig:c02_masas} %chktex 24
+\end{figure}
+
+\subsection{Caso 03: Adaptación del problema de Kepler pateado}
+El sistema es periódicamente estable en su estado nominal; se añade una aceleración periódica para perturbarlo. Con las masas originales, la periodicidad persiste, pero el centro dinámico no coincide con la estrella (azul verdoso) y aparece un desplazamiento hacia \(+Y\). Esto se aprecia en que el cuerpo tipo Tierra (azul aqua) no conserva una distancia uniforme al sol durante su órbita. Con masas optimizadas, el centro dinámico se alinea con la estrella y la distancia orbital del planeta se mantiene más uniforme a lo largo de la trayectoria.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso03-comparativa_trayectoria.png}
+\caption{Comparativa gráfica entre trayectorias originales y optimizadas.}
+\label{fig:c03_masas} %chktex 24
+\end{figure}
+
+\subsection{Caso 04: Sistema binario con planeta errante}
+Este caso muestra con mayor claridad el impacto de la optimización de masas. Dos estrellas forman un sistema binario y un tercer cuerpo actúa como planeta errante. Con las masas originales, el planeta errante permanece poco tiempo ligado al binario y termina escapando dentro del horizonte de simulación. En contraste, con masas optimizadas, el planeta se mantiene orbitando al segundo cuerpo durante toda la simulación, pasando de ser un elemento temporal a uno estable en el sistema.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{img/resultados/caso04-comparativa_trayectoria.png}
+\caption{Comparativa gráfica entre trayectorias originales y optimizadas.}
+\label{fig:c04_masas} %chktex 24
+\end{figure}
+
+\subsection{Conclusiones de la discusión}
+En conjunto, los resultados apuntan a que la optimización de masas favorece dinámicas más regulares: menor sensibilidad a condiciones iniciales, mayor estabilidad temporal y prevalencia de comportamientos orbitales periódicos o cuasiperiódicos. Esto abre la puerta a estudiar cómo parámetros intrínsecos (por ejemplo, razones de masa y proporciones relativas) pueden usarse de forma sistemática para diseñar configuraciones con estabilidad duradera.

@@ -6,10 +6,10 @@
 \label{cap:bitacora-implementacion}
 
 \subsection{Introducción}
-Este capítulo documenta de forma técnica y reproducible el \emph{Módulo de Simulación} empleado para estudiar dinámicas gravitacionales de dos y tres cuerpos mediante REBOUND, así como la estimación del exponente de Lyapunov (mLCE) a partir de trayectorias numéricas. La versión actual simplifica la arquitectura eliminando el antiguo \texttt{dynamics.py}; el cálculo del campo vectorial y las derivadas variacionales se delega directamente en la API oficial de REBOUND, lo que reduce el mantenimiento y garantiza consistencia con el motor de integración. Además, cada integración queda instrumentada con \texttt{time\_block} y \texttt{time\_section} para nutrir la telemetría interna y asociar métricas de desempeño con los candidatos evaluados desde el módulo lógico.
+Este capítulo documenta de forma técnica y reproducible el \emph{Módulo de Simulación} empleado para estudiar dinámicas gravitacionales de dos y tres cuerpos mediante REBOUND, así como la estimación del exponente de Lyapunov (mLCE) a partir de trayectorias numéricas. El cálculo del campo vectorial y las derivadas variacionales se delega directamente en la API oficial de REBOUND, lo que reduce el mantenimiento y garantiza consistencia con el motor de integración. Además, cada integración queda instrumentada con \texttt{time\_block} y \texttt{time\_section} para nutrir la telemetría interna y asociar métricas de desempeño con los candidatos evaluados desde el módulo lógico.\\
 
 \subsection{Arquitectura de Alto Nivel}
-El módulo se divide en tres componentes principales:
+El módulo se divide en tres componentes principales:\\
 \begin{enumerate}
     \item \textbf{Adaptador de dinámica gravitacional (\texttt{rebound\_adapter.py})}: encapsula la creación y propagación de simulaciones usando REBOUND, valida entradas y etiqueta cada paso de integración con \texttt{time\_block} para su registro.
     \item \textbf{Estimación de Lyapunov (\texttt{lyapunov.py})}: calcula el exponente máximo a partir de una simulación REBOUND mediante las funciones MEGNO/\texttt{lyapunov()}, aceptando diccionarios de contexto y propagando metadatos de telemetría (\texttt{timing\_meta}) hacia el sistema de métricas global.
@@ -30,7 +30,7 @@ El módulo se divide en tres componentes principales:
 % ---------- rebound_adapter.py ----------
 \subsection{\texttt{rebound\_adapter.py} \- Adaptador REBOUND}
 \paragraph{Descripción general}
-La clase \texttt{ReboundSim} ofrece una interfaz ligera para construir simulaciones gravitacionales con REBOUND y obtener trayectorias discretas listas para post-procesamiento. Valida la dimensionalidad de masas, posiciones y velocidades, configurando el integrador solicitado y opcionalmente trasladando el sistema al centro de masa.
+La clase \texttt{ReboundSim} ofrece una interfaz ligera para construir simulaciones gravitacionales con REBOUND y obtener trayectorias discretas listas para post-procesamiento. Valida la dimensionalidad de masas, posiciones y velocidades, configurando el integrador solicitado y opcionalmente trasladando el sistema al centro de masa.\\
 
 \subsubsection{\texttt{class ReboundSim}}
 \paragraph{Propósito} Gestionar el ciclo de vida de una simulación REBOUND (creación, configuración e integración discreta).
@@ -50,7 +50,7 @@ La clase \texttt{ReboundSim} ofrece una interfaz ligera para construir simulacio
     \bottomrule
   \end{tabularx}
 \end{table}
-
+\vspace{0.2cm}
 \begin{table}[H]
   \centering
   \caption{Valor de retorno de \texttt{ReboundSim.\_\_init\_\_}}
@@ -63,7 +63,7 @@ La clase \texttt{ReboundSim} ofrece una interfaz ligera para construir simulacio
     \bottomrule
   \end{tabularx}
 \end{table}
-
+\vspace{0.2cm}
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{ReboundSim.\_\_init\_\_}}
 \begin{adjustbox}{max width=\textwidth}
@@ -77,9 +77,12 @@ class ReboundSim:
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\newpage
 
-\subsubsection*{\texttt{setup\_simulation~(masses, r0, v0, move\_to\_com=True) -> Any}}
-\textbf{Propósito.} Construir e inicializar \texttt{rebound.Simulation} con masas y estado inicial (posiciones y velocidades). Ofrece validaciones básicas e inserta cada partícula en el motor.
+\subsubsection*{\texttt{setup\_simulation~(\dots) -> Any}}
+\par\smallskip
+\noindent\textbf{Propósito.} Construir e inicializar \texttt{rebound.Simulation} con masas y estado inicial (posiciones y velocidades). Ofrece validaciones básicas e inserta cada partícula en el motor.\\
+\vspace{0.2cm}
 
 \begin{table}[H]
   \centering
@@ -96,6 +99,7 @@ class ReboundSim:
     \bottomrule
   \end{tabularx}
 \end{table}
+\vspace{0.2cm}
 
 \begin{table}[H]
   \centering
@@ -109,6 +113,7 @@ class ReboundSim:
     \bottomrule
   \end{tabularx}
 \end{table}
+\vspace{0.2cm}
 
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{setup\_simulation}}
@@ -176,6 +181,7 @@ class ReboundSim:
 }
 \end{minipage}
 \end{listing}
+\vspace{0.2cm}
 
 
 \subsubsection*{\texttt{integrate~(sim, t\_end, dt) -> Any}}
@@ -195,6 +201,7 @@ class ReboundSim:
     \bottomrule
   \end{tabularx}
 \end{table}
+\vspace{0.2cm}
 
 \begin{table}[H]
   \centering
@@ -208,6 +215,7 @@ class ReboundSim:
     \bottomrule
   \end{tabularx}
 \end{table}
+\vspace{0.2cm}
 
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{integrate}}
@@ -246,6 +254,7 @@ class ReboundSim:
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\vspace{0.2cm}
 
 \begin{listing}[H]
 \caption{Ejemplo de uso de \texttt{ReboundSim}}
@@ -266,17 +275,18 @@ print("Trayectoria con forma", trajectory.shape)
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\vspace{0.2cm}
 
 % ---------- lyapunov.py ----------
 \subsection{\texttt{lyapunov.py} \- Estimación del Exponente de Lyapunov}
 \paragraph{Descripción general}
-La clase \texttt{LyapunovEstimator} computa el exponente de Lyapunov máximo apoyándose exclusivamente en la ruta MEGNO provista por REBOUND. La estimación se encuentra decorada con \texttt{time\_section} para medir latencias y acepta tanto simulaciones vivas como diccionarios con metadatos (\texttt{sim}, \texttt{dt}, \texttt{t\_end}, \texttt{masses}, \texttt{timing\_meta}). Si la API de REBOUND no está disponible o falla, el método retorna un registro de error estructurado propagando la causa.
+La clase \texttt{LyapunovEstimator} computa el exponente de Lyapunov máximo apoyándose exclusivamente en la ruta MEGNO provista por REBOUND.\ La estimación se encuentra decorada con \texttt{time\_section} para medir latencias y acepta tanto simulaciones vivas como diccionarios con metadatos (\texttt{sim}, \texttt{dt}, \texttt{t\_end}, \texttt{masses}, \texttt{timing\_meta}). Si la API de REBOUND no está disponible o falla, el método retorna un registro de error estructurado propagando la causa.\\
 
 \subsubsection{\texttt{class LyapunovEstimator}}
-\paragraph{Propósito} Calcular el mLCE a partir de un contexto REBOUND configurado con \texttt{ReboundSim} u otra fuente compatible, propagando metadatos de telemetría para que el módulo lógico pueda correlacionar resultados.
+\paragraph{Propósito} Calcular el mLCE a partir de un contexto REBOUND configurado con \texttt{ReboundSim} u otra fuente compatible, propagando metadatos de telemetría para que el módulo lógico pueda correlacionar resultados.\\
 
 \subsubsection*{\texttt{mLCE~(trajectory=None, x0=None, window=100.0) -> dict}}
-\textbf{Propósito.} Ejecutar una estimación de Lyapunov sobre el contexto entregado, normalizando los resultados en una estructura \texttt{dict} con \texttt{lambda}, la serie (si aplica) y metadatos.
+\textbf{Propósito.} Ejecutar una estimación de Lyapunov sobre el contexto entregado, normalizando los resultados en una estructura \texttt{dict} con \texttt{lambda}, la serie (si aplica) y metadatos.\\
 
 \begin{table}[H]
   \centering
@@ -293,6 +303,7 @@ La clase \texttt{LyapunovEstimator} computa el exponente de Lyapunov máximo apo
     \bottomrule
   \end{tabularx}
 \end{table}
+\vspace{0.2cm}
 
 \begin{table}[H]
   \centering
@@ -306,6 +317,7 @@ La clase \texttt{LyapunovEstimator} computa el exponente de Lyapunov máximo apo
     \bottomrule
   \end{tabularx}
 \end{table}
+\vspace{0.2cm}
 
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{mLCE}}
@@ -343,10 +355,11 @@ class LyapunovEstimator:
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\vspace{0.2cm}
 
 \subsubsection*{\texttt{\_resolve\_timing\_meta~(trajectory, timing\_meta) -> Optional[Dict[str, Any]]}}
 \vfill
-\textbf{Propósito.} Normalizar los metadatos de telemetría privilegiando los contenidos dentro del contexto recibido.
+\textbf{Propósito.} Normalizar los metadatos de telemetría privilegiando los contenidos dentro del contexto recibido.\\
 
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{\_resolve\_timing\_meta}}
@@ -365,10 +378,11 @@ def _resolve_timing_meta(trajectory: Any, timing_meta: Optional[Dict[str, Any]])
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\vspace{0.2cm}
 
 \subsubsection*{\texttt{\_mlce\_with\_context~(ctx, window) -> Tuple[float, Optional[Any], Dict[str, Any]]}}
 \vfill
-\textbf{Propósito.} Normalizar el contexto recibido, derivar \texttt{dt} y el número de pasos, y orquestar la ejecución variacional sobre REBOUND.\
+\textbf{Propósito.} Normalizar el contexto recibido, derivar \texttt{dt} y el número de pasos, y orquestar la ejecución variacional sobre REBOUND.\\
 
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{\_mlce\_with\_context}}
@@ -427,7 +441,7 @@ def _resolve_timing_meta(trajectory: Any, timing_meta: Optional[Dict[str, Any]])
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-
+\vspace{0.2cm}
 \subsubsection*{\texttt{\_extract\_rebound\_state~(sim) -> Tuple}}
 \vfill
 \textbf{Propósito.} Extraer masas, posiciones y velocidades de una instancia \texttt{rebound.Simulation} para documentar los parámetros utilizados.\\
@@ -458,10 +472,10 @@ def _resolve_timing_meta(trajectory: Any, timing_meta: Optional[Dict[str, Any]])
 \end{minipage}
 \end{adjustbox}
 \end{listing}
-
+\vspace{0.2cm}
 \subsubsection*{\texttt{\_mlce\_rebound\_variational~(sim, dt, steps) -> Tuple[float, Dict[str, Any]]}}
 \vfill
-\textbf{Propósito.} Ejecutar la ruta variacional de REBOUND (MEGNO + \texttt{lyapunov~()}) y empaquetar los metadatos asociados, propagando \texttt{timing\_meta} hacia la telemetría y etiquetando cada paso de integración con \texttt{time\_block}.
+\textbf{Propósito.} Ejecutar la ruta variacional de REBOUND (MEGNO + \texttt{lyapunov~()}) y empaquetar los metadatos asociados, propagando \texttt{timing\_meta} hacia la telemetría y etiquetando cada paso de integración con \texttt{time\_block}.\\
 
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{\_mlce\_rebound\_variacional}}
@@ -515,6 +529,7 @@ def _resolve_timing_meta(trajectory: Any, timing_meta: Optional[Dict[str, Any]])
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\vspace{0.2cm}
 
 \begin{listing}[H]
 \caption{Ejemplo de uso de \texttt{LyapunovEstimator}}
@@ -536,11 +551,12 @@ print(result["lambda"], result["meta"])
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\vspace{0.2cm}
 
 % ---------- __init__.py ----------
 \subsection{\texttt{\_\_init\_\_.py} \- API del Paquete}
 \paragraph{Descripción general}
-El archivo \texttt{\_\_init\_\_.py} expone una interfaz pública compacta para importar las clases clave del módulo. Con la eliminación de \texttt{dynamics.py}, la API queda reducida a \texttt{ReboundSim} y \texttt{LyapunovEstimator}, evitando fugas de implementaciones internas.
+El archivo \texttt{\_\_init\_\_.py} expone una interfaz pública compacta para importar las clases clave del módulo. Con la eliminación de \texttt{dynamics.py}, la API queda reducida a \texttt{ReboundSim} y \texttt{LyapunovEstimator}, evitando fugas de implementaciones internas.\\
 
 \begin{listing}[H]
 \caption{Bloque de código de \texttt{\_\_init\_\_.py}}
@@ -574,5 +590,6 @@ from two_body.simulation import ReboundSim, LyapunovEstimator
 \end{minipage}
 \end{adjustbox}
 \end{listing}
+\vspace{0.2cm}
 
 % --- Fin de capítulo ---
